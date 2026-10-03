@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediRank Nashik | Specialist Registry &amp; Doctor Diary</title>
+    <title>MediRank &amp; Doctor Diary | Comprehensive Specialist Registry</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -30,6 +31,11 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
         body { background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
+
+        a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+            outline: 2px solid var(--brand);
+            outline-offset: 2px;
+        }
 
         #auth-landing-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -67,6 +73,7 @@
         .password-toggle { position: absolute; right: 12px; top: 32px; cursor: pointer; color: var(--text-muted); padding: 4px; }
         .btn-submit { width: 100%; padding: 12px; border-radius: 10px; background: var(--brand); color: white; border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 6px; transition: 0.2s; }
         .btn-submit:hover { background: var(--brand-hover); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
         .auth-switch { text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-muted); }
         .auth-switch a { color: var(--brand); text-decoration: none; font-weight: 700; cursor: pointer; }
 
@@ -74,17 +81,21 @@
         aside { width: var(--sidebar-width); background: var(--primary); color: white; position: fixed; height: 100vh; padding: 22px 18px; z-index: 100; display: flex; flex-direction: column; }
         .logo { font-size: 1.35rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #fff; }
         .logo i { color: #5eead4; }
-        .nav-links-scroll { flex: 1; overflow-y: auto; }
+        .nav-links-scroll { flex: 1; overflow-y: auto; padding-right: 4px; }
+        .nav-links-scroll::-webkit-scrollbar { width: 4px; }
+        .nav-links-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
         .nav-item { padding: 10px 14px; cursor: pointer; border-radius: 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; transition: 0.2s; color: #cbd5e1; font-weight: 500; font-size: 0.88rem; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.14); color: white; }
         .nav-item i { width: 18px; font-size: 1rem; text-align: center; }
         .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 12px 0; }
 
         .user-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px; margin-top: auto; margin-bottom: 10px; }
-        .user-badge .name { font-size: 0.85rem; font-weight: 600; color: #fff; }
-        .user-badge .role { font-size: 0.7rem; color: #5eead4; text-transform: uppercase; font-weight: 700; }
+        .user-badge .name { font-size: 0.85rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-badge .role { font-size: 0.7rem; color: #5eead4; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
-        .btn-auth-logout { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.82rem; width: 100%; }
+        .btn-auth-logout { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.82rem; transition: 0.2s; width: 100%; }
+        .btn-auth-logout:hover { background: rgba(239, 68, 68, 0.25); color: #fff; }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 30px 40px; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
@@ -104,60 +115,97 @@
         .disclaimer-banner { background: #f0fdfa; border: 1px solid #99f6e4; color: #115e59; padding: 12px 18px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
 
         .specs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 20px 0; }
-        .spec-card { background: white; border-radius: 16px; padding: 18px; border: 2px solid transparent; cursor: pointer; transition: 0.25s; text-align: center; box-shadow: var(--shadow); }
-        .spec-card:hover { border-color: var(--brand); transform: translateY(-4px); }
+        .spec-card { background: white; border-radius: 16px; padding: 18px; border: 2px solid transparent; cursor: pointer; transition: 0.25s; text-align: center; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between; }
+        .spec-card:hover { border-color: var(--brand); transform: translateY(-4px); box-shadow: 0 14px 30px rgba(11, 110, 105, 0.15); }
+        .spec-image { height: 120px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+        .spec-image svg { width: 130px; height: 110px; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.12)); }
         .spec-condition-tag { font-size: 0.78rem; font-weight: 600; color: var(--brand); background: var(--brand-light); padding: 6px 10px; border-radius: 8px; margin-top: 8px; line-height: 1.4; }
-
+        
         .doctor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
-        .doctor-card { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); position: relative; display: flex; flex-direction: column; justify-content: space-between; }
-        .score-badge { position: absolute; top: 18px; right: 18px; background: #e6fffa; color: var(--brand); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
-        .doctor-header-profile { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
-        .doctor-avatar { width: 56px; height: 56px; border-radius: 50%; background: #e6fffa; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--brand); font-size: 1.1rem; flex-shrink: 0; }
+        .doctor-card { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); position: relative; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+        .doctor-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+        .score-badge { position: absolute; top: 18px; right: 18px; background: #e6fffa; color: var(--brand); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #b2f5ea; }
 
+        .doctor-header-profile { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+        .doctor-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #b2f5ea; background: #e6fffa; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--brand); font-size: 1.1rem; flex-shrink: 0; }
+        
         .verify-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 50px; }
         .tag-verified { background: #dcfce7; color: #166534; }
         .tag-pending { background: #fef9c3; color: #854d0e; }
-        .tag-opennow { background: #dcfce7; color: #166534; }
-        .tag-closednow { background: #fee2e2; color: #991b1b; }
+        .tag-rejected { background: #fee2e2; color: #991b1b; }
+        .tag-correction { background: #fef3c7; color: #92400e; }
+        .tag-opennow { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .tag-closednow { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
-        .cloud-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .cloud-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
         .cloud-online { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
         .cloud-offline { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
 
         .area-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0 25px 0; }
-        .chip { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 20px; cursor: pointer; font-size: 0.82rem; font-weight: 500; }
-        .chip.active { background: var(--brand); color: white; }
+        .chip { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 20px; cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.2s; }
+        .chip:hover, .chip.active { background: var(--brand); color: white; border-color: var(--brand); }
 
         .form-section { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 22px; margin-bottom: 20px; }
-        .btn { padding: 9px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; border: none; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+        .btn { padding: 9px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; border: none; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
         .btn-primary { background: var(--brand); color: white; }
+        .btn-primary:hover { background: var(--brand-hover); }
         .btn-outline { background: transparent; border: 1px solid var(--brand); color: var(--brand); }
+        .btn-outline:hover { background: #f0fdfa; }
         .btn-danger-outline { border: 1px solid var(--danger); color: var(--danger); background: transparent; }
+        .btn-danger-outline:hover { background: #fee2e2; }
+        .btn-toggle-active { background: #e6fffa; border: 2px solid var(--brand); color: var(--brand); font-weight: 700; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); z-index: 10000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 92%; max-width: 700px; padding: 28px; border-radius: 20px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+        .modal-content { background: white; width: 92%; max-width: 750px; padding: 28px; border-radius: 20px; max-height: 90vh; overflow-y: auto; position: relative; }
+        
+        .toast { position: fixed; top: 20px; right: 20px; background: #0f172a; color: white; padding: 12px 20px; border-radius: 8px; z-index: 999999; display: none; font-size: 0.85rem; box-shadow: var(--shadow); }
+        .empty-placeholder { text-align: center; padding: 40px 20px; color: var(--text-muted); background: white; border-radius: 14px; border: 1px dashed var(--border); }
 
-        .toast { position: fixed; top: 20px; right: 20px; background: #0f172a; color: white; padding: 12px 20px; border-radius: 8px; z-index: 999999; display: none; font-size: 0.85rem; }
+        .pagination-container { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 25px; }
+        .page-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+        .page-btn.active { background: var(--brand); color: white; border-color: var(--brand); }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .admin-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .admin-stat-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; border-left: 4px solid var(--brand); }
+        .admin-stat-card.pending { border-left-color: var(--accent); }
+        .admin-stat-card.verified { border-left-color: var(--success); }
+        .admin-stat-card.corrections { border-left-color: var(--danger); }
+        .admin-stat-num { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); }
+        .admin-stat-title { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+
+        .review-box { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 14px; }
         .mobile-menu { display: none; }
 
-        @media (max-width: 768px) {
-            aside { transform: translateX(-100%); width: 270px; }
-            aside.mobile-open { transform: translateX(0); }
+        @media (max-width: 1024px) { 
+            aside { width: 75px; padding: 20px 10px; } 
+            aside span, aside .user-badge, aside .btn-auth-logout span { display: none; } 
+            main { margin-left: 75px; padding: 20px; } 
+        }
+
+        @media (max-width: 700px) {
             main { margin-left: 0; padding: 15px; }
+            aside { transform: translateX(-100%); width: 270px; transition: .2s; }
+            aside.mobile-open { transform: translateX(0); }
             .mobile-menu { display: inline-flex; position: fixed; left: 12px; top: 12px; z-index: 3000; border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 9px; cursor: pointer; }
             header { padding-left: 42px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: auto; }
+            .search-container { flex-direction: column; gap: 6px; }
+            .search-container button { min-height: 42px; }
         }
     </style>
 </head>
 <body>
     <button class="mobile-menu" onclick="toggleMobileMenu()" aria-label="Open navigation"><i class="fa-solid fa-bars"></i></button>
 
-    <button id="btn-ai-triage" class="btn btn-primary" onclick="openAITriageModal()" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000; border-radius: 50px; padding: 12px 22px;">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Health Assistant</span>
+    <!-- AI TRIAGE FLOATING BUTTON -->
+    <button id="btn-ai-triage" class="btn btn-primary" onclick="openAITriageModal()" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000; border-radius: 50px; padding: 12px 22px; box-shadow: 0 10px 25px rgba(11,110,105,0.4); font-size: 0.95rem;">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="ai_btn">AI Health Assistant</span>
     </button>
 
-    <!-- AI MODAL -->
-    <div id="ai-modal" class="modal">
+    <!-- AI TRIAGE MODAL -->
+    <div id="ai-modal" class="modal" role="dialog" aria-modal="true">
         <div class="modal-content" style="max-width: 580px;">
             <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeAITriageModal()">&times;</button>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
@@ -165,16 +213,26 @@
                     <i class="fa-solid fa-robot"></i>
                 </div>
                 <div>
-                    <h3 style="margin: 0;">MediAssist AI Triage</h3>
-                    <small style="color: var(--text-muted);">Describe your symptoms</small>
+                    <h3 style="margin: 0;" data-i18n="ai_title">MediAssist AI Triage</h3>
+                    <small style="color: var(--text-muted);" data-i18n="ai_desc">Describe your symptoms in simple language</small>
                 </div>
             </div>
-            <div style="margin-bottom: 14px;">
-                <textarea id="ai-symptom-input" rows="3" placeholder="Describe symptoms (e.g., chest pain, tooth pain)..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;"></textarea>
+            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 14px;" data-i18n="ai_hint">
+                Tell us what you are feeling (e.g. <em>"chest pain after walking"</em>, <em>"severe headache with vomiting"</em>, or <em>"toddler fever"</em>).
+            </p>
+            <div style="position: relative; margin-bottom: 14px;">
+                <textarea id="ai-symptom-input" rows="3" placeholder="Describe symptoms..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;"></textarea>
+                <button onclick="startVoiceInput()" style="position: absolute; right: 10px; bottom: 12px; background: none; border: none; color: var(--brand); cursor: pointer; font-size: 1.1rem;" title="Speak Symptoms">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
             </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="runAITriage()"><i class="fa-solid fa-brain"></i> Analyze Symptoms</button>
+            <button class="btn btn-primary" style="width: 100%;" onclick="runAITriage()"><i class="fa-solid fa-brain"></i> <span data-i18n="ai_analyze">Analyze &amp; Match Specialists</span></button>
             <div id="ai-result-box" style="display: none; margin-top: 16px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--border); padding: 16px;">
                 <div id="ai-result-content"></div>
+            </div>
+            <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 10px; margin-top: 16px; font-size: 0.72rem; color: #991b1b; display: flex; gap: 8px; align-items: center;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span><strong>Emergency Notice:</strong> MediAssist provides algorithmic matching, not medical diagnoses. In life-threatening emergencies, call 108/112 immediately.</span>
             </div>
         </div>
     </div>
@@ -183,18 +241,18 @@
     <div id="auth-landing-screen">
         <div class="auth-card">
             <div class="auth-header">
-                <div class="logo-badge"><i class="fa-solid fa-stethoscope"></i> MediRank</div>
+                <div class="logo-badge"><i class="fa-solid fa-stethoscope"></i> MediRank &amp; Doctor Diary</div>
                 <h2 id="auth-title">Sign In</h2>
-                <p id="auth-subtitle">Select role and sign in</p>
-                <div id="auth-cloud-status" style="margin-top: 6px;"></div>
+                <p id="auth-subtitle">Select your account role to continue</p>
+                <div id="auth-cloud-badge" style="margin-top: 6px;"></div>
             </div>
 
             <div id="auth-error-msg" class="auth-inline-error">
                 <i class="fa-solid fa-circle-exclamation"></i>
-                <span id="auth-error-text">Error message</span>
+                <span id="auth-error-text">Authentication message</span>
             </div>
 
-            <div class="role-selector-pills">
+            <div class="role-selector-pills" id="role-selector-container">
                 <button type="button" class="role-pill active" id="pill-patient" onclick="setAuthRole('PATIENT')"><i class="fa-solid fa-user"></i> Patient</button>
                 <button type="button" class="role-pill" id="pill-doctor" onclick="setAuthRole('DOCTOR')"><i class="fa-solid fa-user-doctor"></i> Doctor</button>
                 <button type="button" class="role-pill" id="pill-admin" onclick="setAuthRole('ADMIN')"><i class="fa-solid fa-shield-halved"></i> Admin</button>
@@ -204,11 +262,12 @@
             <form id="form-login" onsubmit="handleUniversalLogin(event)">
                 <div class="form-group">
                     <label for="login-email">Email Address</label>
-                    <input type="email" id="login-email" required value="patient@medirank.in">
+                    <input type="email" id="login-email" required placeholder="patient@medirank.in" value="patient@medirank.in" autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label for="login-pass">Password</label>
-                    <input type="password" id="login-pass" required value="PatientPassword123">
+                    <input type="password" id="login-pass" required placeholder="PatientPassword123" value="PatientPassword123" autocomplete="current-password">
+                    <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('login-pass', this)"></i>
                 </div>
                 <button type="submit" class="btn-submit" id="btn-login-submit">Sign In to Dashboard</button>
             </form>
@@ -225,44 +284,76 @@
                 </div>
                 <div class="form-group">
                     <label for="reg-pat-pass">Password*</label>
-                    <input type="password" id="reg-pat-pass" required placeholder="Create password">
+                    <input type="password" id="reg-pat-pass" required placeholder="Create strong password">
                 </div>
-                <button type="submit" class="btn-submit">Register as Patient</button>
+                <button type="submit" class="btn-submit" id="btn-patient-submit">Register as Patient</button>
             </form>
 
-            <!-- Doctor Register Form -->
+            <!-- Comprehensive Doctor Register Form -->
             <form id="form-reg-doctor" style="display:none;" onsubmit="handleDoctorRegister(event)">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="reg-doc-name">Doctor Name*</label>
+                        <label for="reg-doc-name">Doctor Full Name*</label>
                         <input type="text" id="reg-doc-name" required placeholder="Dr. Full Name">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-email">Email*</label>
+                        <label for="reg-doc-email">Official Email*</label>
                         <input type="email" id="reg-doc-email" required placeholder="doctor@clinic.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-phone">Phone Number* (10 Digits)</label>
+                        <input type="tel" id="reg-doc-phone" required placeholder="9822011000" pattern="[6-9][0-9]{9}" maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-pass">Password*</label>
+                        <input type="password" id="reg-doc-pass" required placeholder="Create password">
                     </div>
                     <div class="form-group">
                         <label for="reg-doc-specialty">Specialization*</label>
                         <select id="reg-doc-specialty" required></select>
                     </div>
                     <div class="form-group">
+                        <label for="reg-doc-degree">Highest Degree*</label>
+                        <input type="text" id="reg-doc-degree" required placeholder="MBBS, MD, MS, DM...">
+                    </div>
+                    <div class="form-group">
                         <label for="reg-doc-regno">Registration Number*</label>
                         <input type="text" id="reg-doc-regno" required placeholder="e.g. MMC-12345">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-exp">Experience (Years)*</label>
+                        <input type="number" id="reg-doc-exp" min="0" max="70" required placeholder="e.g. 12">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-fee">Consultation Fee (₹)*</label>
+                        <input type="number" id="reg-doc-fee" min="0" max="50000" required placeholder="e.g. 800">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-city">City*</label>
+                        <input type="text" id="reg-doc-city" required value="Nashik">
                     </div>
                     <div class="form-group">
                         <label for="reg-doc-clinic">Clinic / Hospital Name*</label>
                         <input type="text" id="reg-doc-clinic" required placeholder="Clinic Name">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-fee">Consultation Fee (₹)*</label>
-                        <input type="number" id="reg-doc-fee" required value="700">
+                        <label for="reg-doc-area">Area / Locality</label>
+                        <input type="text" id="reg-doc-area" placeholder="e.g. College Road">
                     </div>
                     <div class="form-group full">
-                        <label for="reg-doc-pass">Password*</label>
-                        <input type="password" id="reg-doc-pass" required placeholder="Password">
+                        <label for="reg-doc-address">Complete Clinic Address*</label>
+                        <textarea id="reg-doc-address" rows="2" required placeholder="Plot, Street, Area"></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label for="reg-doc-opd">Consultation Timings*</label>
+                        <textarea id="reg-doc-opd" rows="2" required placeholder="Monday to Friday: 10:00 AM–02:00 PM"></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label for="reg-doc-about">Professional Bio</label>
+                        <textarea id="reg-doc-about" rows="2" placeholder="Brief clinical background..."></textarea>
                     </div>
                 </div>
-                <button type="submit" class="btn-submit">Register as Doctor</button>
+                <button type="submit" class="btn-submit" id="btn-doctor-submit">Submit Profile for Verification</button>
             </form>
 
             <div class="auth-switch" id="auth-toggle-link">
@@ -276,22 +367,23 @@
         <aside id="main-sidebar">
             <div class="logo"><i class="fa-solid fa-stethoscope"></i><span>MediRank</span></div>
             <div class="nav-links-scroll">
-                <div class="nav-item active" id="nav-home" onclick="showView('home')"><i class="fa-solid fa-compass"></i><span>Discover</span></div>
+                <div class="nav-item active" id="nav-home" onclick="showView('home')"><i class="fa-solid fa-compass"></i><span data-i18n="nav_discover">Discover</span></div>
                 <div class="nav-item" id="nav-specs" onclick="showView('specialties')"><i class="fa-solid fa-shapes"></i><span>Specialties</span></div>
-                <div class="nav-item" id="nav-find" onclick="showView('find-doctors')"><i class="fa-solid fa-magnifying-glass"></i><span>All Doctors</span></div>
-                <div class="nav-item" id="nav-nearme" onclick="showView('near-me')"><i class="fa-solid fa-location-dot"></i><span>Localities</span></div>
-                <div class="nav-item" id="nav-records" onclick="showView('records')"><i class="fa-solid fa-file-medical"></i><span>Medical Vault</span></div>
+                <div class="nav-item" id="nav-find" onclick="showView('find-doctors')"><i class="fa-solid fa-magnifying-glass"></i><span data-i18n="nav_doctors">All Doctors</span></div>
+                <div class="nav-item" id="nav-nearme" onclick="showView('near-me')"><i class="fa-solid fa-location-dot"></i><span data-i18n="nav_localities">Localities</span></div>
+                <div class="nav-item" id="nav-records" onclick="showView('records')"><i class="fa-solid fa-file-medical"></i><span data-i18n="nav_vault">Medical Vault</span></div>
                 
-                <div class="nav-divider"></div>
+                <div class="nav-divider" id="nav-portal-divider"></div>
                 
                 <div class="nav-item" id="nav-doc-portal" style="display:none;" onclick="showView('doc-portal')"><i class="fa-solid fa-id-card-clip"></i><span>Practice Portal</span></div>
                 <div class="nav-item" id="nav-admin-verify" style="display:none;" onclick="showView('admin-verification')"><i class="fa-solid fa-file-shield"></i><span>Review Queue</span></div>
-                <div class="nav-item" id="nav-about" onclick="showView('about-legal')"><i class="fa-solid fa-circle-info"></i><span>About &amp; Info</span></div>
+                <div class="nav-item" id="nav-admin-audit" style="display:none;" onclick="showView('admin-audit')"><i class="fa-solid fa-clipboard-list"></i><span>Audit History</span></div>
+                <div class="nav-item" id="nav-about" onclick="showView('about-legal')"><i class="fa-solid fa-circle-info"></i><span data-i18n="nav_about">About &amp; Disclaimer</span></div>
             </div>
 
-            <div class="user-badge">
-                <div class="name" id="user-display-name">Demo User</div>
-                <div class="role" id="user-display-role">PATIENT</div>
+            <div class="user-badge" id="user-badge">
+                <div class="name" id="user-display-name">Loading...</div>
+                <div class="role" id="user-display-role">...</div>
             </div>
 
             <button class="btn-auth-logout" onclick="handleLogout()">
@@ -302,68 +394,87 @@
         <main>
             <header>
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <h2 id="view-title">Clinical Discovery</h2>
+                    <h2 id="view-title" data-i18n="view_home">Clinical Discovery</h2>
                     <span id="cloud-indicator" class="cloud-badge cloud-offline"><i class="fa-solid fa-database"></i> Ready</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <button class="btn btn-outline" onclick="toggleLanguage()" id="lang-toggle-btn" style="border-radius: 20px;">
+                        <i class="fa-solid fa-language"></i> <span id="current-lang-label">मराठी</span>
+                    </button>
+                    <button class="btn btn-outline" onclick="requestUserLocation()" id="btn-user-location" style="border-radius: 20px;">
+                        <i class="fa-solid fa-location-crosshairs"></i> <span id="user-loc-text">Detect Location</span>
+                    </button>
                 </div>
             </header>
 
             <div class="disclaimer-banner">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>MediRank is a doctor discovery directory for Nashik. In clinical emergencies, dial 108 immediately.</span>
+                <span data-i18n="disclaimer_bar"><strong>Notice:</strong> MediRank is an informational doctor directory. It does not provide medical treatment, does not replace professional medical advice, and is not an appointment-booking platform.</span>
             </div>
 
             <!-- VIEW: HOME -->
             <div id="view-home" class="view-section active">
                 <div class="hero">
-                    <h1>Specialist Registry &amp; Directory</h1>
-                    <p>Verified doctor credentials and clinic availability in Nashik.</p>
-
+                    <h1 data-i18n="hero_title">Specialist Registry &amp; Directory</h1>
+                    <p data-i18n="hero_desc">Accredited doctor qualifications, clinic locations, and verified credentials across Nashik.</p>
+                    
                     <div class="search-container">
-                        <input type="text" id="main-search" placeholder="Search by symptom, doctor, or clinic">
-                        <button onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+                        <input type="text" id="main-search" placeholder="Search by symptom, specialty, doctor, or clinic">
+                        <button onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="search_btn">Search</span></button>
                     </div>
 
                     <div class="quick-symptom-bar">
+                        <span style="font-size: 0.8rem; opacity: 0.85; align-self: center;" data-i18n="popular_searches">Popular:</span>
                         <button class="symptom-chip" onclick="searchBySymptom('heart')">🫀 Chest Pain</button>
                         <button class="symptom-chip" onclick="searchBySymptom('skin')">🧴 Skin &amp; Acne</button>
+                        <button class="symptom-chip" onclick="searchBySymptom('bone')">🦴 Knee &amp; Joint</button>
+                        <button class="symptom-chip" onclick="searchBySymptom('brain')">🧠 Headache</button>
                         <button class="symptom-chip" onclick="searchBySymptom('child')">👶 Child Care</button>
                     </div>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3>Featured Practitioners</h3>
-                    <button class="btn btn-outline" onclick="showView('find-doctors')">View All</button>
+                    <h3>Featured Verified Practitioners</h3>
+                    <button class="btn btn-outline" onclick="showView('find-doctors')">View All Directory</button>
                 </div>
                 <div class="doctor-grid" id="home-featured"></div>
             </div>
 
             <!-- VIEW: SPECIALTIES -->
             <div id="view-specialties" class="view-section">
-                <h3>Select by Medical Branch</h3>
+                <h3>Select Specialty by Medical Condition</h3>
+                <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:15px;">Unsure which specialist to consult? Select by bodily condition.</p>
                 <div class="specs-grid" id="specs-visual-grid"></div>
             </div>
 
             <!-- VIEW: FIND DOCTORS -->
             <div id="view-find-doctors" class="view-section">
                 <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
-                    <input type="text" id="f-name" placeholder="Search doctor or clinic..." oninput="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1;">
-                    <select id="f-spec" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border);"><option value="">All Specialties</option></select>
+                    <input type="text" id="f-name" placeholder="Search doctor, clinic or specialty..." oninput="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1; min-width:200px; outline:none;">
+                    <select id="f-spec" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;"><option value="">All Specialties</option></select>
+                    <select id="f-sort" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;">
+                        <option value="relevance">Sort: Relevance</option>
+                        <option value="name">Name A–Z</option>
+                        <option value="fee-low">Fee: Low to High</option>
+                        <option value="fee-high">Fee: High to Low</option>
+                    </select>
                 </div>
                 <div class="doctor-grid" id="doctor-list"></div>
+                <div class="pagination-container" id="doctors-pagination"></div>
             </div>
 
             <!-- VIEW: LOCALITIES -->
             <div id="view-near-me" class="view-section">
-                <h3>Nashik Localities</h3>
+                <h3 data-i18n="localities_title">Nashik &amp; Metro Localities</h3>
                 <div class="area-chips" id="area-chip-container"></div>
                 <div class="doctor-grid" id="nearme-results"></div>
             </div>
 
-            <!-- VIEW: RECORDS VAULT -->
+            <!-- VIEW: MEDICAL VAULT -->
             <div id="view-records" class="view-section">
                 <div class="form-section">
-                    <h3>Patient Medical Vault</h3>
-                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Store and organize prescriptions and test reports locally.</p>
+                    <h3 data-i18n="vault_title">Private Patient Medical Vault</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;" data-i18n="vault_desc">Store and organize prescriptions and test reports locally on your device.</p>
                     <input type="file" id="vault-file-input" onchange="handleVaultUpload(event)">
                     <div id="records-container" style="margin-top:16px;"></div>
                 </div>
@@ -374,33 +485,42 @@
                 <div id="doc-portal-content"></div>
             </div>
 
-            <!-- VIEW: ADMIN QUEUE -->
+            <!-- VIEW: ADMIN VERIFICATION QUEUE -->
             <div id="view-admin-verification" class="view-section">
                 <div class="admin-stat-grid" id="admin-kpi-row"></div>
                 <div id="admin-verify-list"></div>
             </div>
 
-            <!-- VIEW: ABOUT -->
+            <!-- VIEW: ADMIN AUDIT LOGS -->
+            <div id="view-admin-audit" class="view-section">
+                <div class="form-section">
+                    <h3>Administrative Audit History</h3>
+                    <div id="admin-audit-table-container"></div>
+                </div>
+            </div>
+
+            <!-- VIEW: ABOUT & LEGAL -->
             <div id="view-about-legal" class="view-section">
                 <div class="form-section">
-                    <h3>About MediRank</h3>
-                    <p>Transparent doctor credentials for patients across Nashik.</p>
+                    <h3>About MediRank &amp; Doctor Diary</h3>
+                    <p style="margin:10px 0; font-size:0.9rem; line-height:1.6;">MediRank is an informational medical professional directory tailored for Nashik.</p>
                 </div>
             </div>
         </main>
     </div>
 
     <!-- PROFILE MODAL -->
-    <div id="main-modal" class="modal">
+    <div id="main-modal" class="modal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="document.getElementById('main-modal').style.display='none'">&times;</button>
             <div id="modal-body"></div>
         </div>
     </div>
 
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast" role="alert"></div>
 
     <script>
+        /* ================= SUPABASE CLIENT CONFIGURATION ================= */
         const SUPABASE_PROJECT_ID = "jsgvtjlvtlsrsdfikrql";
         const SUPABASE_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co`;
         const SUPABASE_ANON_KEY = "sb_publishable_Q6-0f3e8EJydmH1iLr9OLA_IAFND-6M";
@@ -408,16 +528,43 @@
         let supabase = null;
         let isSupabaseLive = false;
 
+        try {
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {
+            console.warn("Supabase init error:", e);
+        }
+
+        async function verifySupabaseConnection() {
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase.from('doctors').select('id').limit(1);
+                if (!error) {
+                    isSupabaseLive = true;
+                    const badge = document.getElementById('cloud-indicator');
+                    if (badge) {
+                        badge.className = "cloud-badge cloud-online";
+                        badge.innerHTML = '<i class="fa-solid fa-cloud"></i> Supabase Live';
+                    }
+                }
+            } catch(e) {}
+        }
+
+        /* ================= CONSTANTS & DEMO DATA ================= */
+        const CURRENT_DATA_VERSION = "mr_complete_v7";
+        const NASHIK_AREAS = ["College Road", "Gangapur Road", "Panchavati", "Indira Nagar", "Nashik Road", "Mumbai Naka", "Govind Nagar"];
+        
         const SPECIALTY_META = {
-            "Cardiology": { simpleHelp: "Heart & Blood Pressure", desc: "Chest pain, breathlessness, hypertension." },
-            "Gynecology": { simpleHelp: "Women's Health", desc: "Pregnancy care, PCOS, menstrual issues." },
-            "Pediatrics": { simpleHelp: "Child Care", desc: "Infant vaccines, growth, childhood fever." },
-            "Orthopedics": { simpleHelp: "Bones & Joints", desc: "Joint pain, knee problems, fractures." },
-            "Dermatology": { simpleHelp: "Skin & Hair", desc: "Acne, rashes, hair loss." },
-            "General Medicine": { simpleHelp: "General Physician", desc: "Fever, cold, blood sugar checkup." }
+            "Cardiology": { simpleHelp: "Heart & Blood Pressure Conditions", desc: "Chest pain, irregular heartbeats, high BP, and blockages." },
+            "Gynecology": { simpleHelp: "Women's Health, Pregnancy & Period Issues", desc: "Pregnancy, childbirth, PCOS, and menstruation pain." },
+            "Pediatrics": { simpleHelp: "Newborns, Toddlers & Child Health", desc: "Child vaccination, growth milestones, and infant fevers." },
+            "Orthopedics": { simpleHelp: "Bones, Joints & Fractures", desc: "Knee pain, arthritis, back/spine pain, and fractures." },
+            "Dermatology": { simpleHelp: "Skin, Hair & Nail Problems", desc: "Acne, hair fall, fungal rashes, and eczema." },
+            "General Medicine": { simpleHelp: "Routine Fevers, Diabetes & Body Weakness", desc: "Viral fevers, blood sugar/diabetes, and primary checkups." },
+            "Dentistry": { simpleHelp: "Teeth, Gums & Oral Pain", desc: "Toothaches, cavity fillings, and root canals." }
         };
         const SPECIALTIES = Object.keys(SPECIALTY_META);
-        const NASHIK_AREAS = ["College Road", "Gangapur Road", "Panchavati", "Indira Nagar", "Mumbai Naka"];
 
         const ALL_SEED_DOCTORS = [
             {
@@ -430,10 +577,11 @@
                 registrationNumber: "MMC-10491",
                 experience: "14",
                 fee: "800",
+                city: "Nashik",
                 locality: "Panchavati",
                 clinicName: "Apollo Hospitals Nashik",
-                address: "Panchavati, Nashik",
-                availabilityTimings: "Mon-Sat: 10 AM - 2 PM",
+                address: "Swaminarayan Nagar, Panchavati, Nashik 422003",
+                availabilityTimings: "Monday to Thursday: 09:00 AM–02:00 PM",
                 verificationStatus: "Verified"
             },
             {
@@ -446,177 +594,285 @@
                 registrationNumber: "MMC-18921",
                 experience: "11",
                 fee: "600",
+                city: "Nashik",
                 locality: "Mumbai Naka",
-                clinicName: "Sahyadri Hospital",
-                address: "Mumbai Naka, Nashik",
-                availabilityTimings: "Mon-Fri: 11 AM - 4 PM",
+                clinicName: "Sahyadri Super Speciality Hospital",
+                address: "Wadala Naka, Near Mumbai Naka, Nashik 422002",
+                availabilityTimings: "Monday to Friday: 10:00 AM–08:00 PM",
+                verificationStatus: "Verified"
+            },
+            {
+                id: "nashik_doc_03",
+                fullName: "Dr. Ananya Joshi",
+                email: "dr.ananya@medirank.in",
+                publicPhone: "9822011777",
+                specialty: "Gynecology",
+                highestDegree: "MD / MS (OBGY)",
+                registrationNumber: "MMC-28341",
+                experience: "12",
+                fee: "700",
+                city: "Nashik",
+                locality: "College Road",
+                clinicName: "Matrucare Maternity & Women's Clinic",
+                address: "Plot 14, College Road, Nashik",
+                availabilityTimings: "Monday to Friday: 10:00 AM–02:00 PM",
                 verificationStatus: "Verified"
             }
         ];
 
+        let currentLang = 'en';
+        const I18N = {
+            en: {
+                ai_btn: "AI Health Assistant",
+                ai_title: "MediAssist AI Triage",
+                ai_desc: "Describe your symptoms in simple language",
+                ai_hint: 'Tell us what you are feeling (e.g. "chest pain", "severe headache", or "toddler fever").',
+                ai_analyze: "Analyze & Match Specialists",
+                nav_discover: "Discover",
+                nav_doctors: "All Doctors",
+                nav_localities: "Localities",
+                nav_vault: "Medical Vault",
+                nav_about: "About & Disclaimer",
+                view_home: "Clinical Discovery",
+                disclaimer_bar: "<strong>Notice:</strong> MediRank is an informational doctor directory.",
+                hero_title: "Specialist Registry & Directory",
+                hero_desc: "Accredited doctor qualifications, clinic locations, and verified credentials across Nashik.",
+                search_btn: "Search",
+                popular_searches: "Popular:",
+                localities_title: "Nashik & Metro Localities",
+                vault_title: "Private Patient Medical Vault",
+                vault_desc: "Encrypted document storage restricted solely to your authenticated account."
+            },
+            mr: {
+                ai_btn: "एआय आरोग्य सहाय्यक",
+                ai_title: "मेडीअसिस्ट एआय ट्रायज",
+                ai_desc: "तुमची लक्षणे साध्या भाषेत सांगा",
+                ai_hint: 'तुम्हाला काय त्रास होतोय ते सांगा (उदा. "छातीत दुखणे", "डोकेदुखी", "ताप").',
+                ai_analyze: "विश्लेषण करा आणि तज्ज्ञ शोधा",
+                nav_discover: "शोध",
+                nav_doctors: "सर्व डॉक्टर",
+                nav_localities: "परिसर विभाग",
+                nav_vault: "वैद्यकीय व्हॉल्ट",
+                nav_about: "माहिती व अस्वीकरण",
+                view_home: "वैद्यकीय शोध",
+                disclaimer_bar: "<strong>सूचना:</strong> मेडीरँक ही केवळ माहिती देणारी निर्देशिका आहे.",
+                hero_title: "डॉक्टर व तज्ज्ञ निर्देशिका",
+                hero_desc: "नोंदणीकृत डॉक्टर, दवाखान्यांचे पत्ते आणि तपासणीच्या अचूक वेळा.",
+                search_btn: "शोधा",
+                popular_searches: "लोकप्रिय शोध:",
+                localities_title: "परिसर विभाग",
+                vault_title: "खाजगी वैद्यकीय व्हॉल्ट",
+                vault_desc: "केवळ तुमच्या खात्यापुरते सुरक्षित असलेले वैद्यकीय दस्तऐवज."
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = (currentLang === 'en') ? 'mr' : 'en';
+            document.getElementById('current-lang-label').innerText = (currentLang === 'en') ? 'मराठी' : 'English';
+            applyTranslations();
+        }
+
+        function applyTranslations() {
+            const dict = I18N[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) el.innerHTML = dict[key];
+            });
+        }
+
+        const safeRead = (k, def) => {
+            try { const item = localStorage.getItem(k); return item ? JSON.parse(item) : def; } catch(e) { return def; }
+        };
+        const safeWrite = (k, val) => {
+            try { localStorage.setItem(k, JSON.stringify(val)); } catch(e) {}
+        };
+
+        // Initialize local demo storage
+        if (localStorage.getItem('mr_ver') !== CURRENT_DATA_VERSION) {
+            safeWrite('mr_docs', ALL_SEED_DOCTORS);
+            safeWrite('mr_users', [
+                { userId: "admin_root", fullName: "Chief Council Admin", email: "admin@council.gov.in", password: "AdminPassword123", role: "ADMIN" },
+                { userId: "usr_patient_demo", fullName: "Rahul Patil", email: "patient@medirank.in", password: "PatientPassword123", role: "PATIENT" },
+                { userId: "usr_doctor_demo", fullName: "Dr. Vikram Patil", email: "dr.vikram@medirank.in", password: "DoctorPassword123", role: "DOCTOR", doctorId: "nashik_doc_01" }
+            ]);
+            safeWrite('mr_audit', [
+                { id: "aud_01", targetDoctorName: "Dr. Vikram Patil", action: "VERIFIED", adminUser: "Chief Council Admin", date: "2026-03-10" }
+            ]);
+            localStorage.setItem('mr_ver', CURRENT_DATA_VERSION);
+        }
+
         let currentUser = null;
         let currentUserRole = "PATIENT";
         let cachedDoctors = ALL_SEED_DOCTORS;
-        let authRole = "PATIENT";
-        let selectedArea = "All Areas";
+        let selectedArea = 'All Areas';
+        let authRole = 'PATIENT';
+        let isLoginMode = true;
 
-        function safeRead(key, fallback) {
-            try {
-                const item = localStorage.getItem(key);
-                return item ? JSON.parse(item) : fallback;
-            } catch(e) { return fallback; }
-        }
-        function safeWrite(key, val) {
-            try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
-        }
+        window.onload = async function() {
+            populateSpecialtyDropdowns();
+            renderSpecialtiesVisualGrid();
+            renderAreaChips();
 
-        window.onload = function() {
-            try {
-                initSupabaseSafe();
-                populateDropdowns();
-                renderSpecialtiesGrid();
-                renderAreaChips();
-                cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
-                renderHome();
-                filterDoctors();
-                renderNearMe();
+            await verifySupabaseConnection();
+            await loadDirectoryData();
 
-                const sess = safeRead('mr_session', null);
-                if (sess) {
-                    currentUser = sess;
-                    currentUserRole = sess.role || 'PATIENT';
+            const sess = safeRead('mr_session', null);
+            if (sess) {
+                const users = safeRead('mr_users', []);
+                const u = users.find(x => x.userId === sess.uid);
+                if (u) {
+                    currentUser = u;
+                    currentUserRole = u.role;
                     unlockApp();
                 } else {
                     showAuthScreen();
                 }
-            } catch (err) {
-                console.error("Critical load recovery:", err);
-                unlockApp();
+            } else {
+                showAuthScreen();
             }
         };
 
-        function initSupabaseSafe() {
-            try {
-                if (window.supabase) {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    supabase.from('doctors').select('id').limit(1).then(({ error }) => {
-                        if (!error) {
-                            isSupabaseLive = true;
-                            document.getElementById('cloud-indicator').className = "cloud-badge cloud-online";
-                            document.getElementById('cloud-indicator').innerHTML = '<i class="fa-solid fa-cloud"></i> Supabase Live';
-                        }
-                    }).catch(() => {});
-                }
-            } catch(e) {}
-        }
-
-        function populateDropdowns() {
-            const fSpec = document.getElementById('f-spec');
+        function populateSpecialtyDropdowns() {
             const rSpec = document.getElementById('reg-doc-specialty');
+            const fSpec = document.getElementById('f-spec');
             const opts = SPECIALTIES.map(s => `<option value="${s}">${s}</option>`).join('');
-            if (fSpec) fSpec.innerHTML = '<option value="">All Specialties</option>' + opts;
             if (rSpec) rSpec.innerHTML = opts;
+            if (fSpec) fSpec.innerHTML = '<option value="">All Specialties</option>' + opts;
         }
 
-        function renderSpecialtiesGrid() {
-            const el = document.getElementById('specs-visual-grid');
-            if (!el) return;
-            el.innerHTML = SPECIALTIES.map(s => `
-                <div class="spec-card" onclick="selectSpecialty('${s}')">
-                    <h3 style="color:var(--brand);">${s}</h3>
-                    <div class="spec-condition-tag">${SPECIALTY_META[s].simpleHelp}</div>
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">${SPECIALTY_META[s].desc}</p>
-                </div>
-            `).join('');
+        function renderSpecialtiesVisualGrid() {
+            const cont = document.getElementById('specs-visual-grid');
+            if (!cont) return;
+            cont.innerHTML = SPECIALTIES.map(s => {
+                const info = SPECIALTY_META[s];
+                return `
+                    <div class="spec-card" onclick="selectSpecialtyCard('${s}')">
+                        <div>
+                            <h3 style="font-size:1.1rem; margin-bottom:4px; color:var(--brand);">${s}</h3>
+                            <div class="spec-condition-tag"><i class="fa-solid fa-stethoscope"></i> ${info.simpleHelp}</div>
+                        </div>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">${info.desc}</p>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function selectSpecialty(s) {
+        function selectSpecialtyCard(s) {
             showView('find-doctors');
             document.getElementById('f-spec').value = s;
             filterDoctors();
         }
 
-        function renderAreaChips() {
-            const el = document.getElementById('area-chip-container');
-            if (!el) return;
-            el.innerHTML = ['All Areas', ...NASHIK_AREAS].map(a => `
-                <div class="chip ${a === selectedArea ? 'active':''}" onclick="setArea('${a}')">${a}</div>
-            `).join('');
+        function showAuthScreen() {
+            document.getElementById('auth-landing-screen').style.display = 'flex';
+            toggleAuthMode('LOGIN');
         }
 
-        function setArea(a) {
-            selectedArea = a;
-            renderAreaChips();
-            renderNearMe();
-        }
-
-        function renderNearMe() {
-            const el = document.getElementById('nearme-results');
-            if (!el) return;
-            const filtered = selectedArea === 'All Areas' ? cachedDoctors : cachedDoctors.filter(d => (d.locality || '').toLowerCase() === selectedArea.toLowerCase());
-            el.innerHTML = filtered.map(createDoctorCard).join('') || '<p>No doctors listed in this area.</p>';
+        function showAuthError(msg) {
+            const errBox = document.getElementById('auth-error-msg');
+            const errTxt = document.getElementById('auth-error-text');
+            if (msg) {
+                errTxt.innerText = msg;
+                errBox.style.display = 'flex';
+            } else {
+                errBox.style.display = 'none';
+            }
         }
 
         function setAuthRole(role) {
             authRole = role;
-            document.querySelectorAll('.role-pill').forEach(b => b.classList.toggle('active', b.id === `pill-${role.toLowerCase()}`));
-            const email = document.getElementById('login-email');
-            const pass = document.getElementById('login-pass');
-            if (role === 'ADMIN') { email.value = "admin@council.gov.in"; pass.value = "AdminPassword123"; }
-            else if (role === 'DOCTOR') { email.value = "dr.vikram@medirank.in"; pass.value = "DoctorPassword123"; }
-            else { email.value = "patient@medirank.in"; pass.value = "PatientPassword123"; }
+            showAuthError(null);
+            document.querySelectorAll('.role-pill').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `pill-${role.toLowerCase()}`);
+            });
+            const emailInput = document.getElementById('login-email');
+            const passInput = document.getElementById('login-pass');
+            if (role === 'ADMIN') {
+                emailInput.value = "admin@council.gov.in";
+                passInput.value = "AdminPassword123";
+            } else if (role === 'DOCTOR') {
+                emailInput.value = "dr.vikram@medirank.in";
+                passInput.value = "DoctorPassword123";
+            } else {
+                emailInput.value = "patient@medirank.in";
+                passInput.value = "PatientPassword123";
+            }
+            renderAuthForm();
         }
 
         function toggleAuthMode(mode) {
-            const isLogin = mode === 'LOGIN';
-            document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
-            document.getElementById('form-reg-patient').style.display = (!isLogin && authRole === 'PATIENT') ? 'block' : 'none';
-            document.getElementById('form-reg-doctor').style.display = (!isLogin && authRole === 'DOCTOR') ? 'block' : 'none';
-            document.getElementById('auth-toggle-link').innerHTML = isLogin ? 
-                'Need an account? <a onclick="toggleAuthMode(\'REGISTER\')">Create an Account</a>' : 
-                'Have an account? <a onclick="toggleAuthMode(\'LOGIN\')">Sign In</a>';
+            isLoginMode = (mode === 'LOGIN');
+            showAuthError(null);
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const toggleBox = document.getElementById('auth-toggle-link');
+            const adminPill = document.getElementById('pill-admin');
+
+            if (isLoginMode) {
+                title.innerText = "Sign In";
+                subtitle.innerText = "Select your account role to continue";
+                adminPill.style.display = 'flex';
+                toggleBox.innerHTML = `Need an account? <a onclick="toggleAuthMode('REGISTER')">Create an Account</a>`;
+            } else {
+                title.innerText = "Create Account";
+                subtitle.innerText = "Select your account type to register";
+                adminPill.style.display = 'none';
+                if (authRole === 'ADMIN') setAuthRole('PATIENT');
+                toggleBox.innerHTML = `Already registered? <a onclick="toggleAuthMode('LOGIN')">Sign In here</a>`;
+            }
+            renderAuthForm();
         }
 
-        function handleUniversalLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value.trim();
-            currentUser = { fullName: email.split('@')[0], email, role: authRole };
-            currentUserRole = authRole;
-            safeWrite('mr_session', currentUser);
-            unlockApp();
-            showToast("Signed in as " + authRole);
+        function renderAuthForm() {
+            const fPat = document.getElementById('form-reg-patient');
+            const fDoc = document.getElementById('form-reg-doctor');
+            const fLog = document.getElementById('form-login');
+
+            fPat.style.display = 'none';
+            fDoc.style.display = 'none';
+            fLog.style.display = 'none';
+
+            if (isLoginMode) fLog.style.display = 'block';
+            else if (authRole === 'PATIENT') fPat.style.display = 'block';
+            else if (authRole === 'DOCTOR') fDoc.style.display = 'block';
         }
 
-        function handlePatientRegister(e) {
+        async function handleUniversalLogin(e) {
             e.preventDefault();
-            const name = document.getElementById('reg-pat-name').value.trim();
-            const email = document.getElementById('reg-pat-email').value.trim();
-            currentUser = { fullName: name, email, role: 'PATIENT' };
-            currentUserRole = 'PATIENT';
-            safeWrite('mr_session', currentUser);
-            unlockApp();
-        }
+            showAuthError(null);
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pass = document.getElementById('login-pass').value;
 
-        function handleDoctorRegister(e) {
-            e.preventDefault();
-            const name = document.getElementById('reg-doc-name').value.trim();
-            const email = document.getElementById('reg-doc-email').value.trim();
-            const doc = {
-                id: "doc_" + Date.now(),
-                fullName: name,
-                email,
-                specialty: document.getElementById('reg-doc-specialty').value,
-                registrationNumber: document.getElementById('reg-doc-regno').value,
-                clinicName: document.getElementById('reg-doc-clinic').value,
-                fee: document.getElementById('reg-doc-fee').value,
-                locality: "Nashik",
-                verificationStatus: "Pending Review"
-            };
-            cachedDoctors.unshift(doc);
-            safeWrite('mr_docs', cachedDoctors);
-            currentUser = { fullName: name, email, role: 'DOCTOR' };
-            currentUserRole = 'DOCTOR';
-            safeWrite('mr_session', currentUser);
+            // 1. Try Supabase cloud auth
+            if (isSupabaseLive && supabase) {
+                try {
+                    const { data: su, error } = await supabase.from('users').select('*').eq('email', email).eq('password', pass).limit(1);
+                    if (!error && su && su.length > 0) {
+                        currentUser = { userId: su[0].id, fullName: su[0].full_name, email: su[0].email, role: su[0].role };
+                        currentUserRole = su[0].role;
+                        safeWrite('mr_session', { uid: currentUser.userId, email: currentUser.email });
+                        unlockApp();
+                        return;
+                    }
+                } catch(err) {}
+            }
+
+            // 2. Direct local storage fallback
+            const users = safeRead('mr_users', []);
+            const user = users.find(u => u.email.toLowerCase() === email && u.password === pass);
+
+            if (!user) {
+                showAuthError("Invalid email or password.");
+                return;
+            }
+            if (user.role !== authRole) {
+                showAuthError(`Role mismatch: This account is registered as ${user.role}. Click the '${user.role}' tab above.`);
+                return;
+            }
+
+            currentUser = user;
+            currentUserRole = user.role;
+            safeWrite('mr_session', { uid: user.userId, email: user.email });
             unlockApp();
         }
 
@@ -625,77 +881,203 @@
             document.getElementById('user-display-name').innerText = currentUser?.fullName || "User";
             document.getElementById('user-display-role').innerText = currentUserRole;
 
+            const isPatient = currentUserRole === 'PATIENT';
             const isDoctor = currentUserRole === 'DOCTOR';
             const isAdmin = currentUserRole === 'ADMIN';
 
+            document.getElementById('nav-home').style.display = isPatient ? 'flex' : 'none';
+            document.getElementById('nav-specs').style.display = isPatient ? 'flex' : 'none';
+            document.getElementById('nav-find').style.display = isPatient ? 'flex' : 'none';
+            document.getElementById('nav-nearme').style.display = isPatient ? 'flex' : 'none';
+            document.getElementById('nav-records').style.display = isPatient ? 'flex' : 'none';
+
             document.getElementById('nav-doc-portal').style.display = isDoctor ? 'flex' : 'none';
             document.getElementById('nav-admin-verify').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('nav-admin-audit').style.display = isAdmin ? 'flex' : 'none';
+
+            document.getElementById('btn-ai-triage').style.display = isPatient ? 'inline-flex' : 'none';
+
+            loadDirectoryData();
 
             if (isAdmin) showView('admin-verification');
             else if (isDoctor) showView('doc-portal');
             else showView('home');
         }
 
-        function showAuthScreen() {
-            document.getElementById('auth-landing-screen').style.display = 'flex';
-        }
-
         function handleLogout() {
+            currentUser = null;
+            currentUserRole = null;
             localStorage.removeItem('mr_session');
             showAuthScreen();
+            showToast("Signed out.");
         }
 
-        function showView(viewId) {
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const target = document.getElementById('view-' + viewId);
-            if (target) target.classList.add('active');
-            const nav = document.getElementById('nav-' + (viewId === 'home' ? 'home' : (viewId === 'specialties' ? 'specs' : viewId)));
-            if (nav) nav.classList.add('active');
-            document.getElementById('main-sidebar')?.classList.remove('mobile-open');
+        async function handlePatientRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-pat-name').value.trim();
+            const email = document.getElementById('reg-pat-email').value.trim().toLowerCase();
+            const pass = document.getElementById('reg-pat-pass').value;
 
-            if (viewId === 'doc-portal') renderDoctorPortal();
-            if (viewId === 'admin-verification') renderAdminVerification();
+            const uid = "usr_" + Date.now();
+            const newUser = { userId: uid, fullName: name, email, password: pass, role: "PATIENT" };
+
+            if (isSupabaseLive && supabase) {
+                try {
+                    await supabase.from('users').insert([{ id: uid, full_name: name, email, password: pass, role: "PATIENT" }]);
+                } catch(e) {}
+            }
+
+            const users = safeRead('mr_users', []);
+            users.push(newUser);
+            safeWrite('mr_users', users);
+
+            currentUser = newUser;
+            currentUserRole = "PATIENT";
+            safeWrite('mr_session', { uid, email });
+            unlockApp();
+            showToast("Registered as Patient!");
+        }
+
+        async function handleDoctorRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-doc-name').value.trim();
+            const email = document.getElementById('reg-doc-email').value.trim().toLowerCase();
+            const phone = document.getElementById('reg-doc-phone').value.trim();
+            const pass = document.getElementById('reg-doc-pass').value;
+            const specialty = document.getElementById('reg-doc-specialty').value;
+            const degree = document.getElementById('reg-doc-degree').value.trim();
+            const regno = document.getElementById('reg-doc-regno').value.trim();
+            const exp = document.getElementById('reg-doc-exp').value.trim();
+            const fee = document.getElementById('reg-doc-fee').value.trim();
+            const clinic = document.getElementById('reg-doc-clinic').value.trim();
+            const area = document.getElementById('reg-doc-area').value.trim() || "Nashik";
+            const address = document.getElementById('reg-doc-address').value.trim();
+            const opd = document.getElementById('reg-doc-opd').value.trim();
+            const about = document.getElementById('reg-doc-about').value.trim();
+
+            const uid = "doc_" + Date.now();
+            const docEntry = {
+                id: uid,
+                fullName: name,
+                email,
+                publicPhone: phone,
+                specialty,
+                highestDegree: degree,
+                registrationNumber: regno,
+                experience: exp,
+                fee,
+                city: "Nashik",
+                locality: area,
+                clinicName: clinic,
+                address,
+                availabilityTimings: opd,
+                about,
+                verificationStatus: "Pending Review"
+            };
+
+            const userEntry = { userId: uid, fullName: name, email, password: pass, role: "DOCTOR", doctorId: uid };
+
+            if (isSupabaseLive && supabase) {
+                try {
+                    await supabase.from('users').insert([{ id: uid, full_name: name, email, password: pass, role: "DOCTOR" }]);
+                    await supabase.from('doctors').insert([docEntry]);
+                } catch(e) {}
+            }
+
+            const users = safeRead('mr_users', []);
+            users.push(userEntry);
+            safeWrite('mr_users', users);
+
+            const docs = safeRead('mr_docs', []);
+            docs.unshift(docEntry);
+            safeWrite('mr_docs', docs);
+
+            currentUser = userEntry;
+            currentUserRole = "DOCTOR";
+            safeWrite('mr_session', { uid, email });
+            unlockApp();
+            showToast("Doctor application submitted for verification.");
+        }
+
+        async function loadDirectoryData() {
+            if (isSupabaseLive && supabase) {
+                try {
+                    const { data, error } = await supabase.from('doctors').select('*');
+                    if (!error && data && data.length > 0) {
+                        cachedDoctors = data;
+                        renderHome();
+                        filterDoctors();
+                        renderNearMe();
+                        return;
+                    }
+                } catch (e) {}
+            }
+            cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
+            renderHome();
+            filterDoctors();
+            renderNearMe();
         }
 
         function createDoctorCard(doc) {
             const initials = (doc.fullName || 'Dr').replace('Dr.', '').trim().substring(0, 2).toUpperCase();
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.clinicName + ' ' + (doc.address || doc.locality || 'Nashik'))}`;
+
             return `
                 <div class="doctor-card">
                     <div>
-                        <div class="score-badge">${doc.specialty}</div>
+                        <div class="score-badge">${doc.specialty || 'General'}</div>
                         <div class="doctor-header-profile">
                             <div class="doctor-avatar">${initials}</div>
                             <div>
-                                <h3 style="font-size:1.05rem;">${doc.fullName}</h3>
-                                <div style="font-size:0.82rem; color:var(--brand); font-weight:700;">${doc.highestDegree || 'Specialist'}</div>
+                                <h3 style="font-size:1.05rem; margin-bottom:2px;">${doc.fullName}</h3>
+                                <div style="font-size:0.82rem; color:var(--brand); font-weight:700;">${doc.highestDegree || 'MD'}</div>
                             </div>
                         </div>
+
                         <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin:10px 0;">
-                            <div><i class="fa-solid fa-hospital"></i> ${doc.clinicName}, ${doc.locality || 'Nashik'}</div>
-                            <div><i class="fa-solid fa-indian-rupee-sign"></i> ₹${doc.fee || '—'} Consultation</div>
+                            <div><i class="fa-solid fa-hospital"></i> ${doc.clinicName || 'Clinic'}, ${doc.locality || 'Nashik'}</div>
+                            <div><i class="fa-solid fa-indian-rupee-sign"></i> <strong>₹${doc.fee || '—'}</strong> Consultation Fee</div>
+                            <div><i class="fa-solid fa-briefcase"></i> ${doc.experience || '10'} years experience</div>
+                            <div style="margin-top:4px;"><i class="fa-regular fa-clock"></i> ${doc.availabilityTimings || 'OPD hours available'}</div>
+                        </div>
+
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                            ${doc.verificationStatus === 'Verified' ? '<span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>' : '<span class="verify-tag tag-pending"><i class="fa-solid fa-clock"></i> Under Review</span>'}
                         </div>
                     </div>
-                    <button class="btn btn-primary" style="width:100%;" onclick="openProfile('${doc.id}')">View Details &amp; QR</button>
+
+                    <div>
+                        <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-outline" style="width:100%; margin-bottom:8px; font-size:0.82rem;">
+                            <i class="fa-solid fa-diamond-turn-right"></i> Navigate on Maps
+                        </a>
+                        <button class="btn btn-primary" style="width:100%;" onclick="openProfile('${doc.id}')">
+                            <i class="fa-solid fa-qrcode"></i> View Full Profile &amp; QR
+                        </button>
+                    </div>
                 </div>
             `;
         }
 
         function renderHome() {
-            const el = document.getElementById('home-featured');
-            if (el) el.innerHTML = cachedDoctors.slice(0, 4).map(createDoctorCard).join('');
+            const list = document.getElementById('home-featured');
+            const verified = cachedDoctors.filter(d => d.verificationStatus === 'Verified');
+            list.innerHTML = verified.slice(0, 6).map(createDoctorCard).join('') || '<div class="empty-placeholder">No practitioners featured.</div>';
         }
 
         function filterDoctors() {
             const q = (document.getElementById('f-name')?.value || '').toLowerCase().trim();
             const s = (document.getElementById('f-spec')?.value || '').toLowerCase().trim();
-            const res = cachedDoctors.filter(d => {
-                const matchQ = !q || (d.fullName || '').toLowerCase().includes(q) || (d.clinicName || '').toLowerCase().includes(q);
-                const matchS = !s || (d.specialty || '').toLowerCase() === s;
-                return matchQ && matchS;
+
+            let res = cachedDoctors.filter(d => d.verificationStatus === 'Verified').filter(d => {
+                const matchQuery = !q || (d.fullName || '').toLowerCase().includes(q) || (d.clinicName || '').toLowerCase().includes(q) || (d.specialty || '').toLowerCase().includes(q);
+                const matchSpec = !s || (d.specialty || '').toLowerCase() === s;
+                return matchQuery && matchSpec;
             });
+
             const list = document.getElementById('doctor-list');
-            if (list) list.innerHTML = res.map(createDoctorCard).join('') || '<p>No practitioners found.</p>';
+            if (list) {
+                list.innerHTML = res.map(createDoctorCard).join('') || '<div class="empty-placeholder" style="grid-column: 1 / -1;">No practitioners match this search.</div>';
+            }
         }
 
         function handleSearch() {
@@ -711,58 +1093,227 @@
             filterDoctors();
         }
 
+        function renderAreaChips() {
+            const cont = document.getElementById('area-chip-container');
+            if (!cont) return;
+            const areas = ["All Areas", ...NASHIK_AREAS];
+            cont.innerHTML = areas.map(a => `
+                <div class="chip ${a === selectedArea ? 'active':''}" onclick="selectArea('${a}', this)">
+                    <i class="fa-solid fa-location-dot"></i> ${a}
+                </div>
+            `).join('');
+        }
+
+        function selectArea(a, el) {
+            selectedArea = a;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            if (el) el.classList.add('active');
+            renderNearMe();
+        }
+
+        function renderNearMe() {
+            const cont = document.getElementById('nearme-results');
+            if (!cont) return;
+            const verified = cachedDoctors.filter(d => d.verificationStatus === 'Verified');
+            const list = selectedArea === 'All Areas' ? verified : verified.filter(d => (d.locality||'').toLowerCase() === selectedArea.toLowerCase());
+            cont.innerHTML = list.length ? list.map(createDoctorCard).join('') : `<div class="empty-placeholder" style="grid-column: 1 / -1;">No practices found in ${selectedArea}.</div>`;
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const target = document.getElementById('view-' + viewId);
+            if (target) target.classList.add('active');
+
+            const navMap = {
+                'home': 'nav-home',
+                'specialties': 'nav-specs',
+                'find-doctors': 'nav-find',
+                'near-me': 'nav-nearme',
+                'records': 'nav-records',
+                'doc-portal': 'nav-doc-portal',
+                'admin-verification': 'nav-admin-verify',
+                'admin-audit': 'nav-admin-audit',
+                'about-legal': 'nav-about'
+            };
+            if (navMap[viewId]) document.getElementById(navMap[viewId])?.classList.add('active');
+            document.getElementById('main-sidebar')?.classList.remove('mobile-open');
+
+            if (viewId === 'doc-portal') renderDoctorPortal();
+            if (viewId === 'admin-verification') renderAdminVerification();
+            if (viewId === 'admin-audit') renderAdminAuditLogs();
+        }
+
         function openProfile(id) {
             const doc = cachedDoctors.find(d => d.id === id);
             if (!doc) return;
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.clinicName + ' ' + (doc.address || doc.locality || 'Nashik'))}`;
+
             document.getElementById('modal-body').innerHTML = `
-                <h2>${doc.fullName}</h2>
-                <p style="color:var(--brand); font-weight:700;">${doc.specialty}</p>
-                <p style="margin:10px 0;">${doc.clinicName} • ₹${doc.fee} Consultation Fee</p>
-                <div id="qr-box" style="margin:20px auto; width:120px; height:120px;"></div>
+                <div style="display:flex; gap:16px; align-items:center; border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:16px;">
+                    <div class="doctor-avatar" style="width:70px; height:70px; font-size:1.5rem;">${doc.fullName.replace('Dr.','').trim().substring(0,2).toUpperCase()}</div>
+                    <div>
+                        <h2>${doc.fullName}</h2>
+                        <p style="color:var(--brand); font-weight:700;">${doc.specialty} • ${doc.highestDegree || 'MD'}</p>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Registration: <code>${doc.registrationNumber || 'Verified'}</code> • ${doc.experience || '10'} Years Experience</p>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.85rem;">
+                    <div><strong>Clinic:</strong> ${doc.clinicName}</div>
+                    <div><strong>Consultation Fee:</strong> ₹${doc.fee}</div>
+                    <div><strong>Area:</strong> ${doc.locality || 'Nashik'}</div>
+                    <div><strong>Phone:</strong> ${doc.publicPhone || 'Available at Clinic'}</div>
+                    <div style="grid-column: span 2;"><strong>Address:</strong> ${doc.address || doc.locality}</div>
+                    <div style="grid-column: span 2; white-space:pre-line;"><strong>OPD Hours:</strong><br>${doc.availabilityTimings || 'Available at Clinic'}</div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                    <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fa-solid fa-diamond-turn-right"></i> Open in Google Maps</a>
+                </div>
+
+                <div style="text-align:center; margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
+                    <div id="qr-box" style="display:flex; justify-content:center;"></div>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">Scan QR to share this verified profile</p>
+                </div>
             `;
             document.getElementById('main-modal').style.display = 'flex';
             setTimeout(() => {
-                const box = document.getElementById('qr-box');
-                if (box) {
-                    box.innerHTML = '';
-                    new QRCode(box, { text: window.location.href, width: 120, height: 120 });
+                const qr = document.getElementById('qr-box');
+                if (qr) {
+                    qr.innerHTML = '';
+                    new QRCode(qr, { text: window.location.href, width: 110, height: 110 });
                 }
             }, 60);
         }
 
         function renderDoctorPortal() {
-            const el = document.getElementById('doc-portal-content');
-            if (!el) return;
-            el.innerHTML = `
+            const cont = document.getElementById('doc-portal-content');
+            let doc = cachedDoctors.find(d => d.email === currentUser.email) || cachedDoctors[0];
+
+            cont.innerHTML = `
                 <div class="form-section">
-                    <h3>Doctor Practice Panel</h3>
-                    <p style="margin-top:6px;">Manage your clinic timings and status in real-time.</p>
+                    <h2>${doc.fullName}</h2>
+                    <p style="color:var(--brand); font-weight:700; margin:4px 0 16px;">${doc.specialty} • Reg: <code>${doc.registrationNumber}</code></p>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Clinic Name</label><input type="text" id="p-clinic" value="${doc.clinicName || ''}"></div>
+                        <div class="form-group"><label>Fee (₹)</label><input type="number" id="p-fee" value="${doc.fee || ''}"></div>
+                        <div class="form-group"><label>Phone</label><input type="tel" id="p-phone" value="${doc.publicPhone || ''}"></div>
+                        <div class="form-group full"><label>Hours</label><textarea id="p-hours" rows="2">${doc.availabilityTimings || ''}</textarea></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showToast('Practice updates saved.')"><i class="fa-solid fa-floppy-disk"></i> Save Practice Updates</button>
                 </div>
             `;
         }
 
         function renderAdminVerification() {
-            const el = document.getElementById('admin-verify-list');
-            if (!el) return;
-            el.innerHTML = cachedDoctors.map(d => `
-                <div class="doctor-card" style="margin-bottom:10px;">
-                    <div><strong>${d.fullName}</strong> (${d.specialty})</div>
-                    <div>Status: <span class="verify-tag tag-verified">${d.verificationStatus || 'Verified'}</span></div>
+            const docs = safeRead('mr_docs', []);
+            const pending = docs.filter(d => d.verificationStatus === 'Pending Review');
+            const verified = docs.filter(d => d.verificationStatus === 'Verified');
+
+            document.getElementById('admin-kpi-row').innerHTML = `
+                <div class="admin-stat-card pending"><div class="admin-stat-num">${pending.length}</div><div class="admin-stat-title">Pending Review</div></div>
+                <div class="admin-stat-card verified"><div class="admin-stat-num">${verified.length}</div><div class="admin-stat-title">Verified Doctors</div></div>
+            `;
+
+            document.getElementById('admin-verify-list').innerHTML = docs.map(d => `
+                <div class="doctor-card" style="margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <strong>${d.fullName}</strong> (${d.specialty})<br>
+                            <small>Reg: <code>${d.registrationNumber}</code> | ${d.clinicName}</small>
+                        </div>
+                        <button class="btn btn-primary" onclick="setDoctorVerification('${d.id}', 'Verified')">Approve</button>
+                    </div>
                 </div>
             `).join('');
         }
 
+        function setDoctorVerification(id, newStatus) {
+            let docs = safeRead('mr_docs', []);
+            let d = docs.find(x => x.id === id);
+            if (d) {
+                d.verificationStatus = newStatus;
+                safeWrite('mr_docs', docs);
+                renderAdminVerification();
+                loadDirectoryData();
+                showToast("Doctor listing approved.");
+            }
+        }
+
+        function renderAdminAuditLogs() {
+            const logs = safeRead('mr_audit', []);
+            document.getElementById('admin-audit-table-container').innerHTML = `
+                <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                    <thead><tr style="background:#f8fafc; text-align:left; border-bottom:1px solid var(--border);"><th style="padding:8px;">Date</th><th style="padding:8px;">Doctor</th><th style="padding:8px;">Action</th></tr></thead>
+                    <tbody>
+                        ${logs.map(l => `<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px;">${l.date || 'Today'}</td><td style="padding:8px;"><strong>${l.targetDoctorName}</strong></td><td style="padding:8px;"><code>${l.action}</code></td></tr>`).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        /* ================= AI TRIAGE ================= */
+        const AI_KNOWLEDGE = [
+            { specialty: "Cardiology", patterns: ["chest", "heart", "bp", "palpitation"] },
+            { specialty: "Gynecology", patterns: ["period", "pregnancy", "pcos", "cramp"] },
+            { specialty: "Orthopedics", patterns: ["knee", "joint", "back pain", "fracture", "bone"] },
+            { specialty: "Pediatrics", patterns: ["child", "baby", "infant", "toddler", "vaccine"] },
+            { specialty: "Dermatology", patterns: ["skin", "acne", "hair", "rash", "itching"] },
+            { specialty: "Dentistry", patterns: ["tooth", "teeth", "gum", "cavity"] },
+            { specialty: "General Medicine", patterns: ["fever", "cough", "cold", "weakness"] }
+        ];
+
         function openAITriageModal() { document.getElementById('ai-modal').style.display = 'flex'; }
         function closeAITriageModal() { document.getElementById('ai-modal').style.display = 'none'; }
+
         function runAITriage() {
-            const txt = (document.getElementById('ai-symptom-input').value || '').toLowerCase();
+            const input = (document.getElementById('ai-symptom-input').value || '').toLowerCase().trim();
             const box = document.getElementById('ai-result-box');
+            const cont = document.getElementById('ai-result-content');
+            if (!input) return showToast('Please describe your symptoms.');
+
             box.style.display = 'block';
-            let spec = "General Medicine";
-            if (txt.includes('chest') || txt.includes('heart')) spec = "Cardiology";
-            else if (txt.includes('child') || txt.includes('baby')) spec = "Pediatrics";
-            else if (txt.includes('skin') || txt.includes('rash')) spec = "Dermatology";
-            document.getElementById('ai-result-content').innerHTML = `<strong>Suggested: ${spec}</strong><br><button class="btn btn-primary" style="margin-top:8px;" onclick="closeAITriageModal(); selectSpecialty('${spec}');">View ${spec} Doctors</button>`;
+            let match = AI_KNOWLEDGE.find(k => k.patterns.some(p => input.includes(p))) || AI_KNOWLEDGE[AI_KNOWLEDGE.length - 1];
+
+            cont.innerHTML = `
+                <strong style="color:var(--brand); font-size:1rem;"><i class="fa-solid fa-stethoscope"></i> Recommended Branch: ${match.specialty}</strong>
+                <p style="font-size:0.85rem; margin:8px 0; color:#334155;">Consult specialists in ${match.specialty} for these symptoms.</p>
+                <button class="btn btn-primary" style="width:100%;" onclick="applyAISuggestion('${match.specialty}')">View ${match.specialty} Doctors</button>
+            `;
+        }
+
+        function applyAISuggestion(spec) {
+            closeAITriageModal();
+            showView('find-doctors');
+            document.getElementById('f-spec').value = spec;
+            filterDoctors();
+        }
+
+        function startVoiceInput() {
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Speech) return showToast("Voice recognition not supported in this browser.");
+            const r = new Speech();
+            showToast("Listening... Describe your symptoms.");
+            r.onresult = (e) => {
+                document.getElementById('ai-symptom-input').value = e.results[0][0].transcript;
+                runAITriage();
+            };
+            r.start();
+        }
+
+        function requestUserLocation() {
+            if (!navigator.geolocation) return showToast("Location not supported.");
+            navigator.geolocation.getCurrentPosition(
+                () => {
+                    document.getElementById('user-loc-text').innerText = "Nashik Active";
+                    document.getElementById('btn-user-location').classList.add('btn-toggle-active');
+                    filterDoctors();
+                    showToast("Proximity location active.");
+                },
+                () => showToast("Could not retrieve GPS.")
+            );
         }
 
         function handleVaultUpload(e) {
@@ -770,21 +1321,27 @@
             if (!file) return;
             const container = document.getElementById('records-container');
             const item = document.createElement('div');
-            item.innerHTML = `<i class="fa-regular fa-file"></i> ${file.name}`;
+            item.style.padding = '8px';
+            item.style.marginTop = '6px';
+            item.style.background = '#f8fafc';
+            item.style.borderRadius = '6px';
+            item.innerHTML = `<i class="fa-regular fa-file-pdf" style="color:#ef4444;"></i> <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
             container.appendChild(item);
-            showToast("Document saved to local vault.");
+            showToast("Prescription stored in private vault.");
         }
 
-        function toggleMobileMenu() {
-            document.getElementById('main-sidebar')?.classList.toggle('mobile-open');
+        function toggleMobileMenu() { document.getElementById('main-sidebar')?.classList.toggle('mobile-open'); }
+        function togglePasswordVisibility(id, icon) {
+            const f = document.getElementById(id);
+            f.type = (f.type === 'password') ? 'text' : 'password';
+            icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
         }
-
         function showToast(msg) {
             const t = document.getElementById('toast');
             if (!t) return;
             t.innerText = msg;
             t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
+            setTimeout(() => { t.style.display = 'none'; }, 3000);
         }
     </script>
 </body>
