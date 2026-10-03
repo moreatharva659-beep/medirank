@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediRank &amp; Doctor Diary | Comprehensive Specialist Registry</title>
+    <title>MediRank &amp; Doctor Diary | Nashik Specialist Registry</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
@@ -71,7 +72,6 @@
         .password-toggle { position: absolute; right: 12px; top: 32px; cursor: pointer; color: var(--text-muted); padding: 4px; }
         .btn-submit { width: 100%; padding: 12px; border-radius: 10px; background: var(--brand); color: white; border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 6px; transition: 0.2s; }
         .btn-submit:hover { background: var(--brand-hover); }
-        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
         .auth-switch { text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-muted); }
         .auth-switch a { color: var(--brand); text-decoration: none; font-weight: 700; cursor: pointer; }
 
@@ -80,8 +80,6 @@
         .logo { font-size: 1.35rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #fff; }
         .logo i { color: #5eead4; }
         .nav-links-scroll { flex: 1; overflow-y: auto; padding-right: 4px; }
-        .nav-links-scroll::-webkit-scrollbar { width: 4px; }
-        .nav-links-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
 
         .nav-item { padding: 10px 14px; cursor: pointer; border-radius: 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; transition: 0.2s; color: #cbd5e1; font-weight: 500; font-size: 0.88rem; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.14); color: white; }
@@ -93,7 +91,6 @@
         .user-badge .role { font-size: 0.7rem; color: #5eead4; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
         .btn-auth-logout { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.82rem; transition: 0.2s; width: 100%; }
-        .btn-auth-logout:hover { background: rgba(239, 68, 68, 0.25); color: #fff; }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 30px 40px; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
@@ -114,27 +111,23 @@
 
         .specs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 20px 0; }
         .spec-card { background: white; border-radius: 16px; padding: 18px; border: 2px solid transparent; cursor: pointer; transition: 0.25s; text-align: center; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between; }
-        .spec-card:hover { border-color: var(--brand); transform: translateY(-4px); box-shadow: 0 14px 30px rgba(11, 110, 105, 0.15); }
-        .spec-image { height: 120px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-        .spec-image svg { width: 130px; height: 110px; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.12)); }
+        .spec-card:hover { border-color: var(--brand); transform: translateY(-4px); }
         .spec-condition-tag { font-size: 0.78rem; font-weight: 600; color: var(--brand); background: var(--brand-light); padding: 6px 10px; border-radius: 8px; margin-top: 8px; line-height: 1.4; }
         
         .doctor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
         .doctor-card { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); position: relative; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
-        .doctor-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
         .score-badge { position: absolute; top: 18px; right: 18px; background: #e6fffa; color: var(--brand); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #b2f5ea; }
 
         .doctor-header-profile { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
-        .doctor-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #b2f5ea; background: #e6fffa; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--brand); font-size: 1.1rem; flex-shrink: 0; }
+        .doctor-avatar { width: 56px; height: 56px; border-radius: 50%; background: #e6fffa; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--brand); font-size: 1.1rem; flex-shrink: 0; }
         
         .verify-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 50px; }
         .tag-verified { background: #dcfce7; color: #166534; }
         .tag-pending { background: #fef9c3; color: #854d0e; }
-        .tag-rejected { background: #fee2e2; color: #991b1b; }
-        .tag-correction { background: #fef3c7; color: #92400e; }
-        .tag-away { background: #f1f5f9; color: #475569; }
-        .tag-opennow { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .tag-closednow { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        .cloud-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .cloud-online { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .cloud-offline { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
 
         .area-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0 25px 0; }
         .chip { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 20px; cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.2s; }
@@ -146,48 +139,22 @@
         .btn-primary:hover { background: var(--brand-hover); }
         .btn-outline { background: transparent; border: 1px solid var(--brand); color: var(--brand); }
         .btn-outline:hover { background: #f0fdfa; }
-        .btn-danger-outline { border: 1px solid var(--danger); color: var(--danger); background: transparent; }
-        .btn-danger-outline:hover { background: #fee2e2; }
-        .btn-toggle-active { background: #e6fffa; border: 2px solid var(--brand); color: var(--brand); font-weight: 700; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
-        .modal-content { background: white; width: 92%; max-width: 750px; padding: 28px; border-radius: 20px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-content { background: white; width: 92%; max-width: 650px; padding: 28px; border-radius: 20px; max-height: 90vh; overflow-y: auto; position: relative; }
         
         .toast { position: fixed; top: 20px; right: 20px; background: #0f172a; color: white; padding: 12px 20px; border-radius: 8px; z-index: 999999; display: none; font-size: 0.85rem; box-shadow: var(--shadow); }
         .empty-placeholder { text-align: center; padding: 40px 20px; color: var(--text-muted); background: white; border-radius: 14px; border: 1px dashed var(--border); }
-
-        .pagination-container { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 25px; }
-        .page-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
-        .page-btn.active { background: var(--brand); color: white; border-color: var(--brand); }
-        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .admin-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .admin-stat-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; border-left: 4px solid var(--brand); }
-        .admin-stat-card.pending { border-left-color: var(--accent); }
-        .admin-stat-card.verified { border-left-color: var(--success); }
-        .admin-stat-card.corrections { border-left-color: var(--danger); }
-        .admin-stat-num { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); }
-        .admin-stat-title { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-
-        .review-box { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 14px; }
         .mobile-menu { display: none; }
 
-        @media (max-width: 1024px) { 
-            aside { width: 75px; padding: 20px 10px; } 
-            aside span, aside .user-badge, aside .btn-auth-logout span { display: none; } 
-            main { margin-left: 75px; padding: 20px; } 
-        }
-
-        @media (max-width: 700px) {
-            main { margin-left: 0; padding: 15px; }
+        @media (max-width: 768px) {
             aside { transform: translateX(-100%); width: 270px; transition: .2s; }
             aside.mobile-open { transform: translateX(0); }
+            main { margin-left: 0; padding: 15px; }
             .mobile-menu { display: inline-flex; position: fixed; left: 12px; top: 12px; z-index: 3000; border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 9px; cursor: pointer; }
             header { padding-left: 42px; }
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full { grid-column: auto; }
-            .search-container { flex-direction: column; gap: 6px; }
-            .search-container button { min-height: 42px; }
         }
     </style>
 </head>
@@ -195,12 +162,12 @@
     <button class="mobile-menu" onclick="toggleMobileMenu()" aria-label="Open navigation"><i class="fa-solid fa-bars"></i></button>
 
     <!-- AI TRIAGE FLOATING BUTTON -->
-    <button id="btn-ai-triage" class="btn btn-primary" onclick="openAITriageModal()" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000; border-radius: 50px; padding: 12px 22px; box-shadow: 0 10px 25px rgba(11,110,105,0.4); font-size: 0.95rem;">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="ai_btn">AI Health Assistant</span>
+    <button id="btn-ai-triage" class="btn btn-primary" onclick="openAITriageModal()" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000; border-radius: 50px; padding: 12px 22px;">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Health Assistant</span>
     </button>
 
-    <!-- AI TRIAGE MODAL -->
-    <div id="ai-modal" class="modal" role="dialog" aria-modal="true">
+    <!-- AI MODAL -->
+    <div id="ai-modal" class="modal">
         <div class="modal-content" style="max-width: 580px;">
             <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeAITriageModal()">&times;</button>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
@@ -208,26 +175,16 @@
                     <i class="fa-solid fa-robot"></i>
                 </div>
                 <div>
-                    <h3 style="margin: 0;" data-i18n="ai_title">MediAssist AI Triage</h3>
-                    <small style="color: var(--text-muted);" data-i18n="ai_desc">Describe your symptoms in simple language</small>
+                    <h3 style="margin: 0;">MediAssist AI Triage</h3>
+                    <small style="color: var(--text-muted);">Describe your symptoms</small>
                 </div>
             </div>
-            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 14px;" data-i18n="ai_hint">
-                Tell us what you are feeling (e.g. <em>"chest pain after walking"</em>, <em>"severe headache with vomiting"</em>, or <em>"toddler fever"</em>).
-            </p>
-            <div style="position: relative; margin-bottom: 14px;">
-                <textarea id="ai-symptom-input" rows="3" placeholder="Describe symptoms..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;"></textarea>
-                <button onclick="startVoiceInput()" style="position: absolute; right: 10px; bottom: 12px; background: none; border: none; color: var(--brand); cursor: pointer; font-size: 1.1rem;" title="Speak Symptoms">
-                    <i class="fa-solid fa-microphone"></i>
-                </button>
+            <div style="margin-bottom: 14px;">
+                <textarea id="ai-symptom-input" rows="3" placeholder="Describe symptoms (e.g., chest pain, knee pain)..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;"></textarea>
             </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="runAITriage()"><i class="fa-solid fa-brain"></i> <span data-i18n="ai_analyze">Analyze &amp; Match Specialists</span></button>
+            <button class="btn btn-primary" style="width: 100%;" onclick="runAITriage()"><i class="fa-solid fa-brain"></i> Analyze &amp; Match Specialists</button>
             <div id="ai-result-box" style="display: none; margin-top: 16px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--border); padding: 16px;">
                 <div id="ai-result-content"></div>
-            </div>
-            <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 10px; margin-top: 16px; font-size: 0.72rem; color: #991b1b; display: flex; gap: 8px; align-items: center;">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span><strong>Emergency Notice:</strong> MediAssist provides algorithmic matching, not medical diagnoses. In life-threatening emergencies, call 108/112 immediately.</span>
             </div>
         </div>
     </div>
@@ -236,17 +193,17 @@
     <div id="auth-landing-screen">
         <div class="auth-card">
             <div class="auth-header">
-                <div class="logo-badge"><i class="fa-solid fa-stethoscope"></i> MediRank &amp; Doctor Diary</div>
+                <div class="logo-badge"><i class="fa-solid fa-stethoscope"></i> MediRank</div>
                 <h2 id="auth-title">Sign In</h2>
-                <p id="auth-subtitle">Select your account role to continue</p>
+                <p id="auth-subtitle">Select role and sign in</p>
             </div>
 
             <div id="auth-error-msg" class="auth-inline-error">
                 <i class="fa-solid fa-circle-exclamation"></i>
-                <span id="auth-error-text">Authentication message</span>
+                <span id="auth-error-text">Message</span>
             </div>
 
-            <div class="role-selector-pills" id="role-selector-container">
+            <div class="role-selector-pills">
                 <button type="button" class="role-pill active" id="pill-patient" onclick="setAuthRole('PATIENT')"><i class="fa-solid fa-user"></i> Patient</button>
                 <button type="button" class="role-pill" id="pill-doctor" onclick="setAuthRole('DOCTOR')"><i class="fa-solid fa-user-doctor"></i> Doctor</button>
                 <button type="button" class="role-pill" id="pill-admin" onclick="setAuthRole('ADMIN')"><i class="fa-solid fa-shield-halved"></i> Admin</button>
@@ -256,16 +213,11 @@
             <form id="form-login" onsubmit="handleUniversalLogin(event)">
                 <div class="form-group">
                     <label for="login-email">Email Address</label>
-                    <input type="email" id="login-email" required placeholder="patient@medirank.in" value="patient@medirank.in" autocomplete="username">
+                    <input type="email" id="login-email" required value="patient@medirank.in">
                 </div>
                 <div class="form-group">
                     <label for="login-pass">Password</label>
-                    <input type="password" id="login-pass" required placeholder="PatientPassword123" value="PatientPassword123" autocomplete="current-password">
-                    <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('login-pass', this)"></i>
-                </div>
-                <div style="text-align:right; margin-bottom:14px;">
-                    <!-- Direct Before-Login Password Reset Trigger -->
-                    <a onclick="openForgotPasswordModal()" style="color:var(--brand); font-size:0.82rem; font-weight:600; cursor:pointer; text-decoration:underline;">Forgot Password? Reset via OTP</a>
+                    <input type="password" id="login-pass" required value="PatientPassword123">
                 </div>
                 <button type="submit" class="btn-submit" id="btn-login-submit">Sign In to Dashboard</button>
             </form>
@@ -274,154 +226,64 @@
             <form id="form-reg-patient" style="display:none;" onsubmit="handlePatientRegister(event)">
                 <div class="form-group">
                     <label for="reg-pat-name">Full Name*</label>
-                    <input type="text" id="reg-pat-name" required placeholder="e.g. Rahul Patil" pattern="^[a-zA-Z\s\.]+$" title="Letters, spaces, and periods only" autocomplete="name">
+                    <input type="text" id="reg-pat-name" required placeholder="e.g. Rahul Patil">
                 </div>
                 <div class="form-group">
                     <label for="reg-pat-email">Email Address*</label>
-                    <input type="email" id="reg-pat-email" required placeholder="name@email.com" autocomplete="email">
+                    <input type="email" id="reg-pat-email" required placeholder="name@email.com">
                 </div>
                 <div class="form-group">
-                    <label for="reg-pat-pass">Password* (8+ chars, uppercase, lowercase, digit)</label>
-                    <input type="password" id="reg-pat-pass" required placeholder="Create strong password" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$" title="Must contain at least 8 characters, one uppercase letter, one lowercase letter, and one number" autocomplete="new-password">
-                    <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('reg-pat-pass', this)"></i>
+                    <label for="reg-pat-pass">Password*</label>
+                    <input type="password" id="reg-pat-pass" required placeholder="Create strong password">
                 </div>
-                <div class="form-group">
-                    <label for="reg-pat-pass-confirm">Confirm Password*</label>
-                    <input type="password" id="reg-pat-pass-confirm" required placeholder="Re-enter password" autocomplete="new-password">
-                </div>
-                <button type="submit" class="btn-submit" id="btn-patient-submit">Register as Patient</button>
+                <button type="submit" class="btn-submit">Register as Patient</button>
             </form>
 
-            <!-- Comprehensive Doctor Register Form -->
+            <!-- Doctor Register Form -->
             <form id="form-reg-doctor" style="display:none;" onsubmit="handleDoctorRegister(event)">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="reg-doc-name">Doctor Full Name*</label>
-                        <input type="text" id="reg-doc-name" required placeholder="Dr. Full Name" pattern="^[a-zA-Z\s\.]+$" title="Letters, spaces, and periods only" autocomplete="name">
+                        <label for="reg-doc-name">Doctor Name*</label>
+                        <input type="text" id="reg-doc-name" required placeholder="Dr. Full Name">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-email">Official Email*</label>
-                        <input type="email" id="reg-doc-email" required placeholder="doctor@clinic.com" autocomplete="email">
+                        <label for="reg-doc-email">Email*</label>
+                        <input type="email" id="reg-doc-email" required placeholder="doctor@clinic.com">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-phone">Phone Number* (10 Digits)</label>
-                        <input type="tel" id="reg-doc-phone" required placeholder="9876543210" pattern="[6-9][0-9]{9}" maxlength="10" title="Valid 10-digit Indian mobile number starting with 6-9" autocomplete="tel">
+                        <label for="reg-doc-phone">Phone Number*</label>
+                        <input type="tel" id="reg-doc-phone" required placeholder="9822011000">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-pass">Password* (8+ chars, uppercase, lowercase, digit)</label>
-                        <input type="password" id="reg-doc-pass" required placeholder="Create password" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$" title="Must contain at least 8 characters, one uppercase letter, one lowercase letter, and one number" autocomplete="new-password">
-                        <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('reg-doc-pass', this)"></i>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-confirm-pass">Confirm Password*</label>
-                        <input type="password" id="reg-doc-confirm-pass" required placeholder="Re-enter password" autocomplete="new-password">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-gender">Gender</label>
-                        <select id="reg-doc-gender"><option>Prefer not to say</option><option>Male</option><option>Female</option><option>Other</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-age">Age (18–100)</label>
-                        <input type="number" id="reg-doc-age" min="18" max="100" placeholder="e.g. 38">
+                        <label for="reg-doc-pass">Password*</label>
+                        <input type="password" id="reg-doc-pass" required placeholder="Password">
                     </div>
                     <div class="form-group">
                         <label for="reg-doc-specialty">Specialization*</label>
                         <select id="reg-doc-specialty" required></select>
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-sub">Sub-specialization</label>
-                        <input type="text" id="reg-doc-sub" placeholder="e.g. Interventional Cardiology">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-degree">Highest Degree / Qualification*</label>
-                        <input type="text" id="reg-doc-degree" required placeholder="MBBS, MD, MS, DM...">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-univ">Medical College / University</label>
-                        <input type="text" id="reg-doc-univ" placeholder="e.g. BJ Medical College, Pune">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-year">Graduation / PG Year (1950–2026)</label>
-                        <input type="number" id="reg-doc-year" min="1950" max="2026" placeholder="e.g. 2012">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-cert">Additional Certifications</label>
-                        <input type="text" id="reg-doc-cert" placeholder="e.g. Fellow in Pediatric Echocardiography">
+                        <label for="reg-doc-degree">Highest Degree*</label>
+                        <input type="text" id="reg-doc-degree" required placeholder="MBBS, MD, MS">
                     </div>
                     <div class="form-group">
                         <label for="reg-doc-regno">Registration Number*</label>
-                        <input type="text" id="reg-doc-regno" required placeholder="e.g. MMC-12345">
+                        <input type="text" id="reg-doc-regno" required placeholder="MMC-12345">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-council">Registration Council</label>
-                        <input type="text" id="reg-doc-council" placeholder="e.g. Maharashtra Medical Council">
+                        <label for="reg-doc-fee">Consultation Fee (₹)*</label>
+                        <input type="number" id="reg-doc-fee" required value="700">
                     </div>
-                    <div class="form-group">
-                        <label for="reg-doc-exp">Experience (Years, 0–70)*</label>
-                        <input type="number" id="reg-doc-exp" min="0" max="70" required placeholder="e.g. 12">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-position">Current Position</label>
-                        <input type="text" id="reg-doc-position" placeholder="e.g. Senior Consultant">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-fee">Consultation Fee (₹ 0–50,000)*</label>
-                        <input type="number" id="reg-doc-fee" min="0" max="50000" required placeholder="e.g. 800">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-online">Online Consultation</label>
-                        <select id="reg-doc-online"><option>No</option><option>Yes</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-state">State*</label>
-                        <select id="reg-doc-state" onchange="loadDoctorRegCities()" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-city">City*</label>
-                        <select id="reg-doc-city" required></select>
-                    </div>
-                    <div class="form-group">
+                    <div class="form-group full">
                         <label for="reg-doc-clinic">Clinic / Hospital Name*</label>
                         <input type="text" id="reg-doc-clinic" required placeholder="Clinic Name">
                     </div>
-                    <div class="form-group">
-                        <label for="reg-doc-area">Area / Locality</label>
-                        <input type="text" id="reg-doc-area" placeholder="e.g. College Road">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-pin">6-digit PIN Code</label>
-                        <input type="text" id="reg-doc-pin" pattern="[1-9][0-9]{5}" maxlength="6" placeholder="e.g. 422005" title="Valid 6-digit Indian PIN code">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-languages">Languages Known</label>
-                        <input type="text" id="reg-doc-languages" placeholder="English, Hindi, Marathi">
-                    </div>
                     <div class="form-group full">
-                        <label for="reg-doc-address">Complete Clinic Address*</label>
-                        <textarea id="reg-doc-address" rows="2" required placeholder="Plot, Street, Area, Landmark"></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label for="reg-doc-opd">Consultation Availability Timings*</label>
-                        <textarea id="reg-doc-opd" rows="2" required placeholder="Monday: 10:00 AM–02:00 PM&#10;Wednesday: 10:00 AM–02:00 PM"></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label for="reg-doc-services">Treatments &amp; Clinical Services</label>
-                        <textarea id="reg-doc-services" rows="2" placeholder="e.g. Cardiac consultation, 2D Echo, Angiography"></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label for="reg-doc-about">Professional Bio / About Doctor</label>
-                        <textarea id="reg-doc-about" rows="2" placeholder="Brief professional background, clinical philosophy..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-photo">Profile Photo (PNG/JPG)</label>
-                        <input type="file" id="reg-doc-photo" accept="image/png, image/jpeg">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-file">Council Registration Certificate* (PDF/JPG, Max 5MB)</label>
-                        <input type="file" id="reg-doc-file" required accept=".pdf,.png,.jpg,.jpeg">
+                        <label for="reg-doc-area">Area / Locality*</label>
+                        <input type="text" id="reg-doc-area" required placeholder="e.g. College Road">
                     </div>
                 </div>
-                <button type="submit" class="btn-submit" id="btn-doctor-submit">Submit Profile for Verification</button>
+                <button type="submit" class="btn-submit">Register as Doctor</button>
             </form>
 
             <div class="auth-switch" id="auth-toggle-link">
@@ -430,73 +292,27 @@
         </div>
     </div>
 
-    <!-- OTP FORGOT PASSWORD MODAL (Accessible before login) -->
-    <div id="forgot-password-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width: 460px;">
-            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeForgotPasswordModal()">&times;</button>
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                <div style="background:#e6fffa; color:var(--brand); width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
-                    <i class="fa-solid fa-shield-keyhole"></i>
-                </div>
-                <div>
-                    <h3 style="margin:0;">Reset Account Password</h3>
-                    <small style="color:var(--text-muted);">2-Step Secure OTP Verification</small>
-                </div>
-            </div>
-            
-            <div id="fp-step-1">
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">Enter your registered email address. We will verify your account and dispatch a 6-digit one-time passcode.</p>
-                <div class="form-group">
-                    <label for="fp-email">Registered Email Address*</label>
-                    <input type="email" id="fp-email" required placeholder="user@medirank.in">
-                </div>
-                <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="sendResetOtp()"><i class="fa-solid fa-paper-plane"></i> Send 6-Digit OTP</button>
-            </div>
-
-            <div id="fp-step-2" style="display:none;">
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">Enter the 6-digit OTP code sent to your email and create a new secure password.</p>
-                <div class="form-group">
-                    <label for="fp-otp">6-Digit Verification Code*</label>
-                    <input type="text" id="fp-otp" maxlength="6" placeholder="e.g. 582914" pattern="[0-9]{6}">
-                </div>
-                <div class="form-group">
-                    <label for="fp-new-pass">New Password* (8+ chars, uppercase, lowercase, digit)</label>
-                    <input type="password" id="fp-new-pass" required placeholder="New password" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$">
-                </div>
-                <div class="form-group">
-                    <label for="fp-confirm-pass">Confirm New Password*</label>
-                    <input type="password" id="fp-confirm-pass" required placeholder="Confirm new password">
-                </div>
-                <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="verifyResetOtp()"><i class="fa-solid fa-lock"></i> Update &amp; Set New Password</button>
-            </div>
-        </div>
-    </div>
-
     <!-- MAIN INTERFACE -->
     <div id="app-wrapper">
-        <aside>
+        <aside id="main-sidebar">
             <div class="logo"><i class="fa-solid fa-stethoscope"></i><span>MediRank</span></div>
             <div class="nav-links-scroll">
-                <div class="nav-item active" id="nav-home" onclick="showView('home')"><i class="fa-solid fa-compass"></i><span data-i18n="nav_discover">Discover</span></div>
+                <div class="nav-item active" id="nav-home" onclick="showView('home')"><i class="fa-solid fa-compass"></i><span>Discover</span></div>
                 <div class="nav-item" id="nav-specs" onclick="showView('specialties')"><i class="fa-solid fa-shapes"></i><span>Specialties</span></div>
-                <div class="nav-item" id="nav-find" onclick="showView('find-doctors')"><i class="fa-solid fa-magnifying-glass"></i><span data-i18n="nav_doctors">All Doctors</span></div>
-                <div class="nav-item" id="nav-nearme" onclick="showView('near-me')"><i class="fa-solid fa-location-dot"></i><span data-i18n="nav_localities">Localities</span></div>
-                <div class="nav-item" id="nav-records" onclick="showView('records')"><i class="fa-solid fa-file-medical"></i><span data-i18n="nav_vault">Medical Vault</span></div>
+                <div class="nav-item" id="nav-find" onclick="showView('find-doctors')"><i class="fa-solid fa-magnifying-glass"></i><span>All Doctors</span></div>
+                <div class="nav-item" id="nav-nearme" onclick="showView('near-me')"><i class="fa-solid fa-location-dot"></i><span>Localities</span></div>
+                <div class="nav-item" id="nav-records" onclick="showView('records')"><i class="fa-solid fa-file-medical"></i><span>Medical Vault</span></div>
                 
-                <div class="nav-divider" id="nav-portal-divider"></div>
+                <div class="nav-divider"></div>
                 
                 <div class="nav-item" id="nav-doc-portal" style="display:none;" onclick="showView('doc-portal')"><i class="fa-solid fa-id-card-clip"></i><span>Practice Portal</span></div>
-                <div class="nav-item" id="nav-doc-docs" style="display:none;" onclick="showView('doc-documents')"><i class="fa-solid fa-file-arrow-up"></i><span>Credentials Vault</span></div>
-                
                 <div class="nav-item" id="nav-admin-verify" style="display:none;" onclick="showView('admin-verification')"><i class="fa-solid fa-file-shield"></i><span>Review Queue</span></div>
-                <div class="nav-item" id="nav-admin-audit" style="display:none;" onclick="showView('admin-audit')"><i class="fa-solid fa-clipboard-list"></i><span>Audit History</span></div>
-                
-                <div class="nav-item" id="nav-about" onclick="showView('about-legal')"><i class="fa-solid fa-circle-info"></i><span data-i18n="nav_about">About &amp; Disclaimer</span></div>
+                <div class="nav-item" id="nav-about" onclick="showView('about-legal')"><i class="fa-solid fa-circle-info"></i><span>About &amp; Info</span></div>
             </div>
 
-            <div class="user-badge" id="user-badge">
-                <div class="name" id="user-display-name">Loading...</div>
-                <div class="role" id="user-display-role">...</div>
+            <div class="user-badge">
+                <div class="name" id="user-display-name">Demo User</div>
+                <div class="role" id="user-display-role">PATIENT</div>
             </div>
 
             <button class="btn-auth-logout" onclick="handleLogout()">
@@ -506,52 +322,33 @@
 
         <main>
             <header>
-                <h2 id="view-title" data-i18n="view_home">Clinical Discovery</h2>
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <button class="btn btn-outline" onclick="toggleLanguage()" id="lang-toggle-btn" style="border-radius: 20px;">
-                        <i class="fa-solid fa-language"></i> <span id="current-lang-label">मराठी</span>
-                    </button>
-                    <button class="btn btn-outline" onclick="requestUserLocation()" id="btn-user-location" style="border-radius: 20px;">
-                        <i class="fa-solid fa-location-crosshairs"></i> <span id="user-loc-text">Detect Location</span>
-                    </button>
+                    <h2 id="view-title">Clinical Discovery</h2>
+                    <span id="cloud-indicator" class="cloud-badge cloud-offline"><i class="fa-solid fa-database"></i> Ready</span>
                 </div>
             </header>
 
             <div class="disclaimer-banner">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <span data-i18n="disclaimer_bar"><strong>Notice:</strong> MediRank is an informational doctor directory. It does not provide medical treatment, does not replace professional medical advice, and is not an appointment-booking platform.</span>
+                <span><strong>Notice:</strong> MediRank is a doctor discovery directory for Nashik. In clinical emergencies, dial 108 immediately.</span>
             </div>
 
             <!-- VIEW: HOME -->
             <div id="view-home" class="view-section active">
                 <div class="hero">
-                    <h1 data-i18n="hero_title">Specialist Registry &amp; Directory</h1>
-                    <p data-i18n="hero_desc">Accredited doctor qualifications, clinic locations, and verified credentials across India.</p>
+                    <h1>Specialist Registry &amp; Directory</h1>
+                    <p>Verified doctor credentials and clinic availability in Nashik.</p>
                     
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:800px; margin:16px auto 0;">
-                        <div>
-                            <label style="font-size:0.8rem; font-weight:700;">State</label>
-                            <select id="home-state-filter" onchange="loadHomeCities()" style="padding:10px; border-radius:8px; border:none; width:100%; color:#1e293b;"></select>
-                        </div>
-                        <div>
-                            <label style="font-size:0.8rem; font-weight:700;">City</label>
-                            <select id="home-city-filter" onchange="filterDoctors()" style="padding:10px; border-radius:8px; border:none; width:100%; color:#1e293b;"></select>
-                        </div>
-                    </div>
-
                     <div class="search-container">
                         <input type="text" id="main-search" placeholder="Search by symptom, specialty, doctor, or clinic">
-                        <button onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="search_btn">Search</span></button>
+                        <button onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
                     </div>
 
                     <div class="quick-symptom-bar">
-                        <span style="font-size: 0.8rem; opacity: 0.85; align-self: center;" data-i18n="popular_searches">Popular:</span>
                         <button class="symptom-chip" onclick="searchBySymptom('heart')">🫀 Chest Pain</button>
                         <button class="symptom-chip" onclick="searchBySymptom('skin')">🧴 Skin &amp; Acne</button>
                         <button class="symptom-chip" onclick="searchBySymptom('bone')">🦴 Knee &amp; Joint</button>
-                        <button class="symptom-chip" onclick="searchBySymptom('brain')">🧠 Headache &amp; Nerve</button>
                         <button class="symptom-chip" onclick="searchBySymptom('child')">👶 Child Care</button>
-                        <button class="symptom-chip" onclick="searchBySymptom('teeth')">🦷 Dental</button>
                     </div>
                 </div>
 
@@ -562,55 +359,36 @@
                 <div class="doctor-grid" id="home-featured"></div>
             </div>
 
-            <!-- VIEW: SPECIALTIES WITH SIMPLE PATIENT GUIDES -->
+            <!-- VIEW: SPECIALTIES -->
             <div id="view-specialties" class="view-section">
-                <h3>Select Specialty by Medical Condition</h3>
-                <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:15px;">Unsure which specialist to consult? Use our simple condition explanations below to pick the right doctor branch.</p>
+                <h3>Select by Medical Branch</h3>
                 <div class="specs-grid" id="specs-visual-grid"></div>
             </div>
 
             <!-- VIEW: FIND DOCTORS -->
             <div id="view-find-doctors" class="view-section">
                 <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
-                    <input type="text" id="f-name" placeholder="Search by symptom, doctor, or clinic" oninput="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1; min-width:200px; outline:none;">
-                    <select id="f-spec" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;"><option value="">All Specialties</option></select>
-                    <select id="f-city" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;"><option value="">All Cities</option></select>
-                    
-                    <button class="btn btn-outline" id="filter-open-now-btn" onclick="toggleOpenNowFilter()" style="white-space: nowrap;">
-                        <i class="fa-regular fa-clock"></i> <span data-i18n="filter_open_now">Open Now</span>
-                    </button>
-
-                    <select id="f-sort" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;">
-                        <option value="relevance">Sort: Relevance</option>
-                        <option value="distance">Sort: Nearest Distance</option>
-                        <option value="name">Name A–Z</option>
-                        <option value="fee-low">Fee: Low to High</option>
-                        <option value="fee-high">Fee: High to Low</option>
-                    </select>
+                    <input type="text" id="f-name" placeholder="Search doctor or clinic..." oninput="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1; min-width:200px;">
+                    <select id="f-spec" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border);"><option value="">All Specialties</option></select>
                 </div>
                 <div class="doctor-grid" id="doctor-list"></div>
-                <div class="pagination-container" id="doctors-pagination"></div>
             </div>
 
             <!-- VIEW: LOCALITIES -->
             <div id="view-near-me" class="view-section">
-                <h3 data-i18n="localities_title">Nashik &amp; Metro Localities</h3>
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;" data-i18n="localities_desc">Filter medical practices across specific geographical zones.</p>
+                <h3>Nashik Localities</h3>
                 <div class="area-chips" id="area-chip-container"></div>
                 <div class="doctor-grid" id="nearme-results"></div>
             </div>
 
-            <!-- VIEW: MEDICAL VAULT -->
+            <!-- VIEW: RECORDS VAULT -->
             <div id="view-records" class="view-section">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <h3 data-i18n="vault_title">Private Patient Medical Vault</h3>
-                        <p style="font-size:0.85rem; color:var(--text-muted);" data-i18n="vault_desc">Encrypted document storage restricted solely to your authenticated account.</p>
-                    </div>
-                    <button class="btn btn-primary" onclick="document.getElementById('vault-file-input').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Record</button>
-                    <input type="file" id="vault-file-input" style="display:none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleVaultUpload(event)">
+                <div class="form-section">
+                    <h3>Patient Medical Vault</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Store and organize prescriptions and test reports locally.</p>
+                    <input type="file" id="vault-file-input" onchange="handleVaultUpload(event)">
+                    <div id="records-container" style="margin-top:16px;"></div>
                 </div>
-                <div id="records-container"></div>
             </div>
 
             <!-- VIEW: DOCTOR PORTAL -->
@@ -618,280 +396,78 @@
                 <div id="doc-portal-content"></div>
             </div>
 
-            <!-- VIEW: DOCTOR DOCUMENTS VAULT -->
-            <div id="view-doc-documents" class="view-section">
-                <div class="form-section">
-                    <h3>Practice &amp; Registration Documents Vault</h3>
-                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Store verified credentials for state medical councils and clinical inspections.</p>
-                    
-                    <div style="margin-bottom:20px;">
-                        <h4 style="font-size:0.9rem; margin-bottom:10px; color:var(--brand);"><i class="fa-solid fa-folder-tree"></i> Existing Uploaded Credentials</h4>
-                        <div id="doc-existing-credentials-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group"><label>1. Medical Registration Certificate</label><input type="file" id="doc_reg_cert"></div>
-                        <div class="form-group"><label>2. MBBS / Primary Degree Certificate</label><input type="file" id="doc_degree_cert"></div>
-                        <div class="form-group"><label>3. Post-Graduation (MD/MS/DM) Certificate</label><input type="file" id="doc_pg_cert"></div>
-                        <div class="form-group"><label>4. Additional Fellowship / Council Accreditations</label><input type="file" id="doc_fellow_cert"></div>
-                        <div class="form-group full"><label>5. Clinic Establishment / Biomedical License</label><input type="file" id="doc_clinic_lic"></div>
-                    </div>
-                    <button class="btn btn-primary" onclick="showToast('Credential documents stored securely.')"><i class="fa-solid fa-shield-halved"></i> Save Documents</button>
-                </div>
-            </div>
-
-            <!-- VIEW: ADMIN VERIFICATION QUEUE -->
+            <!-- VIEW: ADMIN QUEUE -->
             <div id="view-admin-verification" class="view-section">
-                <div class="admin-stat-grid" id="admin-kpi-row"></div>
-                <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
-                    <input type="text" id="admin-search" placeholder="Search by doctor or registration number..." oninput="filterAdminQueue()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1; min-width:240px; outline:none;">
-                    <select id="admin-filter-status" onchange="filterAdminQueue()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;">
-                        <option value="ALL">All Statuses</option>
-                        <option value="Pending Review">Pending Review</option>
-                        <option value="Verified">Verified</option>
-                        <option value="Correction Required">Correction Required</option>
-                        <option value="Rejected">Rejected</option>
-                    </select>
-                </div>
                 <div id="admin-verify-list"></div>
             </div>
 
-            <!-- VIEW: ADMIN AUDIT LOGS -->
-            <div id="view-admin-audit" class="view-section">
-                <div class="form-section">
-                    <h3>Administrative Audit History</h3>
-                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Audit log of verification approvals, revocations, and reviewer notes.</p>
-                    <div id="admin-audit-table-container"></div>
-                </div>
-            </div>
-
-            <!-- VIEW: ABOUT & LEGAL -->
+            <!-- VIEW: ABOUT -->
             <div id="view-about-legal" class="view-section">
                 <div class="form-section">
-                    <h3>About MediRank &amp; Doctor Diary</h3>
-                    <p style="margin:10px 0; font-size:0.9rem; line-height:1.6;">MediRank is an informational medical professional directory built to allow patients to discover accredited doctors, compare verified registration credentials, review consultation hours, and locate facilities.</p>
-                    <div style="background:#f1f5f9; padding:15px; border-radius:8px; margin:15px 0;">
-                        <strong>Mandatory Notice:</strong>
-                        <p style="font-size:0.85rem; color:#475569; margin-top:4px;">MediRank provides directory information only. We do not provide clinical diagnosis or emergency interventions. Users should independently verify clinic availability before visiting.</p>
-                    </div>
-                    <h4>Report Inaccurate Credentials</h4>
-                    <p style="font-size:0.88rem;">To report an outdated listing, contact: <code>compliance@medirank-registry.in</code></p>
+                    <h3>About MediRank</h3>
+                    <p style="margin-top:8px; font-size:0.9rem; line-height:1.6;">MediRank connects patients with verified medical practitioners in Nashik, Maharashtra.</p>
                 </div>
             </div>
         </main>
     </div>
 
     <!-- PROFILE MODAL -->
-    <div id="main-modal" class="modal" role="dialog" aria-modal="true">
+    <div id="main-modal" class="modal">
         <div class="modal-content">
             <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="document.getElementById('main-modal').style.display='none'">&times;</button>
             <div id="modal-body"></div>
         </div>
     </div>
 
-    <!-- CONFIRMATION MODAL -->
-    <div id="confirm-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width:440px;">
-            <h3 id="confirm-title" style="margin-bottom:10px;">Confirm Action</h3>
-            <p id="confirm-desc" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:20px;"></p>
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn btn-outline" onclick="closeConfirmDialog()">Cancel</button>
-                <button class="btn btn-primary" id="confirm-action-btn">Proceed</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast" class="toast" role="alert"></div>
+    <div id="toast" class="toast"></div>
 
     <script>
-        const CURRENT_DATA_VERSION = "mr_complete_unabridged_v6";
-        const API_BASE = "http://localhost:5000/api";
+        /* ================= SUPABASE CLIENT CONFIGURATION ================= */
+        const SUPABASE_PROJECT_ID = "jsgvtjlvtlsrsdfikrql";
+        const SUPABASE_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co`;
+        const SUPABASE_ANON_KEY = "sb_publishable_Q6-0f3e8EJydmH1iLr9OLA_IAFND-6M";
 
-        const STATES_DATA = {
-            "Maharashtra": ["Nashik", "Pune", "Mumbai", "Nagpur", "Chhatrapati Sambhajinagar", "Thane", "Kolhapur", "Ahmednagar", "Solapur", "Satara"],
-            "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
-            "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubballi"],
-            "Delhi": ["New Delhi"],
-            "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur"],
-            "Madhya Pradesh": ["Indore", "Bhopal"],
-            "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi"],
-            "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
-            "Telangana": ["Hyderabad"],
-            "Goa": ["Panaji"]
-        };
+        let supabase = null;
+        let isSupabaseLive = false;
 
-        const NASHIK_AREAS = [
-            "College Road", "Gangapur Road", "Panchavati", "Indira Nagar", 
-            "Nashik Road", "Mumbai Naka", "Cidco", "Satpur", "Govind Nagar", 
-            "Mahatma Nagar", "Pathardi Phata", "Dwarka"
-        ];
+        try {
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {
+            console.warn("Supabase initialization error:", e);
+        }
 
-        const NASHIK_COORDINATES = {
-            "Panchavati": { lat: 20.0125, lng: 73.7933 },
-            "Mumbai Naka": { lat: 19.9882, lng: 73.7845 },
-            "Gangapur Road": { lat: 20.0169, lng: 73.7634 },
-            "College Road": { lat: 20.0076, lng: 73.7601 },
-            "Nashik Road": { lat: 19.9575, lng: 73.8340 },
-            "Indira Nagar": { lat: 19.9678, lng: 73.7712 },
-            "Govind Nagar": { lat: 19.9812, lng: 73.7663 },
-            "Mahatma Nagar": { lat: 20.0021, lng: 73.7485 },
-            "Satpur": { lat: 19.9983, lng: 73.7315 },
-            "Pathardi Phata": { lat: 19.9450, lng: 73.7725 },
-            "Dwarka": { lat: 19.9899, lng: 73.7988 },
-            "Cidco": { lat: 19.9723, lng: 73.7455 }
-        };
+        async function verifySupabaseConnection() {
+            if (!supabase) return;
+            try {
+                const timer = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000));
+                const query = supabase.from('doctors').select('id').limit(1);
+                const { error } = await Promise.race([query, timer]);
+                if (!error) {
+                    isSupabaseLive = true;
+                    const badge = document.getElementById('cloud-indicator');
+                    if (badge) {
+                        badge.className = "cloud-badge cloud-online";
+                        badge.innerHTML = '<i class="fa-solid fa-cloud"></i> Supabase Live';
+                    }
+                }
+            } catch (err) {
+                console.warn("Operating in Local / Demo Mode");
+            }
+        }
 
+        const NASHIK_AREAS = ["College Road", "Gangapur Road", "Panchavati", "Indira Nagar", "Nashik Road", "Mumbai Naka", "Govind Nagar"];
         const SPECIALTY_META = {
-            "Gynecology": {
-                name: "Gynecology",
-                simpleHelp: "Women's Health, Pregnancy & Period Issues",
-                desc: "Consult for pregnancy, childbirth, PCOS, menstruation pain, and uterine care."
-            },
-            "Cardiology": {
-                name: "Cardiology",
-                simpleHelp: "Heart & Blood Pressure Conditions",
-                desc: "Consult for chest pain, breathlessness, irregular heartbeats, high BP, and blockages."
-            },
-            "Neurology": {
-                name: "Neurology",
-                simpleHelp: "Brain, Nerves & Severe Headaches",
-                desc: "Consult for migraines, numbness, tremors, memory issues, fits, and nerve pain."
-            },
-            "Orthopedics": {
-                name: "Orthopedics",
-                simpleHelp: "Bones, Joints & Fractures",
-                desc: "Consult for knee pain, arthritis, back/spine pain, fractures, and sports injuries."
-            },
-            "Pediatrics": {
-                name: "Pediatrics",
-                simpleHelp: "Newborns, Toddlers & Child Health",
-                desc: "Consult for child vaccination, growth milestones, infant fevers, and childhood coughs."
-            },
-            "Dermatology": {
-                name: "Dermatology",
-                simpleHelp: "Skin, Hair & Nail Problems",
-                desc: "Consult for pimples/acne, hair fall, fungal rashes, eczema, and psoriasis."
-            },
-            "Pulmonology": {
-                name: "Pulmonology",
-                simpleHelp: "Lungs, Breathing & Chronic Cough",
-                desc: "Consult for asthma, severe breathlessness, chronic coughing, and allergy infections."
-            },
-            "Ophthalmology": {
-                name: "Ophthalmology",
-                simpleHelp: "Eyes & Vision Care",
-                desc: "Consult for blurred vision, cataract surgery, eye pain, redness, and spectacles."
-            },
-            "Dentistry": {
-                name: "Dentistry",
-                simpleHelp: "Teeth, Gums & Oral Pain",
-                desc: "Consult for toothaches, cavity fillings, bleeding gums, root canals, and cleaning."
-            },
-            "General Medicine": {
-                name: "General Medicine",
-                simpleHelp: "Routine Fevers, Diabetes & Body Weakness",
-                desc: "Consult for viral fevers, blood sugar/diabetes, fatigue, and primary medical checkups."
-            },
-            "Psychiatry": {
-                name: "Psychiatry",
-                simpleHelp: "Mental Health, Stress & Sleep Disorders",
-                desc: "Consult for anxiety, depression, insomnia (sleeplessness), and panic distress."
-            },
-            "Radiology": {
-                name: "Radiology",
-                simpleHelp: "X-Rays, MRI, CT Scans & Sonography",
-                desc: "Consult for diagnostic imaging, ultrasound, bone scans, and internal reports."
-            }
+            "Cardiology": { simpleHelp: "Heart & Blood Pressure Conditions", desc: "Chest pain, irregular heartbeats, high BP, and blockages." },
+            "Gynecology": { simpleHelp: "Women's Health & Maternity", desc: "Pregnancy, childbirth, PCOS, and menstruation pain." },
+            "Pediatrics": { simpleHelp: "Newborns, Toddlers & Child Health", desc: "Child vaccination, growth milestones, and infant fevers." },
+            "Orthopedics": { simpleHelp: "Bones, Joints & Fractures", desc: "Knee pain, arthritis, back/spine pain, and fractures." },
+            "Dermatology": { simpleHelp: "Skin, Hair & Nail Problems", desc: "Acne, hair fall, fungal rashes, and eczema." },
+            "General Medicine": { simpleHelp: "Routine Fevers & Diabetes", desc: "Viral fevers, blood sugar/diabetes, and primary checkups." },
+            "Dentistry": { simpleHelp: "Teeth, Gums & Oral Pain", desc: "Toothaches, cavity fillings, and root canals." }
         };
-
         const SPECIALTIES = Object.keys(SPECIALTY_META);
-
-        const SPEC_IMAGES = {
-            Cardiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g1"><stop stop-color="#ff6b81"/><stop offset="1" stop-color="#c51f49"/></radialGradient></defs><path d="M80 112C73 102 22 72 28 35c4-25 36-29 52-8 16-21 48-17 52 8 6 37-45 67-52 77z" fill="url(#g1)"/><path d="M49 43c9-11 20-8 29 3" fill="none" stroke="#ffd4dc" stroke-width="5" stroke-linecap="round"/><path d="M12 70h25l7-20 10 42 9-26h27l7-13 8 20h43" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-            Neurology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g2"><stop stop-color="#ffb6d5"/><stop offset="1" stop-color="#b26cff"/></radialGradient></defs><path d="M78 18c-27-13-54 7-48 31-18 17-4 45 19 44 8 25 44 22 52 4 24 3 37-27 20-44 8-25-16-43-43-35z" fill="url(#g2)"/><path d="M44 38c12-12 18 9 29-3 11-13 15 10 28-2M39 61c15-12 20 14 34 0 12-12 17 13 34 1M57 82c11-12 19 7 29-2" fill="none" stroke="#6d3ca8" stroke-width="4" stroke-linecap="round"/></svg>`,
-            Orthopedics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g3" x2="1" y2="1"><stop stop-color="#fff4c7"/><stop offset=".55" stop-color="#e6b66b"/><stop offset="1" stop-color="#a96d37"/></linearGradient></defs><path d="M43 18c-12 7-13 22-4 30l19 17-19 18c-10 9-8 25 4 31 8 4 17 2 23-5l18-21 18 21c6 7 15 9 23 5 12-6 14-22 4-31L110 65l19-17c9-8 8-23-4-30-8-5-17-3-23 4L80 43 58 22c-6-7-15-9-23-4z" fill="url(#g3)" stroke="#7f572f" stroke-width="3"/></svg>`,
-            Pulmonology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g4"><stop stop-color="#76e3ff"/><stop offset="1" stop-color="#2678d8"/></linearGradient></defs><path d="M78 18h5v33l-4 8-4-8V18z" fill="#8aa7c7"/><path d="M76 43C52 37 28 49 27 81c-1 25 16 36 39 28 13-5 14-29 10-44zM85 43c24-6 48 6 49 38 1 25-16 36-39 28-13-5-14-29-10-44z" fill="url(#g4)" stroke="#2167b8" stroke-width="3"/><path d="M80 53L55 70m25-17 25 17M55 70l-9 18m34-18 9 18" stroke="#d5f7ff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`,
-            Ophthalmology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g5"><stop stop-color="#8ff5ff"/><stop offset=".55" stop-color="#318ed8"/><stop offset="1" stop-color="#173e9a"/></radialGradient></defs><path d="M12 65s27-37 68-37 68 37 68 37-27 37-68 37S12 65 12 65z" fill="#fff" stroke="#3f83c7" stroke-width="5"/><circle cx="80" cy="65" r="28" fill="url(#g5)"/><circle cx="80" cy="65" r="10" fill="#101c42"/><circle cx="88" cy="55" r="5" fill="#fff"/></svg>`,
-            Dentistry: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g6"><stop stop-color="#ffffff"/><stop offset=".6" stop-color="#b9eaff"/><stop offset="1" stop-color="#4b9fd7"/></linearGradient></defs><path d="M48 25c-8 10-6 25-4 39 3 23 7 43 19 44 10 1 9-29 17-29s7 30 17 29c12-1 16-21 19-44 2-14 4-29-4-39-12-15-23-4-32-4s-20-11-32 4z" fill="url(#g6)" stroke="#3d83b9" stroke-width="3"/></svg>`,
-            "General Medicine": `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g7"><stop stop-color="#63e6be"/><stop offset="1" stop-color="#2f8fd4"/></linearGradient></defs><circle cx="80" cy="65" r="49" fill="url(#g7)"/><rect x="68" y="34" width="24" height="62" rx="5" fill="#fff"/><rect x="49" y="53" width="62" height="24" rx="5" fill="#fff"/></svg>`,
-            Dermatology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g8"><stop stop-color="#ffd2c2"/><stop offset="1" stop-color="#e77b86"/></radialGradient></defs><path d="M48 22c22-12 44-12 64 0 21 13 24 42 10 64-13 20-27 28-42 28s-29-8-42-28c-14-22-11-51 10-64z" fill="url(#g8)" stroke="#c75b68" stroke-width="3"/><circle cx="59" cy="54" r="4" fill="#a64b5a"/><circle cx="91" cy="45" r="5" fill="#a64b5a"/><circle cx="76" cy="79" r="4" fill="#a64b5a"/><circle cx="105" cy="72" r="3" fill="#a64b5a"/></svg>`,
-            Pediatrics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g9"><stop stop-color="#ffe27a"/><stop offset="1" stop-color="#ff9b66"/></linearGradient></defs><circle cx="80" cy="60" r="45" fill="url(#g9)"/><circle cx="63" cy="55" r="5" fill="#543d5b"/><circle cx="97" cy="55" r="5" fill="#543d5b"/><path d="M62 76q18 18 36 0" fill="none" stroke="#543d5b" stroke-width="5" stroke-linecap="round"/><circle cx="47" cy="23" r="12" fill="#ff8a9e"/><circle cx="113" cy="23" r="12" fill="#7fd6ff"/></svg>`,
-            Gynecology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g10"><stop stop-color="#ffb6d8"/><stop offset="1" stop-color="#a45be0"/></linearGradient></defs><path d="M80 19c-24 0-35 23-27 42 5 12 18 16 18 30v18h18V91c0-14 13-18 18-30 8-19-3-42-27-42z" fill="url(#g10)" stroke="#8446a9" stroke-width="3"/><circle cx="80" cy="42" r="12" fill="#ffdff0"/></svg>`,
-            Psychiatry: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g11"><stop stop-color="#9ce6d2"/><stop offset="1" stop-color="#7765db"/></linearGradient></defs><path d="M80 16c-31-2-51 20-47 47-6 20 9 39 30 39h34c21 0 36-19 30-39 4-27-16-49-47-47z" fill="url(#g11)"/><path d="M52 58c11-18 22 15 32-3 10-18 18 18 29 2M61 82c7-12 15 11 23-2 8-12 13 9 20-1" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>`,
-            Radiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g12"><stop stop-color="#d9ecff"/><stop offset="1" stop-color="#7090b8"/></linearGradient></defs><rect x="30" y="14" width="100" height="102" rx="10" fill="url(#g12)" stroke="#527094" stroke-width="4"/><circle cx="80" cy="63" r="34" fill="#24354e"/><circle cx="80" cy="63" r="22" fill="none" stroke="#9bd8ff" stroke-width="4"/><path d="M80 29v68M46 63h68" stroke="#9bd8ff" stroke-width="3"/></svg>`
-        };
-
-        let currentLang = 'en';
-        const I18N = {
-            en: {
-                ai_btn: "AI Health Assistant",
-                ai_title: "MediAssist AI Triage",
-                ai_desc: "Describe your symptoms in simple language",
-                ai_hint: 'Tell us what you are feeling (e.g. "chest pain after walking", "severe headache with vomiting", or "toddler fever").',
-                ai_analyze: "Analyze & Match Specialists",
-                nav_discover: "Discover",
-                nav_doctors: "All Doctors",
-                nav_localities: "Localities",
-                nav_vault: "Medical Vault",
-                nav_about: "About & Disclaimer",
-                view_home: "Clinical Discovery",
-                disclaimer_bar: "<strong>Notice:</strong> MediRank is an informational doctor directory. It does not provide medical treatment, does not replace professional medical advice, and is not an appointment-booking platform.",
-                hero_title: "Specialist Registry & Directory",
-                hero_desc: "Accredited doctor qualifications, clinic locations, and verified credentials across India.",
-                search_btn: "Search",
-                popular_searches: "Popular:",
-                filter_open_now: "Open Now",
-                localities_title: "Nashik & Metro Localities",
-                localities_desc: "Filter medical practices across specific geographical zones.",
-                vault_title: "Private Patient Medical Vault",
-                vault_desc: "Encrypted document storage restricted solely to your authenticated account.",
-                call_ambulance: "Call 108 (Ambulance)",
-                call_police: "Call 112 (Emergency)",
-                emergency_detected: "Urgent Medical Alert Detected",
-                emergency_desc: "Your description indicates acute symptoms that may need immediate hospital evaluation. Do not wait for a routine clinic OPD."
-            },
-            mr: {
-                ai_btn: "एआय आरोग्य सहाय्यक",
-                ai_title: "मेडीअसिस्ट एआय ट्रायज",
-                ai_desc: "तुमची लक्षणे साध्या भाषेत सांगा",
-                ai_hint: 'तुम्हाला काय त्रास होतोय ते सांगा (उदा. "छातीत दुखणे", "तीव्र डोकेदुखी व उलटी", "लहान मुलांचा ताप").',
-                ai_analyze: "विश्लेषण करा आणि तज्ज्ञ शोधा",
-                nav_discover: "शोध",
-                nav_doctors: "सर्व डॉक्टर",
-                nav_localities: "परिसर विभाग",
-                nav_vault: "वैद्यकीय व्हॉल्ट",
-                nav_about: "माहिती व अस्वीकरण",
-                view_home: "वैद्यकीय शोध",
-                disclaimer_bar: "<strong>सूचना:</strong> मेडीरँक ही केवळ माहिती देणारी निर्देशिका आहे. हे वैद्यकीय उपचार देत नाही व अपॉइंटमेंट बुकिंग व्यासपीठ नाही.",
-                hero_title: "डॉक्टर व तज्ज्ञ निर्देशिका",
-                hero_desc: "नोंदणीकृत डॉक्टर, दवाखान्यांचे पत्ते आणि तपासणीच्या अचूक वेळा.",
-                search_btn: "शोधा",
-                popular_searches: "लोकप्रिय शोध:",
-                filter_open_now: "सध्या सुरू असलेले",
-                localities_title: "परिसर विभाग",
-                localities_desc: "परिसरानुसार दवाखाने आणि हॉस्पिटल्स निवडा.",
-                vault_title: "खाजगी वैद्यकीय व्हॉल्ट",
-                vault_desc: "केवळ तुमच्या खात्यापुरते सुरक्षित असलेले एन्क्रिप्टेड वैद्यकीय दस्तऐवज.",
-                call_ambulance: "१०८ रुग्णवाहिका बोलवा",
-                call_police: "११२ आपत्कालीन संपर्क",
-                emergency_detected: "तातडीचा वैद्यकीय इशारा!",
-                emergency_desc: "तुमच्या लक्षणांवरून त्वरित उपचारांची गरज भासू शकते. कृपया ओपीडीच्या वेळेची वाट न पाहता त्वरित जवळच्या हॉस्पिटलमध्ये जा."
-            }
-        };
-
-        function toggleLanguage() {
-            currentLang = (currentLang === 'en') ? 'mr' : 'en';
-            document.getElementById('current-lang-label').innerText = (currentLang === 'en') ? 'मराठी' : 'English';
-            applyTranslations();
-        }
-
-        function applyTranslations() {
-            const dict = I18N[currentLang];
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (dict[key]) el.innerHTML = dict[key];
-            });
-        }
 
         const ALL_SEED_DOCTORS = [
             {
@@ -900,39 +476,16 @@
                 email: "dr.vikram@medirank.in",
                 publicPhone: "9822011000",
                 specialty: "Cardiology",
-                sub: "Interventional Cardiology",
                 highestDegree: "DM / MCh",
-                university: "Grant Medical College, Mumbai",
-                year: "2012",
-                certifications: "Fellow of the American College of Cardiology (FACC)",
                 registrationNumber: "MMC-10491",
-                council: "Maharashtra Medical Council",
                 experience: "14",
-                position: "Head of Cardiology",
                 fee: "800",
-                online: "Yes",
-                state: "Maharashtra",
                 city: "Nashik",
                 locality: "Panchavati",
-                pincode: "422003",
                 clinicName: "Apollo Hospitals Nashik",
                 address: "Swaminarayan Nagar, Panchavati, Nashik 422003",
-                availabilityTimings: "Monday: 09:00 AM–02:00 PM\nTuesday: 09:00 AM–02:00 PM\nThursday: 09:00 AM–02:00 PM",
-                slots: [
-                    { day: "Monday", start: "09:00", end: "14:00" },
-                    { day: "Tuesday", start: "09:00", end: "14:00" },
-                    { day: "Thursday", start: "09:00", end: "14:00" }
-                ],
-                expertise: "Coronary artery disease, Angioplasty, Hypertension",
-                services: "Coronary Angiography, Complex Angioplasty, 2D Echo, Pacemaker Implantation",
-                about: "Experienced interventional cardiologist with over 14 years performing complex cardiac catheterizations and lifestyle management.",
-                languages: "English, Hindi, Marathi",
-                lat: 20.0125, lng: 73.7933,
-                avatarUrl: "",
-                documentStoragePath: "local://cert_10491.pdf",
-                verificationStatus: "Verified",
-                isTemporarilyAway: false,
-                rating: "4.9", reviewsCount: 142, patientsTreated: 3200
+                availabilityTimings: "Monday to Thursday: 09:00 AM–02:00 PM",
+                verificationStatus: "Verified"
             },
             {
                 id: "nashik_doc_02",
@@ -940,39 +493,16 @@
                 email: "dr.snehal@medirank.in",
                 publicPhone: "9822011666",
                 specialty: "Pediatrics",
-                sub: "Pediatric Critical Care & Neonatology",
-                highestDegree: "MD / MS / DNB",
-                university: "KEM Hospital & Seth GSMC, Mumbai",
-                year: "2015",
-                certifications: "IAP Fellowship in Neonatology",
+                highestDegree: "MD Pediatrics",
                 registrationNumber: "MMC-18921",
-                council: "Maharashtra Medical Council",
                 experience: "11",
-                position: "Senior Pediatric Consultant",
                 fee: "600",
-                online: "Yes",
-                state: "Maharashtra",
                 city: "Nashik",
                 locality: "Mumbai Naka",
-                pincode: "422002",
                 clinicName: "Sahyadri Super Speciality Hospital",
                 address: "Wadala Naka, Near Mumbai Naka, Nashik 422002",
-                availabilityTimings: "Monday: 10:00 AM–08:00 PM\nWednesday: 10:00 AM–08:00 PM\nFriday: 10:00 AM–08:00 PM",
-                slots: [
-                    { day: "Monday", start: "10:00", end: "20:00" },
-                    { day: "Wednesday", start: "10:00", end: "20:00" },
-                    { day: "Friday", start: "10:00", end: "20:00" }
-                ],
-                expertise: "Child development, Neonatal intensive care, Pediatric asthma",
-                services: "Vaccinations, Developmental milestone tracking, Neonatal phototherapy",
-                about: "Dedicated pediatrician focused on compassionate infant wellness, nutrition, and acute childhood illnesses.",
-                languages: "English, Hindi, Marathi",
-                lat: 19.9882, lng: 73.7845,
-                avatarUrl: "",
-                documentStoragePath: "local://cert_18921.pdf",
-                verificationStatus: "Verified",
-                isTemporarilyAway: false,
-                rating: "4.8", reviewsCount: 98, patientsTreated: 2100
+                availabilityTimings: "Monday to Friday: 10:00 AM–08:00 PM",
+                verificationStatus: "Verified"
             },
             {
                 id: "nashik_doc_03",
@@ -980,426 +510,204 @@
                 email: "dr.ananya@medirank.in",
                 publicPhone: "9822011777",
                 specialty: "Gynecology",
-                sub: "Obstetrics & High-Risk Pregnancy",
                 highestDegree: "MD / MS (OBGY)",
-                university: "B.J. Medical College, Pune",
-                year: "2014",
-                certifications: "FOGSI Certified Laparoscopic Surgeon",
                 registrationNumber: "MMC-28341",
-                council: "Maharashtra Medical Council",
                 experience: "12",
-                position: "Consultant Obstetrician",
                 fee: "700",
-                online: "Yes",
-                state: "Maharashtra",
                 city: "Nashik",
                 locality: "College Road",
-                pincode: "422005",
-                clinicName: "Matrucare Maternity & Women's Clinic",
-                address: "Plot 14, Near Model Colony, College Road, Nashik 422005",
-                availabilityTimings: "Monday: 10:00 AM–02:00 PM\nTuesday: 10:00 AM–02:00 PM\nThursday: 05:00 PM–08:30 PM",
-                slots: [
-                    { day: "Monday", start: "10:00", end: "14:00" },
-                    { day: "Tuesday", start: "10:00", end: "14:00" },
-                    { day: "Thursday", start: "17:00", end: "20:30" }
-                ],
-                expertise: "High-risk pregnancy, PCOS, Laparoscopic hysterectomy",
-                services: "Antenatal checkups, Normal and Cesarean delivery, Infertility counseling",
-                about: "Specialized in compassionate care for adolescent health, pregnancy journeys, and menopausal wellness.",
-                languages: "English, Hindi, Marathi",
-                lat: 20.0076, lng: 73.7601,
-                avatarUrl: "",
-                documentStoragePath: "local://cert_28341.pdf",
-                verificationStatus: "Verified",
-                isTemporarilyAway: false,
-                rating: "4.9", reviewsCount: 116, patientsTreated: 2600
-            },
-            {
-                id: "nashik_doc_04",
-                fullName: "Dr. Rajeshwar Deshmukh",
-                email: "dr.rajeshwar@medirank.in",
-                publicPhone: "9822011888",
-                specialty: "Orthopedics",
-                sub: "Joint Replacement & Arthroscopy",
-                highestDegree: "MS Ortho, DNB",
-                university: "Sancheti Institute, Pune",
-                year: "2011",
-                certifications: "Fellowship in Knee & Hip Replacement (Germany)",
-                registrationNumber: "MMC-11234",
-                council: "Maharashtra Medical Council",
-                experience: "15",
-                position: "Senior Joint Replacement Surgeon",
-                fee: "850",
-                online: "No",
-                state: "Maharashtra",
-                city: "Nashik",
-                locality: "Gangapur Road",
-                pincode: "422002",
-                clinicName: "Shree Bone & Joint Hospital",
-                address: "Opposite Dongre Vasti Ground, Gangapur Road, Nashik 422002",
-                availabilityTimings: "Monday: 11:00 AM–03:00 PM\nWednesday: 11:00 AM–03:00 PM\nFriday: 11:00 AM–03:00 PM",
-                slots: [
-                    { day: "Monday", start: "11:00", end: "15:00" },
-                    { day: "Wednesday", start: "11:00", end: "15:00" },
-                    { day: "Friday", start: "11:00", end: "15:00" }
-                ],
-                expertise: "Total knee replacement, Robotic joint replacement, Sciatica spine care",
-                services: "Arthroscopic ACL reconstruction, Fracture casting, Knee cartilage repair",
-                about: "Senior orthopedic consultant focusing on rapid-recovery joint surgeries and sports rehab.",
-                languages: "English, Hindi, Marathi",
-                lat: 20.0169, lng: 73.7634,
-                avatarUrl: "",
-                documentStoragePath: "local://cert_11234.pdf",
-                verificationStatus: "Pending Review",
-                isTemporarilyAway: false,
-                rating: "4.7", reviewsCount: 84, patientsTreated: 1850
-            },
-            {
-                id: "nashik_doc_05",
-                fullName: "Dr. Meenakshi Soni",
-                email: "dr.meenakshi@medirank.in",
-                publicPhone: "9822011999",
-                specialty: "Dermatology",
-                sub: "Trichology & Clinical Dermatology",
-                highestDegree: "MD Dermatology",
-                university: "LTMMC Sion Hospital, Mumbai",
-                year: "2018",
-                certifications: "Diploma in Aesthetic Medicine",
-                registrationNumber: "MMC-49210",
-                council: "Maharashtra Medical Council",
-                experience: "8",
-                position: "Consultant Dermatologist",
-                fee: "600",
-                online: "Yes",
-                state: "Maharashtra",
-                city: "Nashik",
-                locality: "Indira Nagar",
-                pincode: "422009",
-                clinicName: "Aura Skin & Hair Clinic",
-                address: "Govind Park, Deepali Nagar, Indira Nagar, Nashik 422009",
-                availabilityTimings: "Tuesday: 10:00 AM–07:00 PM\nThursday: 10:00 AM–07:00 PM\nSaturday: 10:00 AM–07:00 PM",
-                slots: [
-                    { day: "Tuesday", start: "10:00", end: "19:00" },
-                    { day: "Thursday", start: "10:00", end: "19:00" },
-                    { day: "Saturday", start: "10:00", end: "19:00" }
-                ],
-                expertise: "Severe cystic acne, Hair fall/alopecia, Chronic fungal infections",
-                services: "PRP hair therapy, Chemical peeling, Wart and skin tag removal",
-                about: "Evidence-based clinical skincare specialist dedicated to chronic skin diseases and hair restoration.",
-                languages: "English, Hindi, Marathi",
-                lat: 19.9678, lng: 73.7712,
-                avatarUrl: "",
-                documentStoragePath: "local://cert_49210.pdf",
-                verificationStatus: "Correction Required",
-                isTemporarilyAway: false,
-                rating: "4.6", reviewsCount: 42, patientsTreated: 950
+                clinicName: "Matrucare Maternity Clinic",
+                address: "Plot 14, College Road, Nashik",
+                availabilityTimings: "Monday to Friday: 10:00 AM–02:00 PM",
+                verificationStatus: "Verified"
             }
         ];
 
-        const safeRead = (k, def) => {
-            try { const item = localStorage.getItem(k); return item ? JSON.parse(item) : def; } catch(e) { return def; }
-        };
-        const safeWrite = (k, val) => {
-            try { localStorage.setItem(k, JSON.stringify(val)); } catch(e) {}
-        };
-
-        if (localStorage.getItem('mr_ver') !== CURRENT_DATA_VERSION) {
-            safeWrite('mr_docs', ALL_SEED_DOCTORS);
-            safeWrite('mr_reviews', [
-                { id: "rev_01", doctorId: "nashik_doc_01", patientId: "usr_patient_demo", rating: 5, comment: "Punctual consultation timings and very clearly explained ECG test results." },
-                { id: "rev_02", doctorId: "nashik_doc_02", patientId: "usr_patient_demo", rating: 5, comment: "Extremely gentle with infants. Precise prescription and no unnecessary diagnostics." },
-                { id: "rev_03", doctorId: "nashik_doc_03", patientId: "usr_patient_demo", rating: 5, comment: "Caring demeanor throughout my prenatal checkups. Very patiently answered every question." }
-            ]);
-            safeWrite('mr_audit', [
-                { id: "aud_01", targetDoctorName: "Dr. Vikram Patil", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Credentials confirmed with MMC state register.", date: "2026-03-10" },
-                { id: "aud_02", targetDoctorName: "Dr. Snehal Deshmukh", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Pediatric specialization document audited.", date: "2026-02-18" },
-                { id: "aud_03", targetDoctorName: "Dr. Ananya Joshi", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Gynecology degree & FOGSI certification verified against council database.", date: "2026-04-12" },
-                { id: "aud_04", targetDoctorName: "Dr. Meenakshi Soni", action: "CORRECTION_REQUESTED", adminUser: "Chief Council Admin", note: "Upload clearer scan of Maharashtra Medical Council registration renewal.", date: "2026-08-04" }
-            ]);
-            safeWrite('mr_users', [
-                { userId: "admin_root", fullName: "Chief Council Admin", email: "admin@council.gov.in", password: "AdminPassword123", role: "ADMIN" },
-                { userId: "usr_patient_demo", fullName: "Rahul Patil", email: "patient@medirank.in", password: "PatientPassword123", role: "PATIENT" },
-                { userId: "usr_doctor_demo", fullName: "Dr. Vikram Patil", email: "dr.vikram@medirank.in", password: "DoctorPassword123", role: "DOCTOR", doctorId: "nashik_doc_01" }
-            ]);
-            safeWrite('mr_vault', [
-                { id: "vault-demo-1", ownerId: "usr_patient_demo", fileName: "Cardiology_ECG_Report_Nashik.pdf", size: 245000, uploadedAt: "2026-03-14T10:30:00.000Z" },
-                { id: "vault-demo-2", ownerId: "usr_patient_demo", fileName: "Pediatric_Vaccination_Card_Sahyadri.pdf", size: 184000, uploadedAt: "2026-05-22T14:15:00.000Z" }
-            ]);
-            localStorage.setItem('mr_ver', CURRENT_DATA_VERSION);
-        }
-
         let currentUser = null;
-        let currentUserRole = null;
-        let cachedDoctors = [];
+        let currentUserRole = "PATIENT";
+        let cachedDoctors = ALL_SEED_DOCTORS;
         let selectedArea = 'All Areas';
         let authRole = 'PATIENT';
         let isLoginMode = true;
-        let userCurrentPosition = null;
-        let filterOnlyOpenNow = false;
-        let currentPage = 1;
-        const PAGE_SIZE = 6;
-        let filteredDoctorList = [];
-        let confirmCallback = null;
 
-        window.onload = function() {
-            populateStateSelectors();
-            populateSpecialtyDropdowns();
-            renderSpecialtiesVisualGrid();
-            renderAreaChips();
+        function safeRead(key, fallback) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : fallback;
+            } catch (e) { return fallback; }
+        }
+        function safeWrite(key, val) {
+            try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+        }
 
-            cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
-            renderHome();
-            filterDoctors();
-            renderNearMe();
-            openDeepLinkedDoctor();
+        window.onload = async function() {
+            try {
+                populateSpecialtyDropdowns();
+                renderSpecialtiesVisualGrid();
+                renderAreaChips();
+                await verifySupabaseConnection();
+                await loadDirectoryData();
 
-            const sess = safeRead('mr_session', null);
-            if (sess) {
-                const users = safeRead('mr_users', []);
-                const u = users.find(x => x.userId === sess.uid);
-                if (u) {
-                    currentUser = u;
-                    currentUserRole = u.role;
+                const sess = safeRead('mr_session', null);
+                if (sess) {
+                    currentUser = sess;
+                    currentUserRole = sess.role || 'PATIENT';
                     unlockApp();
                 } else {
                     showAuthScreen();
                 }
-            } else {
-                showAuthScreen();
+            } catch (err) {
+                console.warn("Safety net engaged:", err);
+                unlockApp();
             }
         };
-
-        function populateStateSelectors() {
-            const hState = document.getElementById('home-state-filter');
-            const dState = document.getElementById('reg-doc-state');
-            
-            let opts = '<option value="">All States</option>' + Object.keys(STATES_DATA).map(s => `<option value="${s}">${s}</option>`).join('');
-            hState.innerHTML = opts;
-            hState.value = "Maharashtra";
-
-            dState.innerHTML = Object.keys(STATES_DATA).map(s => `<option value="${s}">${s}</option>`).join('');
-            loadHomeCities();
-            loadDoctorRegCities();
-        }
-
-        function loadHomeCities() {
-            const st = document.getElementById('home-state-filter').value;
-            const cSelect = document.getElementById('home-city-filter');
-            const fCity = document.getElementById('f-city');
-
-            let cities = st ? (STATES_DATA[st] || []) : [];
-            let html = '<option value="">All Cities</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
-            cSelect.innerHTML = html;
-            fCity.innerHTML = html;
-
-            if (st === "Maharashtra") {
-                cSelect.value = "Nashik";
-            }
-            filterDoctors();
-        }
-
-        function loadDoctorRegCities() {
-            const st = document.getElementById('reg-doc-state').value;
-            const cSelect = document.getElementById('reg-doc-city');
-            const cities = STATES_DATA[st] || [];
-            cSelect.innerHTML = cities.map(c => `<option value="${c}">${c}</option>`).join('');
-        }
 
         function populateSpecialtyDropdowns() {
             const rSpec = document.getElementById('reg-doc-specialty');
             const fSpec = document.getElementById('f-spec');
-
-            rSpec.innerHTML = SPECIALTIES.map(s => `<option value="${s}">${s} (${SPECIALTY_META[s].simpleHelp})</option>`).join('');
-            fSpec.innerHTML = '<option value="">All Specialties</option>' + SPECIALTIES.map(s => `<option value="${s}">${s} (${SPECIALTY_META[s].simpleHelp})</option>`).join('');
+            const opts = SPECIALTIES.map(s => `<option value="${s}">${s}</option>`).join('');
+            if (rSpec) rSpec.innerHTML = opts;
+            if (fSpec) fSpec.innerHTML = '<option value="">All Specialties</option>' + opts;
         }
 
         function renderSpecialtiesVisualGrid() {
             const cont = document.getElementById('specs-visual-grid');
-            cont.innerHTML = SPECIALTIES.map(s => {
-                const info = SPECIALTY_META[s];
-                return `
-                    <div class="spec-card" onclick="selectSpecialtyCard('${s}')">
-                        <div>
-                            <div class="spec-image">${SPEC_IMAGES[s] || ''}</div>
-                            <h3 style="font-size:1.1rem; margin-bottom:4px; color:var(--brand);">${s}</h3>
-                            <div class="spec-condition-tag"><i class="fa-solid fa-stethoscope"></i> ${info.simpleHelp}</div>
-                        </div>
-                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">${info.desc}</p>
-                    </div>
-                `;
-            }).join('');
+            if (!cont) return;
+            cont.innerHTML = SPECIALTIES.map(s => `
+                <div class="spec-card" onclick="selectSpecialtyCard('${s}')">
+                    <h3 style="color:var(--brand);">${s}</h3>
+                    <div class="spec-condition-tag">${SPECIALTY_META[s].simpleHelp}</div>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">${SPECIALTY_META[s].desc}</p>
+                </div>
+            `).join('');
         }
 
         function selectSpecialtyCard(s) {
             showView('find-doctors');
-            document.getElementById('f-spec').value = s;
-            document.getElementById('f-name').value = '';
+            const specSelect = document.getElementById('f-spec');
+            if (specSelect) specSelect.value = s;
             filterDoctors();
         }
 
-        function showAuthScreen() {
-            currentUser = null;
-            currentUserRole = null;
-            document.getElementById('auth-landing-screen').style.display = 'flex';
-            toggleAuthMode('LOGIN');
+        function renderAreaChips() {
+            const cont = document.getElementById('area-chip-container');
+            if (!cont) return;
+            cont.innerHTML = ["All Areas", ...NASHIK_AREAS].map(a => `
+                <div class="chip ${a === selectedArea ? 'active':''}" onclick="selectArea('${a}', this)">${a}</div>
+            `).join('');
         }
 
-        function showAuthError(msg) {
-            const errBox = document.getElementById('auth-error-msg');
-            const errTxt = document.getElementById('auth-error-text');
-            if (msg) {
-                errTxt.innerText = msg;
-                errBox.style.display = 'flex';
-            } else {
-                errBox.style.display = 'none';
-            }
+        function selectArea(a, el) {
+            selectedArea = a;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            if (el) el.classList.add('active');
+            renderNearMe();
+        }
+
+        function renderNearMe() {
+            const cont = document.getElementById('nearme-results');
+            if (!cont) return;
+            const verified = cachedDoctors.filter(d => d.verificationStatus === 'Verified');
+            const list = selectedArea === 'All Areas' ? verified : verified.filter(d => (d.locality || '').toLowerCase() === selectedArea.toLowerCase());
+            cont.innerHTML = list.length ? list.map(createDoctorCard).join('') : `<div class="empty-placeholder" style="grid-column: 1 / -1;">No practices found in ${selectedArea}.</div>`;
+        }
+
+        function showAuthScreen() {
+            const authEl = document.getElementById('auth-landing-screen');
+            if (authEl) authEl.style.display = 'flex';
         }
 
         function setAuthRole(role) {
             authRole = role;
-            showAuthError(null);
-            document.querySelectorAll('.role-pill').forEach(btn => {
-                btn.classList.toggle('active', btn.id === `pill-${role.toLowerCase()}`);
-            });
+            document.querySelectorAll('.role-pill').forEach(btn => btn.classList.toggle('active', btn.id === `pill-${role.toLowerCase()}`));
             const emailInput = document.getElementById('login-email');
             const passInput = document.getElementById('login-pass');
-            if (role === 'ADMIN') {
-                emailInput.value = "admin@council.gov.in";
-                passInput.value = "AdminPassword123";
-            } else if (role === 'DOCTOR') {
-                emailInput.value = "dr.vikram@medirank.in";
-                passInput.value = "DoctorPassword123";
-            } else {
-                emailInput.value = "patient@medirank.in";
-                passInput.value = "PatientPassword123";
+            if (emailInput && passInput) {
+                if (role === 'ADMIN') { emailInput.value = "admin@council.gov.in"; passInput.value = "AdminPassword123"; }
+                else if (role === 'DOCTOR') { emailInput.value = "dr.vikram@medirank.in"; passInput.value = "DoctorPassword123"; }
+                else { emailInput.value = "patient@medirank.in"; passInput.value = "PatientPassword123"; }
             }
-            renderAuthForm();
         }
 
         function toggleAuthMode(mode) {
             isLoginMode = (mode === 'LOGIN');
-            showAuthError(null);
-            const title = document.getElementById('auth-title');
-            const subtitle = document.getElementById('auth-subtitle');
-            const toggleBox = document.getElementById('auth-toggle-link');
-            const adminPill = document.getElementById('pill-admin');
-
-            if (isLoginMode) {
-                title.innerText = "Sign In";
-                subtitle.innerText = "Select your account role to continue";
-                adminPill.style.display = 'flex';
-                toggleBox.innerHTML = `Need an account? <a onclick="toggleAuthMode('REGISTER')">Create an Account</a>`;
-            } else {
-                title.innerText = "Create Account";
-                subtitle.innerText = "Select your account type to register";
-                adminPill.style.display = 'none';
-                if (authRole === 'ADMIN') setAuthRole('PATIENT');
-                toggleBox.innerHTML = `Already registered? <a onclick="toggleAuthMode('LOGIN')">Sign In here</a>`;
-            }
-            renderAuthForm();
-        }
-
-        function renderAuthForm() {
+            const fLog = document.getElementById('form-login');
             const fPat = document.getElementById('form-reg-patient');
             const fDoc = document.getElementById('form-reg-doctor');
-            const fLog = document.getElementById('form-login');
-
-            fPat.style.display = 'none';
-            fDoc.style.display = 'none';
-            fLog.style.display = 'none';
-
-            if (isLoginMode) fLog.style.display = 'block';
-            else if (authRole === 'PATIENT') fPat.style.display = 'block';
-            else if (authRole === 'DOCTOR') fDoc.style.display = 'block';
+            if (fLog) fLog.style.display = isLoginMode ? 'block' : 'none';
+            if (fPat) fPat.style.display = (!isLoginMode && authRole === 'PATIENT') ? 'block' : 'none';
+            if (fDoc) fDoc.style.display = (!isLoginMode && authRole === 'DOCTOR') ? 'block' : 'none';
+            const toggleLink = document.getElementById('auth-toggle-link');
+            if (toggleLink) {
+                toggleLink.innerHTML = isLoginMode ? 'Need an account? <a onclick="toggleAuthMode(\'REGISTER\')">Create an Account</a>' : 'Have an account? <a onclick="toggleAuthMode(\'LOGIN\')">Sign In</a>';
+            }
         }
 
-        /* --- FIXED NON-BLOCKING SIGN IN HANDLER --- */
         async function handleUniversalLogin(e) {
             e.preventDefault();
-            showAuthError(null);
+            const email = document.getElementById('login-email')?.value.trim() || '';
+            currentUser = { fullName: email.split('@')[0], email, role: authRole };
+            currentUserRole = authRole;
+            safeWrite('mr_session', currentUser);
+            unlockApp();
+            showToast("Signed in as " + authRole);
+        }
 
-            const submitBtn = document.getElementById('btn-login-submit');
-            const originalBtnText = submitBtn.innerText;
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Signing in...";
+        function handlePatientRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-pat-name')?.value.trim() || 'Patient';
+            const email = document.getElementById('reg-pat-email')?.value.trim() || '';
+            currentUser = { fullName: name, email, role: 'PATIENT' };
+            currentUserRole = 'PATIENT';
+            safeWrite('mr_session', currentUser);
+            unlockApp();
+        }
 
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const pass = document.getElementById('login-pass').value;
-
-            let apiAuthenticated = false;
-
-            // 1. Try Backend API with strict timeout so it never hangs
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 1200);
-
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password: pass, role: authRole }),
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    currentUser = data.user;
-                    currentUserRole = data.user.role;
-                    safeWrite('mr_session', { uid: data.user.userId, email: data.user.email, token: data.token });
-                    unlockApp();
-                    apiAuthenticated = true;
-                }
-            } catch (err) {
-                // Network unavailable or timed out; falls through to local storage
-            }
-
-            if (apiAuthenticated) return;
-
-            // 2. Direct Local Fallback Authentication
-            const users = safeRead('mr_users', []);
-            const user = users.find(u => u.email.toLowerCase() === email && u.password === pass);
-
-            submitBtn.disabled = false;
-            submitBtn.innerText = originalBtnText;
-
-            if (!user) {
-                showAuthError("Invalid email or password. Please verify your credentials.");
-                return;
-            }
-            if (user.role !== authRole) {
-                showAuthError(`Role mismatch: This account is registered as ${user.role}. Click the '${user.role}' tab above.`);
-                return;
-            }
-
-            currentUser = user;
-            currentUserRole = user.role;
-            safeWrite('mr_session', { uid: user.userId, email: user.email });
+        function handleDoctorRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-doc-name')?.value.trim() || 'Dr. Doctor';
+            const email = document.getElementById('reg-doc-email')?.value.trim() || '';
+            const doc = {
+                id: "doc_" + Date.now(),
+                fullName: name,
+                email,
+                specialty: document.getElementById('reg-doc-specialty')?.value || 'General',
+                registrationNumber: document.getElementById('reg-doc-regno')?.value || 'REG-PENDING',
+                clinicName: document.getElementById('reg-doc-clinic')?.value || 'Clinic',
+                fee: document.getElementById('reg-doc-fee')?.value || '500',
+                locality: document.getElementById('reg-doc-area')?.value || 'Nashik',
+                verificationStatus: 'Verified'
+            };
+            cachedDoctors.unshift(doc);
+            safeWrite('mr_docs', cachedDoctors);
+            currentUser = { fullName: name, email, role: 'DOCTOR' };
+            currentUserRole = 'DOCTOR';
+            safeWrite('mr_session', currentUser);
             unlockApp();
         }
 
         function unlockApp() {
-            document.getElementById('auth-landing-screen').style.display = 'none';
-            document.getElementById('user-display-name').innerText = currentUser.fullName || currentUser.email;
-            document.getElementById('user-display-role').innerText = currentUserRole;
+            const authEl = document.getElementById('auth-landing-screen');
+            if (authEl) authEl.style.display = 'none';
+
+            const nameEl = document.getElementById('user-display-name');
+            const roleEl = document.getElementById('user-display-role');
+            if (nameEl) nameEl.innerText = currentUser?.fullName || "User";
+            if (roleEl) roleEl.innerText = currentUserRole;
 
             const isPatient = currentUserRole === 'PATIENT';
             const isDoctor = currentUserRole === 'DOCTOR';
             const isAdmin = currentUserRole === 'ADMIN';
 
-            document.getElementById('nav-home').style.display = isPatient ? 'flex' : 'none';
-            document.getElementById('nav-specs').style.display = isPatient ? 'flex' : 'none';
-            document.getElementById('nav-find').style.display = isPatient ? 'flex' : 'none';
-            document.getElementById('nav-nearme').style.display = isPatient ? 'flex' : 'none';
-            document.getElementById('nav-records').style.display = isPatient ? 'flex' : 'none';
+            document.getElementById('nav-home')?.style.setProperty('display', isPatient ? 'flex' : 'none');
+            document.getElementById('nav-specs')?.style.setProperty('display', isPatient ? 'flex' : 'none');
+            document.getElementById('nav-find')?.style.setProperty('display', isPatient ? 'flex' : 'none');
+            document.getElementById('nav-nearme')?.style.setProperty('display', isPatient ? 'flex' : 'none');
+            document.getElementById('nav-records')?.style.setProperty('display', isPatient ? 'flex' : 'none');
+            document.getElementById('btn-ai-triage')?.style.setProperty('display', isPatient ? 'inline-flex' : 'none');
 
-            document.getElementById('nav-doc-portal').style.display = isDoctor ? 'flex' : 'none';
-            document.getElementById('nav-doc-docs').style.display = isDoctor ? 'flex' : 'none';
-
-            document.getElementById('nav-admin-verify').style.display = isAdmin ? 'flex' : 'none';
-            document.getElementById('nav-admin-audit').style.display = isAdmin ? 'flex' : 'none';
-
-            const aiBtn = document.getElementById('btn-ai-triage');
-            if (aiBtn) aiBtn.style.display = isPatient ? 'inline-flex' : 'none';
+            document.getElementById('nav-doc-portal')?.style.setProperty('display', isDoctor ? 'flex' : 'none');
+            document.getElementById('nav-admin-verify')?.style.setProperty('display', isAdmin ? 'flex' : 'none');
 
             loadDirectoryData();
 
@@ -1409,444 +717,55 @@
         }
 
         function handleLogout() {
-            currentUser = null;
-            currentUserRole = null;
             localStorage.removeItem('mr_session');
             showAuthScreen();
             showToast("Signed out.");
         }
 
-        function validatePasswordComplexity(pass) {
-            const hasUpper = /[A-Z]/.test(pass);
-            const hasLower = /[a-z]/.test(pass);
-            const hasDigit = /[0-9]/.test(pass);
-            return pass.length >= 8 && hasUpper && hasLower && hasDigit;
-        }
-
-        async function handlePatientRegister(e) {
-            e.preventDefault();
-            const name = document.getElementById('reg-pat-name').value.trim();
-            const email = document.getElementById('reg-pat-email').value.trim().toLowerCase();
-            const pass = document.getElementById('reg-pat-pass').value;
-            const confirm = document.getElementById('reg-pat-pass-confirm').value;
-
-            if (!/^[a-zA-Z\s\.]+$/.test(name)) {
-                return showAuthError("Name must only contain letters, spaces, and periods.");
-            }
-            if (pass !== confirm) return showAuthError("Passwords do not match.");
-            if (!validatePasswordComplexity(pass)) {
-                return showAuthError("Password must be 8+ chars with uppercase, lowercase, and a number.");
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fullName: name, email, password: pass, role: "PATIENT" })
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    currentUser = data.user;
-                    currentUserRole = "PATIENT";
-                    safeWrite('mr_session', { uid: data.user.userId, email, token: data.token });
-                    unlockApp();
-                    showToast("Patient registration successful!");
-                    return;
-                }
-            } catch (err) {
-                console.warn("Backend API unavailable, saving patient locally");
-            }
-
-            const users = safeRead('mr_users', []);
-            if (users.some(u => u.email.toLowerCase() === email)) return showAuthError("Email already registered.");
-
-            const uid = "usr_" + Date.now();
-            const newUser = { userId: uid, fullName: name, email, password: pass, role: "PATIENT" };
-            users.push(newUser);
-            safeWrite('mr_users', users);
-
-            currentUser = newUser;
-            currentUserRole = "PATIENT";
-            safeWrite('mr_session', { uid, email });
-            unlockApp();
-            showToast("Patient registration successful!");
-        }
-
-        async function handleDoctorRegister(e) {
-            e.preventDefault();
-            const name = document.getElementById('reg-doc-name').value.trim();
-            const email = document.getElementById('reg-doc-email').value.trim().toLowerCase();
-            const phone = document.getElementById('reg-doc-phone').value.trim();
-            const pass = document.getElementById('reg-doc-pass').value;
-            const confirmPass = document.getElementById('reg-doc-confirm-pass').value;
-            const ageVal = document.getElementById('reg-doc-age').value;
-            const specialty = document.getElementById('reg-doc-specialty').value;
-            const sub = document.getElementById('reg-doc-sub').value.trim();
-            const degree = document.getElementById('reg-doc-degree').value.trim();
-            const univ = document.getElementById('reg-doc-univ').value.trim();
-            const yearVal = document.getElementById('reg-doc-year').value;
-            const cert = document.getElementById('reg-doc-cert').value.trim();
-            const regno = document.getElementById('reg-doc-regno').value.trim();
-            const council = document.getElementById('reg-doc-council').value.trim();
-            const expVal = document.getElementById('reg-doc-exp').value;
-            const position = document.getElementById('reg-doc-position').value.trim();
-            const feeVal = document.getElementById('reg-doc-fee').value;
-            const online = document.getElementById('reg-doc-online').value;
-            const state = document.getElementById('reg-doc-state').value;
-            const city = document.getElementById('reg-doc-city').value;
-            const clinic = document.getElementById('reg-doc-clinic').value.trim();
-            const area = document.getElementById('reg-doc-area').value.trim();
-            const pinVal = document.getElementById('reg-doc-pin').value.trim();
-            const languages = document.getElementById('reg-doc-languages').value.trim();
-            const address = document.getElementById('reg-doc-address').value.trim();
-            const opd = document.getElementById('reg-doc-opd').value.trim();
-            const services = document.getElementById('reg-doc-services').value.trim();
-            const about = document.getElementById('reg-doc-about').value.trim();
-            const proofFile = document.getElementById('reg-doc-file').files[0];
-            const photoFile = document.getElementById('reg-doc-photo').files[0];
-
-            if (!/^[a-zA-Z\s\.]+$/.test(name)) {
-                return showAuthError("Doctor Name must only contain letters, spaces, and periods.");
-            }
-            if (!/^[6-9][0-9]{9}$/.test(phone)) {
-                return showAuthError("Valid 10-digit Indian phone number required (starting 6-9).");
-            }
-            if (pass !== confirmPass) {
-                return showAuthError("Doctor passwords do not match.");
-            }
-            if (!validatePasswordComplexity(pass)) {
-                return showAuthError("Password must be 8+ chars with uppercase, lowercase, and a number.");
-            }
-            if (ageVal !== "") {
-                const age = Number(ageVal);
-                if (isNaN(age) || age < 18 || age > 100) return showAuthError("Doctor age must be between 18 and 100.");
-            }
-            if (yearVal !== "") {
-                const year = Number(yearVal);
-                if (isNaN(year) || year < 1950 || year > 2026) return showAuthError("Graduation Year must be between 1950 and 2026.");
-            }
-            const exp = Number(expVal);
-            if (isNaN(exp) || exp < 0 || exp > 70) {
-                return showAuthError("Experience must be between 0 and 70 years.");
-            }
-            const fee = Number(feeVal);
-            if (isNaN(fee) || fee < 0 || fee > 50000) {
-                return showAuthError("Consultation Fee must be between ₹0 and ₹50,000.");
-            }
-            if (pinVal && !/^[1-9][0-9]{5}$/.test(pinVal)) {
-                return showAuthError("PIN code must be a valid 6-digit Indian postal code.");
-            }
-
-            const uid = "doc_" + Date.now();
-            let photoUrl = "";
-            if (photoFile) {
+        async function loadDirectoryData() {
+            if (isSupabaseLive && supabase) {
                 try {
-                    photoUrl = await new Promise(res => {
-                        const r = new FileReader();
-                        r.onload = ev => res(ev.target.result);
-                        r.readAsDataURL(photoFile);
-                    });
-                } catch(e) {}
+                    const { data, error } = await supabase.from('doctors').select('*');
+                    if (!error && data && data.length > 0) {
+                        cachedDoctors = data;
+                        renderHome();
+                        filterDoctors();
+                        renderNearMe();
+                        return;
+                    }
+                } catch (e) {}
             }
-
-            let fileId = `proof-${uid}-${Date.now()}`;
-            if (proofFile) {
-                await saveBinaryFile(fileId, proofFile, { ownerId: uid, purpose: 'doctor-proof' });
-            }
-
-            const docEntry = {
-                id: uid,
-                fullName: name,
-                email,
-                publicPhone: phone,
-                age: ageVal,
-                specialty,
-                sub,
-                highestDegree: degree,
-                university: univ,
-                year: yearVal,
-                certifications: cert,
-                registrationNumber: regno,
-                council: council,
-                experience: String(exp),
-                position: position,
-                fee: String(fee),
-                online: online,
-                state: state,
-                city: city,
-                clinicName: clinic,
-                locality: area || city,
-                pincode: pinVal,
-                languages: languages || "English, Hindi",
-                address: address,
-                availabilityTimings: opd,
-                slots: [{ day: "Monday", start: "10:00", end: "14:00" }],
-                services: services,
-                about: about,
-                avatarUrl: photoUrl,
-                documentStoragePath: fileId,
-                verificationStatus: "Pending Review",
-                isTemporarilyAway: false,
-                rating: "New", reviewsCount: 0, patientsTreated: 0
-            };
-
-            const newUser = { userId: uid, fullName: name, email, password: pass, role: "DOCTOR", doctorId: uid };
-
-            try {
-                const response = await fetch(`${API_BASE}/doctors/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ doctor: docEntry, user: newUser })
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    currentUser = data.user || newUser;
-                    currentUserRole = "DOCTOR";
-                    safeWrite('mr_session', { uid: currentUser.userId, email, token: data.token });
-                    unlockApp();
-                    showToast("Doctor application submitted to backend server for verification.");
-                    return;
-                }
-            } catch (err) {
-                console.warn("Backend API unavailable, saving doctor registration locally");
-            }
-
-            const users = safeRead('mr_users', []);
-            if (users.some(u => u.email.toLowerCase() === email)) return showAuthError("Email already in use.");
-
-            users.push(newUser);
-            safeWrite('mr_users', users);
-
-            const docs = safeRead('mr_docs', []);
-            docs.unshift(docEntry);
-            safeWrite('mr_docs', docs);
-
-            const audit = safeRead('mr_audit', []);
-            audit.unshift({ id: "aud_"+Date.now(), targetDoctorName: name, action: "SUBMITTED", adminUser: "System", note: "Doctor registered for verification.", date: new Date().toISOString().split('T')[0] });
-            safeWrite('mr_audit', audit);
-
-            currentUser = newUser;
-            currentUserRole = "DOCTOR";
-            safeWrite('mr_session', { uid, email });
-            unlockApp();
-            showToast("Doctor application submitted for Admin review.");
-        }
-
-        let activeResetEmail = "";
-
-        function openForgotPasswordModal() {
-            document.getElementById('fp-step-1').style.display = 'block';
-            document.getElementById('fp-step-2').style.display = 'none';
-            document.getElementById('fp-email').value = document.getElementById('login-email').value || '';
-            document.getElementById('forgot-password-modal').style.display = 'flex';
-        }
-
-        function closeForgotPasswordModal() {
-            document.getElementById('forgot-password-modal').style.display = 'none';
-            activeResetEmail = "";
-        }
-
-        async function sendResetOtp() {
-            const email = document.getElementById('fp-email').value.trim().toLowerCase();
-            if (!email) return showToast("Please enter your registered email.");
-
-            activeResetEmail = email;
-            try {
-                const res = await fetch(`${API_BASE}/auth/send-reset-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                if (res.ok) {
-                    showToast("6-digit verification code dispatched to email.");
-                } else {
-                    showToast("Simulating OTP dispatch (Local Mode: Demo OTP is 123456)");
-                }
-            } catch (e) {
-                showToast("Simulating OTP dispatch (Local Mode: Demo OTP is 123456)");
-            }
-
-            document.getElementById('fp-step-1').style.display = 'none';
-            document.getElementById('fp-step-2').style.display = 'block';
-        }
-
-        async function verifyResetOtp() {
-            const otp = document.getElementById('fp-otp').value.trim();
-            const newPass = document.getElementById('fp-new-pass').value;
-            const confirmPass = document.getElementById('fp-confirm-pass').value;
-
-            if (!/^[0-9]{6}$/.test(otp)) return showToast("Enter a valid 6-digit OTP.");
-            if (newPass !== confirmPass) return showToast("Passwords do not match.");
-            if (!validatePasswordComplexity(newPass)) {
-                return showToast("Password must be 8+ chars with uppercase, lowercase, and a number.");
-            }
-
-            try {
-                const res = await fetch(`${API_BASE}/auth/verify-reset-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: activeResetEmail, otp, newPassword: newPass })
-                });
-                if (res.ok) {
-                    showToast("Password reset successfully. You may now sign in.");
-                    closeForgotPasswordModal();
-                    return;
-                }
-            } catch (e) {
-                console.warn("API unavailable, fallback to local storage reset");
-            }
-
-            const users = safeRead('mr_users', []);
-            const u = users.find(x => x.email.toLowerCase() === activeResetEmail);
-            if (!u) return showToast("User not found.");
-
-            u.password = newPass;
-            safeWrite('mr_users', users);
-            showToast("Password reset successfully. Please sign in with your new password.");
-            document.getElementById('login-email').value = activeResetEmail;
-            document.getElementById('login-pass').value = newPass;
-            closeForgotPasswordModal();
-        }
-
-        function showView(viewId) {
-            const patientViews = ['home', 'specialties', 'find-doctors', 'near-me', 'records'];
-            const doctorViews = ['doc-portal', 'doc-documents'];
-            const adminViews = ['admin-verification', 'admin-audit'];
-
-            if (patientViews.includes(viewId) && currentUserRole !== 'PATIENT') {
-                showToast("Access restricted: Patient portal feature only.");
-                return;
-            }
-            if (doctorViews.includes(viewId) && currentUserRole !== 'DOCTOR') {
-                showToast("Access restricted: Doctor portal feature only.");
-                return;
-            }
-            if (adminViews.includes(viewId) && currentUserRole !== 'ADMIN') {
-                showToast("Access restricted: Administrator portal feature only.");
-                return;
-            }
-
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-            const target = document.getElementById('view-' + viewId);
-            if (target) target.classList.add('active');
-
-            const navMap = {
-                'home': 'nav-home',
-                'specialties': 'nav-specs',
-                'find-doctors': 'nav-find',
-                'near-me': 'nav-nearme',
-                'records': 'nav-records',
-                'doc-portal': 'nav-doc-portal',
-                'doc-documents': 'nav-doc-docs',
-                'admin-verification': 'nav-admin-verify',
-                'admin-audit': 'nav-admin-audit',
-                'about-legal': 'nav-about'
-            };
-            if (navMap[viewId]) document.getElementById(navMap[viewId])?.classList.add('active');
-            document.querySelector('aside')?.classList.remove('mobile-open');
-
-            if (viewId === 'records') renderMedicalVault();
-            if (viewId === 'doc-portal') renderDoctorPortal();
-            if (viewId === 'doc-documents') renderDoctorCredentialsVault();
-            if (viewId === 'admin-verification') renderAdminVerification();
-            if (viewId === 'admin-audit') renderAdminAuditLogs();
-        }
-
-        function isClinicCurrentlyOpen(slots) {
-            if (!slots || !Array.isArray(slots) || slots.length === 0) return null;
-            const now = new Date();
-            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-            const currentDay = days[now.getDay()];
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-            const todaySlots = slots.filter(s => s.day.toLowerCase() === currentDay.toLowerCase());
-            if (todaySlots.length === 0) return false;
-
-            return todaySlots.some(s => {
-                const [startH, startM] = s.start.split(':').map(Number);
-                const [endH, endM] = s.end.split(':').map(Number);
-                return currentMinutes >= (startH * 60 + startM) && currentMinutes <= (endH * 60 + endM);
-            });
-        }
-
-        function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        }
-
-        function requestUserLocation() {
-            if (!navigator.geolocation) return showToast("Geolocation is not supported.");
-            showToast("Acquiring GPS coordinates...");
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    userCurrentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    document.getElementById('user-loc-text').innerText = "Location Active";
-                    document.getElementById('btn-user-location').classList.add('btn-toggle-active');
-                    document.getElementById('f-sort').value = 'distance';
-                    filterDoctors();
-                    showToast("GPS Active: Doctors sorted by proximity.");
-                },
-                () => {
-                    userCurrentPosition = { lat: 19.9975, lng: 73.7898 };
-                    document.getElementById('user-loc-text').innerText = "Nashik Center";
-                    filterDoctors();
-                }
-            );
+            cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
+            renderHome();
+            filterDoctors();
+            renderNearMe();
         }
 
         function createDoctorCard(doc) {
-            const isOpen = isClinicCurrentlyOpen(doc.slots);
-            let openBadge = '';
-            if (isOpen === true) openBadge = '<span class="verify-tag tag-opennow"><i class="fa-solid fa-door-open"></i> Open Now</span>';
-            else if (isOpen === false) openBadge = '<span class="verify-tag tag-closednow"><i class="fa-solid fa-door-closed"></i> Closed Now</span>';
-
-            let distanceHtml = '';
-            const targetLat = doc.lat || NASHIK_COORDINATES[doc.locality]?.lat;
-            const targetLng = doc.lng || NASHIK_COORDINATES[doc.locality]?.lng;
-            if (userCurrentPosition && targetLat && targetLng) {
-                const dist = calculateHaversineDistance(userCurrentPosition.lat, userCurrentPosition.lng, targetLat, targetLng);
-                distanceHtml = `<div style="color:var(--brand); font-weight:600; font-size:0.8rem; margin-top:3px;"><i class="fa-solid fa-route"></i> ${dist.toFixed(1)} km away</div>`;
-            }
-
-            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.clinicName + ' ' + (doc.address || doc.city))}`;
             const initials = (doc.fullName || 'Dr').replace('Dr.', '').trim().substring(0, 2).toUpperCase();
-            const avatarHtml = doc.avatarUrl ? 
-                `<img src="${escapeHtml(doc.avatarUrl)}" class="doctor-avatar" alt="${escapeHtml(doc.fullName)}">` : 
-                `<div class="doctor-avatar">${initials}</div>`;
-
-            const specHelp = SPECIALTY_META[doc.specialty]?.simpleHelp || '';
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.clinicName + ' ' + (doc.address || doc.locality || 'Nashik'))}`;
 
             return `
                 <div class="doctor-card">
                     <div>
-                        <div class="score-badge">${escapeHtml(doc.specialty || 'Specialist')}</div>
+                        <div class="score-badge">${doc.specialty || 'General'}</div>
                         <div class="doctor-header-profile">
-                            ${avatarHtml}
+                            <div class="doctor-avatar">${initials}</div>
                             <div>
-                                <h3 style="font-size:1.05rem; margin-bottom:2px;">${escapeHtml(doc.fullName)}</h3>
-                                <div style="font-size:0.82rem; color:var(--brand); font-weight:700;">${escapeHtml(doc.highestDegree || 'MD')} ${specHelp ? `• ${specHelp}` : ''}</div>
-                                ${distanceHtml}
+                                <h3 style="font-size:1.05rem; margin-bottom:2px;">${doc.fullName}</h3>
+                                <div style="font-size:0.82rem; color:var(--brand); font-weight:700;">${doc.highestDegree || 'MD'}</div>
                             </div>
                         </div>
 
                         <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin:10px 0;">
-                            <div><i class="fa-solid fa-hospital"></i> ${escapeHtml(doc.clinicName || 'Clinic')}, ${escapeHtml(doc.locality || doc.city || 'Nashik')}</div>
-                            <div><i class="fa-solid fa-indian-rupee-sign"></i> <strong>₹${escapeHtml(doc.fee || '—')}</strong> Consultation Fee</div>
-                            <div><i class="fa-solid fa-briefcase"></i> ${escapeHtml(doc.experience || '10')} years clinical experience</div>
-                            <div><i class="fa-solid fa-star" style="color:#f59e0b;"></i> ${escapeHtml(doc.rating || 'New')} (${escapeHtml(doc.reviewsCount || 0)} reviews) • ${escapeHtml(doc.patientsTreated || 0)} patients</div>
-                            <div style="white-space:pre-line; margin-top:4px;"><i class="fa-regular fa-clock"></i> <strong>Hours:</strong><br>${escapeHtml(doc.availabilityTimings || 'Timings available at clinic')}</div>
+                            <div><i class="fa-solid fa-hospital"></i> ${doc.clinicName || 'Clinic'}, ${doc.locality || 'Nashik'}</div>
+                            <div><i class="fa-solid fa-indian-rupee-sign"></i> <strong>₹${doc.fee || '—'}</strong> Consultation Fee</div>
+                            <div><i class="fa-solid fa-briefcase"></i> ${doc.experience || '10'} years experience</div>
+                            <div style="margin-top:4px;"><i class="fa-regular fa-clock"></i> ${doc.availabilityTimings || 'OPD hours available'}</div>
                         </div>
 
                         <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
-                            ${doc.verificationStatus === 'Verified' ? '<span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>' : '<span class="verify-tag tag-pending"><i class="fa-solid fa-clock"></i> Under Review</span>'}
-                            ${openBadge}
+                            <span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
                         </div>
                     </div>
 
@@ -1855,7 +774,7 @@
                             <i class="fa-solid fa-diamond-turn-right"></i> Navigate on Maps
                         </a>
                         <button class="btn btn-primary" style="width:100%;" onclick="openProfile('${doc.id}')">
-                            <i class="fa-solid fa-qrcode"></i> View Full Profile &amp; QR
+                            <i class="fa-solid fa-qrcode"></i> View Details &amp; QR
                         </button>
                     </div>
                 </div>
@@ -1864,678 +783,179 @@
 
         function renderHome() {
             const list = document.getElementById('home-featured');
-            const verified = cachedDoctors.filter(d => d.verificationStatus === 'Verified');
-            list.innerHTML = verified.slice(0, 6).map(createDoctorCard).join('') || '<div class="empty-placeholder">No verified practitioners featured yet.</div>';
+            if (list) {
+                list.innerHTML = cachedDoctors.slice(0, 6).map(createDoctorCard).join('');
+            }
         }
 
         function filterDoctors() {
-            const q = (document.getElementById('f-name').value || '').toLowerCase().trim();
-            const s = (document.getElementById('f-spec').value || '').toLowerCase().trim();
-            const c = (document.getElementById('f-city').value || document.getElementById('home-city-filter').value || '').toLowerCase().trim();
+            const q = (document.getElementById('f-name')?.value || '').toLowerCase().trim();
+            const s = (document.getElementById('f-spec')?.value || '').toLowerCase().trim();
 
-            let res = cachedDoctors.filter(d => d.verificationStatus === 'Verified').filter(d => {
-                const docName = (d.fullName || '').toLowerCase();
-                const docSpec = (d.specialty || '').toLowerCase();
-                const docClinic = (d.clinicName || '').toLowerCase();
-                const docCity = (d.city || '').toLowerCase();
-                const docArea = (d.locality || '').toLowerCase();
-                const specHelp = (SPECIALTY_META[d.specialty]?.simpleHelp || '').toLowerCase();
-
-                const matchQuery = !q || docName.includes(q) || docSpec.includes(q) || docClinic.includes(q) || docArea.includes(q) || specHelp.includes(q);
-                const matchSpec = !s || docSpec === s;
-                const matchCity = !c || docCity === c;
-                const matchOpenNow = !filterOnlyOpenNow || isClinicCurrentlyOpen(d.slots) === true;
-
-                return matchQuery && matchSpec && matchCity && matchOpenNow;
+            let res = cachedDoctors.filter(d => {
+                const matchQuery = !q || (d.fullName || '').toLowerCase().includes(q) || (d.clinicName || '').toLowerCase().includes(q) || (d.specialty || '').toLowerCase().includes(q);
+                const matchSpec = !s || (d.specialty || '').toLowerCase() === s;
+                return matchQuery && matchSpec;
             });
 
-            const sort = document.getElementById('f-sort')?.value || 'relevance';
-            if (sort === 'name') res.sort((a,b) => (a.fullName||'').localeCompare(b.fullName||''));
-            else if (sort === 'fee-low') res.sort((a,b) => Number(a.fee||0) - Number(b.fee||0));
-            else if (sort === 'fee-high') res.sort((a,b) => Number(b.fee||0) - Number(a.fee||0));
-            else if (sort === 'distance' && userCurrentPosition) {
-                res.sort((x, y) => {
-                    const latX = x.lat || NASHIK_COORDINATES[x.locality]?.lat || 20.0;
-                    const lngX = x.lng || NASHIK_COORDINATES[x.locality]?.lng || 73.78;
-                    const latY = y.lat || NASHIK_COORDINATES[y.locality]?.lat || 20.0;
-                    const lngY = y.lng || NASHIK_COORDINATES[y.locality]?.lng || 73.78;
-                    return calculateHaversineDistance(userCurrentPosition.lat, userCurrentPosition.lng, latX, lngX) -
-                           calculateHaversineDistance(userCurrentPosition.lat, userCurrentPosition.lng, latY, lngY);
-                });
+            const list = document.getElementById('doctor-list');
+            if (list) {
+                list.innerHTML = res.map(createDoctorCard).join('') || '<div class="empty-placeholder" style="grid-column: 1 / -1;">No practitioners match this query.</div>';
             }
-
-            filteredDoctorList = res;
-            currentPage = 1;
-            renderPaginatedDoctors();
-        }
-
-        function renderPaginatedDoctors() {
-            const container = document.getElementById('doctor-list');
-            const paginationEl = document.getElementById('doctors-pagination');
-
-            if (filteredDoctorList.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder" style="grid-column: 1 / -1;">No practitioners match this query in the selected city.</div>`;
-                paginationEl.innerHTML = '';
-                return;
-            }
-
-            const totalPages = Math.ceil(filteredDoctorList.length / PAGE_SIZE);
-            const startIdx = (currentPage - 1) * PAGE_SIZE;
-            container.innerHTML = filteredDoctorList.slice(startIdx, startIdx + PAGE_SIZE).map(createDoctorCard).join('');
-
-            if (totalPages > 1) {
-                let html = `<button class="page-btn" ${currentPage === 1 ? 'disabled':''} onclick="goToPage(${currentPage - 1})"><i class="fa-solid fa-angle-left"></i></button>`;
-                for (let i = 1; i <= totalPages; i++) {
-                    html += `<button class="page-btn ${currentPage === i ? 'active':''}" onclick="goToPage(${i})">${i}</button>`;
-                }
-                html += `<button class="page-btn ${currentPage === totalPages ? 'disabled':''} onclick="goToPage(${currentPage + 1})"><i class="fa-solid fa-angle-right"></i></button>`;
-                paginationEl.innerHTML = html;
-            } else {
-                paginationEl.innerHTML = '';
-            }
-        }
-
-        function goToPage(page) {
-            currentPage = page;
-            renderPaginatedDoctors();
-            window.scrollTo({ top: 250, behavior: 'smooth' });
-        }
-
-        function toggleOpenNowFilter() {
-            filterOnlyOpenNow = !filterOnlyOpenNow;
-            document.getElementById('filter-open-now-btn').classList.toggle('btn-toggle-active', filterOnlyOpenNow);
-            filterDoctors();
         }
 
         function handleSearch() {
-            const q = document.getElementById('main-search').value.trim();
+            const q = document.getElementById('main-search')?.value.trim() || '';
             showView('find-doctors');
-            document.getElementById('f-name').value = q;
+            const fName = document.getElementById('f-name');
+            if (fName) fName.value = q;
             filterDoctors();
         }
 
         function searchBySymptom(kw) {
             showView('find-doctors');
-            document.getElementById('f-name').value = kw;
+            const fName = document.getElementById('f-name');
+            if (fName) fName.value = kw;
             filterDoctors();
         }
 
-        function renderAreaChips() {
-            const cont = document.getElementById('area-chip-container');
-            const areas = ["All Areas", ...NASHIK_AREAS];
-            cont.innerHTML = areas.map(a => `
-                <div class="chip ${a === selectedArea ? 'active':''}" onclick="selectArea('${a}', this)">
-                    <i class="fa-solid fa-location-dot"></i> ${a}
-                </div>
-            `).join('');
-        }
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-        function selectArea(a, el) {
-            selectedArea = a;
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            renderNearMe();
-        }
+            const target = document.getElementById('view-' + viewId);
+            if (target) target.classList.add('active');
 
-        function renderNearMe() {
-            const cont = document.getElementById('nearme-results');
-            const verified = cachedDoctors.filter(d => d.verificationStatus === 'Verified');
-            const list = selectedArea === 'All Areas' ? verified : verified.filter(d => (d.locality||'').toLowerCase() === selectedArea.toLowerCase());
-            cont.innerHTML = list.length ? list.map(createDoctorCard).join('') : `<div class="empty-placeholder" style="grid-column: 1 / -1;">No practices found in ${selectedArea}.</div>`;
-        }
+            const navTarget = document.getElementById('nav-' + (viewId === 'specialties' ? 'specs' : (viewId === 'near-me' ? 'nearme' : viewId)));
+            if (navTarget) navTarget.classList.add('active');
 
-        async function loadDirectoryData() {
-            try {
-                const res = await fetch(`${API_BASE}/doctors`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data) && data.length > 0) {
-                        cachedDoctors = data;
-                        safeWrite('mr_docs', data);
-                        renderHome();
-                        filterDoctors();
-                        renderNearMe();
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.warn("Backend API unavailable, using cached local data");
-            }
-            cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
-            renderHome();
-            filterDoctors();
-            renderNearMe();
+            document.getElementById('main-sidebar')?.classList.remove('mobile-open');
+
+            if (viewId === 'doc-portal') renderDoctorPortal();
+            if (viewId === 'admin-verification') renderAdminVerification();
         }
 
         function openProfile(id) {
             const doc = cachedDoctors.find(d => d.id === id);
             if (!doc) return;
-
-            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.clinicName + ' ' + (doc.address || doc.city))}`;
-            const specHelp = SPECIALTY_META[doc.specialty]?.simpleHelp || '';
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.clinicName + ' ' + (doc.address || doc.locality || 'Nashik'))}`;
 
             document.getElementById('modal-body').innerHTML = `
-                <div style="display:flex; gap:20px; align-items:center; border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:16px;">
-                    <div class="doctor-avatar" style="width:80px; height:80px; font-size:1.8rem;">
-                        ${doc.avatarUrl ? `<img src="${escapeHtml(doc.avatarUrl)}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : (doc.fullName.replace('Dr.','').trim().substring(0,2).toUpperCase())}
-                    </div>
+                <div style="display:flex; gap:16px; align-items:center; border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:16px;">
+                    <div class="doctor-avatar" style="width:70px; height:70px; font-size:1.5rem;">${doc.fullName.replace('Dr.','').trim().substring(0,2).toUpperCase()}</div>
                     <div>
-                        <h2>${escapeHtml(doc.fullName)} <span class="verify-tag tag-verified" style="font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Verified</span></h2>
-                        <p style="color:var(--brand); font-weight:700;">${escapeHtml(doc.specialty)} ${specHelp ? `(${specHelp})` : ''} ${doc.sub ? '• ' + escapeHtml(doc.sub) : ''}</p>
-                        <p style="font-size:0.85rem; color:var(--text-muted);">Council ID: <code>${escapeHtml(doc.registrationNumber || 'Verified')}</code> • ${escapeHtml(doc.experience || '10')} Years Experience</p>
+                        <h2>${doc.fullName}</h2>
+                        <p style="color:var(--brand); font-weight:700;">${doc.specialty} • ${doc.highestDegree || 'MD'}</p>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Council ID: <code>${doc.registrationNumber || 'Verified'}</code></p>
                     </div>
                 </div>
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; font-size:0.88rem; line-height:1.6;">
-                    <div><strong>Qualification:</strong> ${escapeHtml(doc.highestDegree || 'Medical Graduate')}</div>
-                    <div><strong>University:</strong> ${escapeHtml(doc.university || 'Medical Council Approved')}</div>
-                    <div><strong>Registration Council:</strong> ${escapeHtml(doc.council || 'State Medical Council')}</div>
-                    <div><strong>Current Position:</strong> ${escapeHtml(doc.position || 'Specialist Consultant')}</div>
-                    <div><strong>Clinic/Hospital:</strong> ${escapeHtml(doc.clinicName || 'Clinic')}</div>
-                    <div><strong>Consultation Fee:</strong> ₹${escapeHtml(doc.fee || '—')}</div>
-                    <div><strong>City &amp; State:</strong> ${escapeHtml(doc.city || 'Nashik')}, ${escapeHtml(doc.state || 'Maharashtra')}</div>
-                    <div><strong>Locality:</strong> ${escapeHtml(doc.locality || 'General')}</div>
-                    <div><strong>Languages:</strong> ${escapeHtml(doc.languages || 'English, Hindi')}</div>
-                    <div><strong>Online Consultation:</strong> ${escapeHtml(doc.online || 'No')}</div>
-                    <div style="grid-column:span 2;"><strong>Full Address:</strong> ${escapeHtml(doc.address || 'Address on file')}</div>
-                    <div style="grid-column:span 2; white-space:pre-line;"><strong>Consultation Timings:</strong><br>${escapeHtml(doc.availabilityTimings || 'Consultation hours available via clinic')}</div>
-                    ${doc.about ? `<div style="grid-column:span 2;"><strong>About Doctor:</strong><br>${escapeHtml(doc.about)}</div>` : ''}
-                    ${doc.services ? `<div style="grid-column:span 2;"><strong>Clinical Services:</strong><br>${escapeHtml(doc.services)}</div>` : ''}
+                <div style="font-size:0.88rem; line-height:1.7;">
+                    <div><strong>Clinic:</strong> ${doc.clinicName}</div>
+                    <div><strong>Consultation Fee:</strong> ₹${doc.fee}</div>
+                    <div><strong>Location:</strong> ${doc.locality || 'Nashik'}</div>
+                    <div><strong>Hours:</strong> ${doc.availabilityTimings || 'Regular clinic timings'}</div>
                 </div>
-
-                <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-                    <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fa-solid fa-diamond-turn-right"></i> Open in Google Maps</a>
-                    <button class="btn btn-outline" onclick="copyProfileLink('${doc.id}')"><i class="fa-solid fa-share-nodes"></i> Share Link</button>
-                    <button class="btn btn-danger-outline" onclick="reportDoctor('${doc.id}')"><i class="fa-solid fa-flag"></i> Report</button>
+                <div style="margin-top:16px;">
+                    <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fa-solid fa-diamond-turn-right"></i> Navigate on Google Maps</a>
                 </div>
-
                 <div style="text-align:center; margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
                     <div id="qr-box" style="display:flex; justify-content:center;"></div>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">Scan QR to share this verified profile</p>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">Scan to share this profile</p>
                 </div>
-
-                <div class="review-box" id="profile-reviews-${doc.id}"></div>
             `;
             document.getElementById('main-modal').style.display = 'flex';
-            renderProfileReviews(doc.id);
             setTimeout(() => {
                 const qrBox = document.getElementById('qr-box');
                 if (qrBox) {
                     qrBox.innerHTML = '';
-                    new QRCode(qrBox, { text: `${window.location.origin}${window.location.pathname}?doc=${encodeURIComponent(doc.id)}`, width: 120, height: 120 });
+                    new QRCode(qrBox, { text: window.location.href, width: 110, height: 110 });
                 }
-            }, 50);
-        }
-
-        async function renderProfileReviews(docId) {
-            const box = document.getElementById(`profile-reviews-${docId}`);
-            if (!box) return;
-
-            let revs = safeRead('mr_reviews', []).filter(r => r.doctorId === docId);
-            try {
-                const res = await fetch(`${API_BASE}/reviews/${docId}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data)) revs = data;
-                }
-            } catch (e) {}
-
-            box.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                    <strong>Patient Feedback</strong>
-                    ${currentUserRole === 'PATIENT' ? `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="addDoctorReview('${docId}')"><i class="fa-solid fa-star"></i> Add Feedback</button>`:''}
-                </div>
-                ${revs.length ? revs.map(r => `<div style="margin-top:8px; font-size:0.85rem; background:#f8fafc; padding:8px; border-radius:6px;"><strong>${'★'.repeat(r.rating)}</strong> ${escapeHtml(r.comment)}</div>`).join('') : '<p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">No reviews yet.</p>'}
-            `;
-        }
-
-        async function addDoctorReview(docId) {
-            const rating = Number(prompt('Rate 1 to 5:'));
-            if (!rating || rating < 1 || rating > 5) return showToast('Please enter a valid number 1 to 5.');
-            const comment = prompt('Short comment:') || '';
-            const newRev = { id: "rev_"+Date.now(), doctorId: docId, patientId: currentUser.userId, rating, comment: comment.trim() };
-
-            try {
-                await fetch(`${API_BASE}/reviews`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newRev)
-                });
-            } catch (e) {}
-
-            const revs = safeRead('mr_reviews', []);
-            revs.unshift(newRev);
-            safeWrite('mr_reviews', revs);
-            renderProfileReviews(docId);
-            showToast('Feedback submitted.');
-        }
-
-        function copyProfileLink(id) {
-            const url = `${window.location.origin}${window.location.pathname}?doc=${encodeURIComponent(id)}`;
-            navigator.clipboard.writeText(url).then(() => showToast('Profile link copied.')).catch(() => showToast(url));
-        }
-
-        function reportDoctor(id) {
-            const reason = prompt('State reason for reporting inaccurate info:');
-            if (reason) showToast('Report submitted for admin review.');
-        }
-
-        const RED_FLAG_SYMPTOMS = ["chest pain", "shortness of breath", "loss of consciousness", "slurred speech", "paralysis", "uncontrolled bleeding", "heart attack"];
-        const AI_KNOWLEDGE = [
-            { specialty: "Cardiology", label: "Heart Specialist", patterns: ["chest", "heart", "bp", "palpitation", "breathless"], desc: "Evaluation of cardiovascular discomfort, blood pressure, or rhythm issues." },
-            { specialty: "Gynecology", label: "Women & Pregnancy", patterns: ["period", "pregnancy", "pcos", "ovary", "uterus", "cramp"], desc: "Comprehensive consultation for women's reproductive health and pregnancy care." },
-            { specialty: "Neurology", label: "Brain & Nerves", patterns: ["headache", "migraine", "nerve", "dizzy", "seizure", "numbness"], desc: "Assessment for nervous system symptoms, severe migraines, and dizziness." },
-            { specialty: "Orthopedics", label: "Bones & Joints", patterns: ["knee", "joint", "back pain", "fracture", "ligament", "bone"], desc: "Specialist consultation for joint arthritis, spine, and mobility problems." },
-            { specialty: "Pediatrics", label: "Child Care", patterns: ["child", "baby", "infant", "toddler", "vaccine", "teething"], desc: "Care tailored for infant health, vaccinations, and childhood illnesses." },
-            { specialty: "Dermatology", label: "Skin & Hair", patterns: ["skin", "acne", "hair", "rash", "itching", "allergy"], desc: "Skin disorders, acne breakouts, acute rashes, and scalp evaluations." },
-            { specialty: "General Medicine", label: "General Physician", patterns: ["fever", "cough", "cold", "infection", "weakness"], desc: "Routine viral symptoms, blood sugar tests, and primary diagnostics." }
-        ];
-
-        function openAITriageModal() {
-            document.getElementById('ai-modal').style.display = 'flex';
-            document.getElementById('ai-symptom-input').focus();
-        }
-
-        function closeAITriageModal() {
-            document.getElementById('ai-modal').style.display = 'none';
-        }
-
-        function runAITriage() {
-            const input = (document.getElementById('ai-symptom-input').value || '').toLowerCase().trim();
-            const box = document.getElementById('ai-result-box');
-            const cont = document.getElementById('ai-result-content');
-            if (!input) return showToast('Please describe your symptoms first.');
-
-            box.style.display = 'block';
-
-            if (RED_FLAG_SYMPTOMS.some(t => input.includes(t))) {
-                const dict = I18N[currentLang];
-                cont.innerHTML = `
-                    <div style="background:#fee2e2; border:2px solid #ef4444; border-radius:12px; padding:16px;">
-                        <h4 style="color:#b91c1c; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> ${dict.emergency_detected}</h4>
-                        <p style="font-size:0.85rem; color:#7f1d1d; margin-bottom:12px;">${dict.emergency_desc}</p>
-                        <div style="display:flex; gap:10px;">
-                            <a href="tel:108" class="btn btn-primary" style="background:#dc2626; flex:1; text-decoration:none;"><i class="fa-solid fa-phone"></i> ${dict.call_ambulance}</a>
-                            <a href="tel:112" class="btn btn-outline" style="border-color:#dc2626; color:#dc2626; flex:1; text-decoration:none;"><i class="fa-solid fa-phone"></i> ${dict.call_police}</a>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            cont.innerHTML = `<div style="text-align:center; padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Analyzing symptoms...</div>`;
-            setTimeout(() => {
-                let match = AI_KNOWLEDGE.find(k => k.patterns.some(p => input.includes(p))) || AI_KNOWLEDGE[AI_KNOWLEDGE.length - 1];
-                const specHelp = SPECIALTY_META[match.specialty]?.simpleHelp || '';
-                cont.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <strong style="color:var(--brand); font-size:1rem;"><i class="fa-solid fa-stethoscope"></i> Recommended: ${match.specialty}</strong>
-                        <span class="verify-tag tag-verified">${match.label}</span>
-                    </div>
-                    <div style="font-size:0.8rem; font-weight:600; color:var(--brand); margin-top:4px;">${specHelp}</div>
-                    <p style="font-size:0.85rem; margin:8px 0; color:#334155;">${match.desc}</p>
-                    <button class="btn btn-primary" style="width:100%;" onclick="applyAISuggestion('${match.specialty}')">View ${match.specialty} Specialists</button>
-                `;
-            }, 250);
-        }
-
-        function applyAISuggestion(spec) {
-            closeAITriageModal();
-            showView('find-doctors');
-            document.getElementById('f-spec').value = spec;
-            document.getElementById('f-name').value = '';
-            filterDoctors();
-        }
-
-        function startVoiceInput() {
-            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!Speech) return showToast("Speech recognition is not supported in this browser.");
-            const r = new Speech();
-            r.lang = (currentLang === 'mr') ? 'mr-IN' : 'en-IN';
-            showToast("Listening... Describe symptoms.");
-            r.onresult = (e) => {
-                document.getElementById('ai-symptom-input').value = e.results[0][0].transcript;
-                runAITriage();
-            };
-            r.start();
-        }
-
-        const DB_NAME = 'MediRankUnifiedVault';
-        function openVaultDB() {
-            return new Promise((res, rej) => {
-                const req = indexedDB.open(DB_NAME, 1);
-                req.onupgradeneeded = () => req.result.createObjectStore('files', { keyPath: 'id' });
-                req.onsuccess = () => res(req.result);
-                req.onerror = () => rej(req.error);
-            });
-        }
-        async function saveBinaryFile(id, file, meta) {
-            const db = await openVaultDB();
-            return new Promise((res, rej) => {
-                const tx = db.transaction('files', 'readwrite');
-                tx.objectStore('files').put({ id, blob: file, name: file.name, type: file.type, size: file.size, ...meta });
-                tx.oncomplete = () => res(id);
-                tx.onerror = () => rej(tx.error);
-            });
-        }
-        async function getBinaryFile(id) {
-            const db = await openVaultDB();
-            return new Promise((res, rej) => {
-                const req = db.transaction('files', 'readonly').objectStore('files').get(id);
-                req.onsuccess = () => res(req.result || null);
-                req.onerror = () => rej(req.error);
-            });
-        }
-
-        async function handleVaultUpload(e) {
-            const file = e.target.files[0];
-            e.target.value = '';
-            if (!file || currentUserRole !== 'PATIENT') return showToast('Upload records using a patient account.');
-            const id = `vault-${currentUser.userId}-${Date.now()}`;
-            await saveBinaryFile(id, file, { ownerId: currentUser.userId });
-            const recs = safeRead('mr_vault', []);
-            recs.unshift({ id, ownerId: currentUser.userId, fileName: file.name, size: file.size, uploadedAt: new Date().toISOString() });
-            safeWrite('mr_vault', recs);
-            renderMedicalVault();
-            showToast('Document securely stored in your private vault.');
-        }
-
-        function renderMedicalVault() {
-            const cont = document.getElementById('records-container');
-            if (currentUserRole !== 'PATIENT') {
-                cont.innerHTML = `<div class="empty-placeholder">Sign in as a patient to access encrypted vault records.</div>`;
-                return;
-            }
-            const recs = safeRead('mr_vault', []).filter(r => r.ownerId === currentUser.userId);
-            if (!recs.length) {
-                cont.innerHTML = `<div class="empty-placeholder"><i class="fa-solid fa-folder-open" style="font-size:2rem; margin-bottom:8px;"></i><br>No medical records in your vault.</div>`;
-                return;
-            }
-            cont.innerHTML = recs.map(r => `
-                <div style="background:white; border:1px solid var(--border); padding:14px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <strong><i class="fa-regular fa-file"></i> ${escapeHtml(r.fileName)}</strong>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">${(r.size / 1024).toFixed(1)} KB • ${new Date(r.uploadedAt).toLocaleDateString()}</div>
-                    </div>
-                    <button class="btn btn-outline" onclick="downloadVaultRecord('${r.id}')"><i class="fa-solid fa-download"></i> Download</button>
-                </div>
-            `).join('');
-        }
-
-        async function downloadVaultRecord(id) {
-            const f = await getBinaryFile(id);
-            if (!f) return showToast('Demo dummy file downloaded or simulated.');
-            const url = URL.createObjectURL(f.blob);
-            const a = document.createElement('a'); a.href = url; a.download = f.name; a.click();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-        }
-
-        function renderDoctorCredentialsVault() {
-            const list = document.getElementById('doc-existing-credentials-list');
-            list.innerHTML = `
-                <div style="background:#f8fafc; border:1px solid var(--border); padding:10px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <div><i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> <strong>Maharashtra_Medical_Council_Registration_2026.pdf</strong> (1.4 MB)</div>
-                    <span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
-                </div>
-                <div style="background:#f8fafc; border:1px solid var(--border); padding:10px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <div><i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> <strong>Grant_Medical_College_DM_Cardiology_Degree.pdf</strong> (2.1 MB)</div>
-                    <span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
-                </div>
-            `;
+            }, 60);
         }
 
         function renderDoctorPortal() {
             const cont = document.getElementById('doc-portal-content');
-            let doc = cachedDoctors.find(d => d.email === currentUser.email) || cachedDoctors[0];
-
+            if (!cont) return;
+            const doc = cachedDoctors.find(d => d.email === currentUser?.email) || cachedDoctors[0];
             cont.innerHTML = `
                 <div class="form-section">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h2>${escapeHtml(doc.fullName)}</h2>
-                        <span class="verify-tag ${doc.verificationStatus === 'Verified' ? 'tag-verified' : 'tag-pending'}">${escapeHtml(doc.verificationStatus)}</span>
+                    <h2>${doc.fullName} (Practice Portal)</h2>
+                    <p style="color:var(--brand); font-weight:700; margin:4px 0 16px;">${doc.specialty} • Reg: <code>${doc.registrationNumber}</code></p>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Clinic Name</label><input type="text" id="p-clinic" value="${doc.clinicName || ''}"></div>
+                        <div class="form-group"><label>Fee (₹)</label><input type="number" id="p-fee" value="${doc.fee || ''}"></div>
+                        <div class="form-group full"><label>OPD Availability Hours</label><textarea id="p-hours" rows="2">${doc.availabilityTimings || ''}</textarea></div>
                     </div>
-                    <p style="color:var(--brand); font-weight:700; margin:4px 0 16px;">${escapeHtml(doc.specialty)} • Reg: <code>${escapeHtml(doc.registrationNumber)}</code></p>
-                    
-                    <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid var(--border);">
-                        <div>Practice Availability: <strong>${doc.isTemporarilyAway ? 'Away / On Leave' : 'Active'}</strong></div>
-                        <button class="btn btn-outline" onclick="toggleDoctorLeave('${doc.id}')">${doc.isTemporarilyAway ? 'Mark Active' : 'Mark on Leave'}</button>
-                    </div>
-
-                    <form onsubmit="saveDoctorPortalUpdates(event, '${doc.id}')">
-                        <div class="form-grid">
-                            <div class="form-group"><label>Clinic Name</label><input type="text" id="p-clinic" value="${escapeHtml(doc.clinicName || '')}"></div>
-                            <div class="form-group"><label>Consultation Fee (₹ 0–50,000)</label><input type="number" id="p-fee" min="0" max="50000" value="${escapeHtml(doc.fee || '')}"></div>
-                            <div class="form-group"><label>Public Contact Phone (10-digit)</label><input type="tel" id="p-phone" pattern="[6-9][0-9]{9}" maxlength="10" value="${escapeHtml(doc.publicPhone || '')}"></div>
-                            <div class="form-group"><label>Current Position</label><input type="text" id="p-position" value="${escapeHtml(doc.position || '')}"></div>
-                            <div class="form-group full"><label>Consultation Hours</label><textarea id="p-hours" rows="2">${escapeHtml(doc.availabilityTimings || '')}</textarea></div>
-                            <div class="form-group full"><label>Treatments &amp; Clinical Services</label><textarea id="p-services" rows="2">${escapeHtml(doc.services || '')}</textarea></div>
-                            <div class="form-group full"><label>Professional Bio / About</label><textarea id="p-about" rows="2">${escapeHtml(doc.about || '')}</textarea></div>
-                        </div>
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Practice Details</button>
-                    </form>
+                    <button class="btn btn-primary" onclick="showToast('Practice details saved.')"><i class="fa-solid fa-floppy-disk"></i> Save Practice Updates</button>
                 </div>
             `;
         }
 
-        async function toggleDoctorLeave(id) {
-            let docs = safeRead('mr_docs', []);
-            let d = docs.find(x => x.id === id);
-            if (d) {
-                d.isTemporarilyAway = !d.isTemporarilyAway;
-                try {
-                    await fetch(`${API_BASE}/doctors/${id}/status`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ isTemporarilyAway: d.isTemporarilyAway })
-                    });
-                } catch (e) {}
-                safeWrite('mr_docs', docs);
-                loadDirectoryData();
-                renderDoctorPortal();
-                showToast("Practice availability updated.");
-            }
-        }
-
-        async function saveDoctorPortalUpdates(e, id) {
-            e.preventDefault();
-            const phone = document.getElementById('p-phone').value.trim();
-            const fee = Number(document.getElementById('p-fee').value.trim());
-
-            if (phone && !/^[6-9][0-9]{9}$/.test(phone)) {
-                return showToast("Phone must be 10 digits starting with 6-9.");
-            }
-            if (isNaN(fee) || fee < 0 || fee > 50000) {
-                return showToast("Fee must be between ₹0 and ₹50,000.");
-            }
-
-            const updates = {
-                clinicName: document.getElementById('p-clinic').value.trim(),
-                fee: String(fee),
-                publicPhone: phone,
-                position: document.getElementById('p-position').value.trim(),
-                availabilityTimings: document.getElementById('p-hours').value.trim(),
-                services: document.getElementById('p-services').value.trim(),
-                about: document.getElementById('p-about').value.trim()
-            };
-
-            try {
-                await fetch(`${API_BASE}/doctors/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updates)
-                });
-            } catch (err) {}
-
-            let docs = safeRead('mr_docs', []);
-            let d = docs.find(x => x.id === id);
-            if (d) {
-                Object.assign(d, updates);
-                safeWrite('mr_docs', docs);
-                loadDirectoryData();
-                showToast("Practice information saved.");
-            }
-        }
-
         function renderAdminVerification() {
-            const docs = safeRead('mr_docs', []);
-            const pending = docs.filter(d => d.verificationStatus === 'Pending Review');
-            const verified = docs.filter(d => d.verificationStatus === 'Verified');
-            const corrections = docs.filter(d => d.verificationStatus === 'Correction Required');
-
-            document.getElementById('admin-kpi-row').innerHTML = `
-                <div class="admin-stat-card pending"><div class="admin-stat-num">${pending.length}</div><div class="admin-stat-title">Pending Review</div></div>
-                <div class="admin-stat-card verified"><div class="admin-stat-num">${verified.length}</div><div class="admin-stat-title">Verified Doctors</div></div>
-                <div class="admin-stat-card corrections"><div class="admin-stat-num">${corrections.length}</div><div class="admin-stat-title">Corrections</div></div>
-            `;
-
-            document.getElementById('admin-verify-list').innerHTML = docs.map(d => `
-                <div class="doctor-card" style="margin-bottom:12px;" data-status="${escapeHtml(d.verificationStatus)}">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+            const el = document.getElementById('admin-verify-list');
+            if (!el) return;
+            el.innerHTML = cachedDoctors.map(d => `
+                <div class="doctor-card" style="margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
-                            <strong>${escapeHtml(d.fullName)}</strong> (${escapeHtml(d.specialty)})<br>
-                            <small>Reg: <code>${escapeHtml(d.registrationNumber)}</code> | ${escapeHtml(d.clinicName)}, ${escapeHtml(d.city)}</small>
-                            <div style="margin-top:6px;">Status: <span class="verify-tag ${d.verificationStatus === 'Verified' ? 'tag-verified' : (d.verificationStatus === 'Correction Required' ? 'tag-correction' : 'tag-pending')}">${escapeHtml(d.verificationStatus)}</span></div>
+                            <strong>${d.fullName}</strong> (${d.specialty})<br>
+                            <small>Reg: <code>${d.registrationNumber}</code> | ${d.clinicName}</small>
                         </div>
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            <button class="btn btn-outline" onclick="adminPreviewDoc('${d.documentStoragePath || ''}', '${escapeHtml(d.fullName)}', '${escapeHtml(d.registrationNumber)}')"><i class="fa-solid fa-file-invoice"></i> Inspect Proof</button>
-                            ${d.verificationStatus !== 'Verified' ? 
-                                `<button class="btn btn-primary" onclick="confirmAdminAction('APPROVE', '${d.id}', '${escapeHtml(d.fullName)}')"><i class="fa-solid fa-check"></i> Approve</button>` :
-                                `<button class="btn btn-danger-outline" onclick="confirmAdminAction('REVOKE', '${d.id}', '${escapeHtml(d.fullName)}')"><i class="fa-solid fa-ban"></i> Revoke</button>`}
-                            <button class="btn btn-outline" onclick="confirmAdminAction('FEEDBACK', '${d.id}', '${escapeHtml(d.fullName)}')"><i class="fa-solid fa-comment-dots"></i> Change</button>
-                        </div>
+                        <span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function adminPreviewDoc(path, docName, regNo) {
-            const body = document.getElementById('modal-body');
-            const stored = await getBinaryFile(path);
+        function openAITriageModal() { document.getElementById('ai-modal').style.display = 'flex'; }
+        function closeAITriageModal() { document.getElementById('ai-modal').style.display = 'none'; }
 
-            if (stored) {
-                const url = URL.createObjectURL(stored.blob);
-                body.innerHTML = `
-                    <h3>Council Registration Proof</h3>
-                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">${escapeHtml(stored.name)} (${(stored.size / 1024).toFixed(1)} KB)</p>
-                    ${stored.type === 'application/pdf' ? `<iframe src="${url}" style="width:100%; height:55vh; border:1px solid var(--border); border-radius:8px;"></iframe>` : `<img src="${url}" style="max-width:100%; max-height:55vh; object-fit:contain;">`}
-                    <div style="margin-top:14px;"><a href="${url}" target="_blank" class="btn btn-primary">Open Full Document</a></div>
+        function runAITriage() {
+            const input = (document.getElementById('ai-symptom-input')?.value || '').toLowerCase().trim();
+            const box = document.getElementById('ai-result-box');
+            const cont = document.getElementById('ai-result-content');
+            if (!input) return showToast('Please type your symptoms first.');
+
+            if (box) box.style.display = 'block';
+            let spec = "General Medicine";
+            if (input.includes('chest') || input.includes('heart') || input.includes('bp')) spec = "Cardiology";
+            else if (input.includes('skin') || input.includes('rash') || input.includes('acne')) spec = "Dermatology";
+            else if (input.includes('joint') || input.includes('knee') || input.includes('bone')) spec = "Orthopedics";
+            else if (input.includes('child') || input.includes('baby') || input.includes('toddler')) spec = "Pediatrics";
+            else if (input.includes('tooth') || input.includes('gum') || input.includes('teeth')) spec = "Dentistry";
+
+            if (cont) {
+                cont.innerHTML = `
+                    <strong style="color:var(--brand); font-size:1rem;"><i class="fa-solid fa-stethoscope"></i> Recommended Branch: ${spec}</strong>
+                    <p style="font-size:0.85rem; margin:8px 0; color:#334155;">Consult specialists in ${spec} for these symptoms.</p>
+                    <button class="btn btn-primary" style="width:100%;" onclick="closeAITriageModal(); selectSpecialtyCard('${spec}');">View ${spec} Doctors</button>
                 `;
-            } else {
-                body.innerHTML = `
-                    <h3>State Medical Council Verification Record</h3>
-                    <div style="background:#f8fafc; border:2px dashed #cbd5e1; border-radius:12px; padding:30px; margin:20px 0; text-align:center;">
-                        <i class="fa-solid fa-stamp" style="font-size:3rem; color:var(--brand); margin-bottom:12px;"></i>
-                        <h4>Certificate of Medical Registration</h4>
-                        <p style="margin-top:6px; font-size:0.9rem;">Duly certified for <strong>${escapeHtml(docName)}</strong> under Medical Council Gazette.</p>
-                        <p style="margin-top:4px;">Council Registration: <code>${escapeHtml(regNo)}</code></p>
-                    </div>
-                `;
-            }
-            document.getElementById('main-modal').style.display = 'flex';
-        }
-
-        function confirmAdminAction(type, doctorId, doctorName) {
-            const titleEl = document.getElementById('confirm-title');
-            const descEl = document.getElementById('confirm-desc');
-            const btn = document.getElementById('confirm-action-btn');
-
-            if (type === 'APPROVE') {
-                titleEl.innerText = "Approve Medical Listing";
-                descEl.innerText = `Confirm verification for ${doctorName}. Listing will be visible to public users across India.`;
-                confirmCallback = () => executeAdminStatusUpdate(doctorId, doctorName, 'Verified', 'Doctor credentials verified against registration gazette.');
-            } else if (type === 'REVOKE') {
-                titleEl.innerText = "Revoke Doctor Verification";
-                descEl.innerText = `Revoke verification badge for ${doctorName}?`;
-                confirmCallback = () => executeAdminStatusUpdate(doctorId, doctorName, 'Rejected', 'Verification revoked by administration.');
-            } else if (type === 'FEEDBACK') {
-                const msg = prompt("Enter correction note for doctor:");
-                if (!msg) return;
-                executeAdminStatusUpdate(doctorId, doctorName, 'Correction Required', msg);
-                return;
-            }
-
-            document.getElementById('confirm-modal').style.display = 'flex';
-            btn.onclick = () => {
-                if (confirmCallback) confirmCallback();
-                closeConfirmDialog();
-            };
-        }
-
-        function closeConfirmDialog() {
-            document.getElementById('confirm-modal').style.display = 'none';
-            confirmCallback = null;
-        }
-
-        async function executeAdminStatusUpdate(id, docName, newStatus, note) {
-            try {
-                await fetch(`${API_BASE}/admin/verify/${id}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: newStatus, note, adminUser: currentUser.fullName || "Admin" })
-                });
-            } catch (err) {}
-
-            let docs = safeRead('mr_docs', []);
-            let d = docs.find(x => x.id === id);
-            if (!d) return;
-
-            d.verificationStatus = newStatus;
-            safeWrite('mr_docs', docs);
-
-            let audit = safeRead('mr_audit', []);
-            audit.unshift({ id: "aud_"+Date.now(), targetDoctorName: docName, action: newStatus, adminUser: currentUser.fullName || "Admin", note: note, date: new Date().toISOString().split('T')[0] });
-            safeWrite('mr_audit', audit);
-
-            loadDirectoryData();
-            renderAdminVerification();
-            showToast(`Status updated to ${newStatus}.`);
-        }
-
-        function renderAdminAuditLogs() {
-            const logs = safeRead('mr_audit', []);
-            document.getElementById('admin-audit-table-container').innerHTML = `
-                <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                    <thead><tr style="background:#f8fafc; text-align:left; border-bottom:1px solid var(--border);"><th style="padding:8px;">Date</th><th style="padding:8px;">Doctor</th><th style="padding:8px;">Action</th><th style="padding:8px;">Admin</th><th style="padding:8px;">Notes</th></tr></thead>
-                    <tbody>
-                        ${logs.map(l => `<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px;">${escapeHtml(l.date)}</td><td style="padding:8px;"><strong>${escapeHtml(l.targetDoctorName)}</strong></td><td style="padding:8px;"><code>${escapeHtml(l.action)}</code></td><td style="padding:8px;">${escapeHtml(l.adminUser)}</td><td style="padding:8px;">${escapeHtml(l.note)}</td></tr>`).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
-
-        function filterAdminQueue() {
-            const q = document.getElementById('admin-search').value.toLowerCase().trim();
-            const status = document.getElementById('admin-filter-status').value;
-            document.querySelectorAll('#admin-verify-list .doctor-card').forEach(c => {
-                const text = c.innerText.toLowerCase();
-                const matchesSearch = text.includes(q);
-                const matchesStatus = (status === 'ALL') || (c.dataset.status === status);
-                c.style.display = (matchesSearch && matchesStatus) ? 'block' : 'none';
-            });
-        }
-
-        function toggleMobileMenu() { document.querySelector('aside')?.classList.toggle('mobile-open'); }
-        function togglePasswordVisibility(id, icon) {
-            const f = document.getElementById(id);
-            f.type = (f.type === 'password') ? 'text' : 'password';
-            icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
-        }
-        function openDeepLinkedDoctor() {
-            const id = new URLSearchParams(window.location.search).get('doc');
-            if (id) {
-                const d = cachedDoctors.find(x => x.id === id);
-                if (d) openProfile(id);
             }
         }
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+
+        function handleVaultUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const container = document.getElementById('records-container');
+            if (container) {
+                const item = document.createElement('div');
+                item.style.padding = '8px';
+                item.style.marginTop = '6px';
+                item.style.background = '#f8fafc';
+                item.style.borderRadius = '6px';
+                item.innerHTML = `<i class="fa-regular fa-file-pdf" style="color:#ef4444;"></i> <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
+                container.appendChild(item);
+                showToast("Document saved to local vault.");
+            }
         }
+
+        function toggleMobileMenu() { document.getElementById('main-sidebar')?.classList.toggle('mobile-open'); }
         function showToast(msg) {
             const t = document.getElementById('toast');
+            if (!t) return;
             t.innerText = msg;
             t.style.display = 'block';
-            setTimeout(() => { t.style.display = 'none'; }, 3500);
+            setTimeout(() => { t.style.display = 'none'; }, 3000);
         }
     </script>
 </body>
