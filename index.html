@@ -6,7 +6,6 @@
     <title>MediRank &amp; Doctor Diary | Comprehensive Specialist Registry</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
@@ -42,10 +41,12 @@
             z-index: 9999; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
         .auth-card {
-            background: white; width: 100%; max-width: 760px;
+            background: white; width: 100%; max-width: 780px;
             border-radius: 20px; padding: 28px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
             margin: auto;
+            box-sizing: border-box;
+            overflow: hidden;
         }
         .auth-header { text-align: center; margin-bottom: 20px; }
         .auth-header .logo-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 1.4rem; font-weight: 800; color: var(--brand); margin-bottom: 4px; }
@@ -61,14 +62,46 @@
         .role-pill { padding: 9px; border-radius: 8px; border: none; background: transparent; cursor: pointer; font-weight: 600; font-size: 0.82rem; color: var(--text-muted); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .role-pill.active { background: white; color: var(--brand); box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
 
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; position: relative; }
-        .form-group.full { grid-column: span 2; }
-        .form-group label { font-size: 0.8rem; font-weight: 700; color: var(--text-dark); }
-        .form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem; outline: none; background: #fff; }
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, minmax(0, 1fr)); 
+            gap: 14px; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .form-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            margin-bottom: 14px; 
+            position: relative; 
+            min-width: 0; 
+            width: 100%;
+        }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label { font-size: 0.82rem; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; 
+            max-width: 100%;
+            min-width: 0;
+            padding: 10px 12px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            font-size: 0.9rem; 
+            outline: none; 
+            background: #fff; 
+            color: #1e293b; 
+            box-sizing: border-box;
+        }
+        .form-group select {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            padding-right: 24px;
+        }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--brand); }
         
-        .password-toggle { position: absolute; right: 12px; top: 32px; cursor: pointer; color: var(--text-muted); padding: 6px; font-size: 1rem; }
+        .password-toggle { position: absolute; right: 12px; top: 34px; cursor: pointer; color: var(--text-muted); padding: 6px; font-size: 1rem; }
         .btn-submit { width: 100%; padding: 12px; border-radius: 10px; background: var(--brand); color: white; border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 6px; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-submit:hover { background: var(--brand-hover); }
         .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -91,6 +124,7 @@
         .user-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px; margin-top: auto; margin-bottom: 10px; }
         .user-badge .name { font-size: 0.85rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-badge .role { font-size: 0.7rem; color: #5eead4; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        .user-badge .account-id { font-size: 0.72rem; color: #94a3b8; font-family: monospace; margin-top: 3px; }
 
         .btn-auth-logout { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.82rem; transition: 0.2s; width: 100%; }
         .btn-auth-logout:hover { background: rgba(239, 68, 68, 0.25); color: #fff; }
@@ -170,10 +204,37 @@
 
         .mobile-menu { display: none; }
 
+        .clinic-pill-box { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .visiting-clinic-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+        .visiting-clinic-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-dark); font-size: 0.88rem; }
+        .visiting-clinic-detail { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+
+        .private-id-card {
+            background: #f8fafc;
+            border: 1px dashed var(--brand);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .private-id-card .id-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .private-id-card .id-value { font-family: monospace; font-size: 1.15rem; font-weight: 800; color: var(--brand); }
+        .private-id-card .id-pill { background: #e6f4f3; color: var(--brand); border-radius: 20px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; }
+
         @media (max-width: 1024px) { 
             aside { width: 75px; padding: 20px 10px; } 
             aside span, aside .user-badge, aside .btn-auth-logout span { display: none; } 
             main { margin-left: 75px; padding: 20px; } 
+        }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: auto; }
+            .auth-card { padding: 20px 16px; }
         }
 
         @media (max-width: 700px) {
@@ -183,11 +244,8 @@
             aside.mobile-open span, aside.mobile-open .user-badge, aside.mobile-open .btn-auth-logout span { display: inline; }
             .mobile-menu { display: inline-flex; position: fixed; left: 12px; top: 12px; z-index: 3000; border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 9px; cursor: pointer; }
             header { padding-left: 48px; }
-            .form-grid { grid-template-columns: 1fr; }
-            .form-group.full { grid-column: auto; }
             .search-container { flex-direction: column; gap: 6px; }
             .search-container button { min-height: 44px; }
-            .auth-card { padding: 20px 16px; }
             .modal-content { padding: 20px 16px; }
         }
     </style>
@@ -197,7 +255,7 @@
 
     <!-- AI TRIAGE FLOATING BUTTON -->
     <button id="btn-ai-triage" class="btn btn-primary" onclick="openAITriageModal()" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000; border-radius: 50px; padding: 12px 22px; box-shadow: 0 10px 25px rgba(11,110,105,0.4); font-size: 0.95rem;">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="ai_btn">AI Health Assistant</span>
+        <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Health Assistant</span>
     </button>
 
     <!-- AI TRIAGE MODAL -->
@@ -209,12 +267,12 @@
                     <i class="fa-solid fa-robot"></i>
                 </div>
                 <div>
-                    <h3 style="margin: 0;" data-i18n="ai_title">MediAssist AI Triage</h3>
-                    <small style="color: var(--text-muted);" data-i18n="ai_desc">Describe your symptoms in simple language</small>
+                    <h3 style="margin: 0;">MediAssist AI Triage</h3>
+                    <small style="color: var(--text-muted);">Describe your symptoms in simple language</small>
                 </div>
             </div>
-            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 14px;" data-i18n="ai_hint">
-                Tell us what you are feeling (e.g. <em>"chest pain after walking"</em>, <em>"severe headache with vomiting"</em>, or <em>"toddler fever"</em>).
+            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 14px;">
+                Tell us what you are feeling (e.g. <em>"chest pain after walking"</em>, <em>"severe knee swelling"</em>, or <em>"toddler fever"</em>).
             </p>
             <div style="position: relative; margin-bottom: 14px;">
                 <textarea id="ai-symptom-input" rows="3" placeholder="Describe symptoms..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;"></textarea>
@@ -222,7 +280,7 @@
                     <i class="fa-solid fa-microphone"></i>
                 </button>
             </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="runAITriage()"><i class="fa-solid fa-brain"></i> <span data-i18n="ai_analyze">Analyze &amp; Match Specialists</span></button>
+            <button class="btn btn-primary" style="width: 100%;" onclick="runAITriage()"><i class="fa-solid fa-brain"></i> <span>Analyze &amp; Match Specialists</span></button>
             <div id="ai-result-box" style="display: none; margin-top: 16px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--border); padding: 16px;">
                 <div id="ai-result-content"></div>
             </div>
@@ -281,7 +339,7 @@
                     <input type="email" id="reg-pat-email" required placeholder="name@email.com" autocomplete="email">
                 </div>
                 <div class="form-group">
-                    <label for="reg-pat-pass">Password* (8+ chars, uppercase, lowercase, digit)</label>
+                    <label for="reg-pat-pass">Password* (8+ chars)</label>
                     <input type="password" id="reg-pat-pass" required placeholder="Create strong password" autocomplete="new-password">
                     <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('reg-pat-pass', this)"></i>
                 </div>
@@ -308,7 +366,7 @@
                         <input type="tel" id="reg-doc-phone" required placeholder="9876543210" pattern="[6-9][0-9]{9}" maxlength="10" autocomplete="tel">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-pass">Password* (8+ chars, uppercase, lowercase, digit)</label>
+                        <label for="reg-doc-pass">Password* (8+ chars)</label>
                         <input type="password" id="reg-doc-pass" required placeholder="Create password" autocomplete="new-password">
                         <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('reg-doc-pass', this)"></i>
                     </div>
@@ -381,7 +439,7 @@
                         <select id="reg-doc-city" required></select>
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-clinic">Clinic / Hospital Name*</label>
+                        <label for="reg-doc-clinic">Primary Clinic / Hospital Name*</label>
                         <input type="text" id="reg-doc-clinic" required placeholder="Clinic Name">
                     </div>
                     <div class="form-group">
@@ -397,12 +455,12 @@
                         <input type="text" id="reg-doc-languages" placeholder="English, Hindi, Marathi">
                     </div>
                     <div class="form-group full">
-                        <label for="reg-doc-address">Complete Clinic Address*</label>
+                        <label for="reg-doc-address">Complete Primary Clinic Address*</label>
                         <textarea id="reg-doc-address" rows="2" required placeholder="Plot, Street, Area, Landmark"></textarea>
                     </div>
                     <div class="form-group full">
                         <label for="reg-doc-opd">Consultation Availability Timings*</label>
-                        <textarea id="reg-doc-opd" rows="2" required placeholder="Monday: 10:00 AM–02:00 PM"></textarea>
+                        <textarea id="reg-doc-opd" rows="2" required placeholder="Monday–Friday: 10:00 AM–02:00 PM"></textarea>
                     </div>
                     <div class="form-group full">
                         <label for="reg-doc-services">Treatments &amp; Clinical Services</label>
@@ -477,26 +535,29 @@
         <aside>
             <div class="logo"><i class="fa-solid fa-stethoscope"></i><span>MediRank</span></div>
             <div class="nav-links-scroll">
-                <div class="nav-item active" id="nav-home" onclick="showView('home')"><i class="fa-solid fa-compass"></i><span data-i18n="nav_discover">Discover</span></div>
+                <div class="nav-item active" id="nav-home" onclick="showView('home')"><i class="fa-solid fa-compass"></i><span>Discover</span></div>
                 <div class="nav-item" id="nav-specs" onclick="showView('specialties')"><i class="fa-solid fa-shapes"></i><span>Specialties</span></div>
-                <div class="nav-item" id="nav-find" onclick="showView('find-doctors')"><i class="fa-solid fa-magnifying-glass"></i><span data-i18n="nav_doctors">All Doctors</span></div>
-                <div class="nav-item" id="nav-nearme" onclick="showView('near-me')"><i class="fa-solid fa-location-dot"></i><span data-i18n="nav_localities">Localities</span></div>
-                <div class="nav-item" id="nav-records" onclick="showView('records')"><i class="fa-solid fa-file-medical"></i><span data-i18n="nav_vault">Medical Vault</span></div>
+                <div class="nav-item" id="nav-find" onclick="showView('find-doctors')"><i class="fa-solid fa-magnifying-glass"></i><span>All Doctors</span></div>
+                <div class="nav-item" id="nav-nearme" onclick="showView('near-me')"><i class="fa-solid fa-location-dot"></i><span>Localities</span></div>
                 
                 <div class="nav-divider" id="nav-portal-divider"></div>
+
+                <div class="nav-item" id="nav-patient-profile" style="display:none;" onclick="showView('patient-profile')"><i class="fa-solid fa-address-card"></i><span>My Profile</span></div>
                 
                 <div class="nav-item" id="nav-doc-portal" style="display:none;" onclick="showView('doc-portal')"><i class="fa-solid fa-id-card-clip"></i><span>Practice Portal</span></div>
                 <div class="nav-item" id="nav-doc-docs" style="display:none;" onclick="showView('doc-documents')"><i class="fa-solid fa-file-arrow-up"></i><span>Credentials Vault</span></div>
                 
-                <div class="nav-item" id="nav-admin-verify" style="display:none;" onclick="showView('admin-verification')"><i class="fa-solid fa-file-shield"></i><span>Review Queue</span></div>
+                <div class="nav-item" id="nav-admin-verify" style="display:none;" onclick="showView('admin-verification')"><i class="fa-solid fa-file-shield"></i><span>Doctor Review Queue</span></div>
+                <div class="nav-item" id="nav-admin-reviews" style="display:none;" onclick="showView('admin-reviews')"><i class="fa-solid fa-comments"></i><span>Patient Feedback Desk</span></div>
                 <div class="nav-item" id="nav-admin-audit" style="display:none;" onclick="showView('admin-audit')"><i class="fa-solid fa-clipboard-list"></i><span>Audit History</span></div>
                 
-                <div class="nav-item" id="nav-about" onclick="showView('about-legal')"><i class="fa-solid fa-circle-info"></i><span data-i18n="nav_about">About &amp; Disclaimer</span></div>
+                <div class="nav-item" id="nav-about" onclick="showView('about-legal')"><i class="fa-solid fa-circle-info"></i><span>About &amp; Disclaimer</span></div>
             </div>
 
             <div class="user-badge" id="user-badge">
                 <div class="name" id="user-display-name">Loading...</div>
                 <div class="role" id="user-display-role">...</div>
+                <div class="account-id" id="user-display-id"></div>
             </div>
 
             <button class="btn-auth-logout" onclick="handleLogout()">
@@ -506,11 +567,8 @@
 
         <main>
             <header>
-                <h2 id="view-title" data-i18n="view_home">Clinical Discovery</h2>
+                <h2 id="view-title">Clinical Discovery</h2>
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <button class="btn btn-outline" onclick="toggleLanguage()" id="lang-toggle-btn" style="border-radius: 20px;">
-                        <i class="fa-solid fa-language"></i> <span id="current-lang-label">मराठी</span>
-                    </button>
                     <button class="btn btn-outline" onclick="requestUserLocation()" id="btn-user-location" style="border-radius: 20px;">
                         <i class="fa-solid fa-location-crosshairs"></i> <span id="user-loc-text">Detect Location</span>
                     </button>
@@ -519,14 +577,14 @@
 
             <div class="disclaimer-banner">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <span data-i18n="disclaimer_bar"><strong>Notice:</strong> MediRank is an informational doctor directory. It does not provide medical treatment, does not replace professional medical advice, and is not an appointment-booking platform.</span>
+                <span><strong>Notice:</strong> MediRank is an informational doctor directory. It does not provide medical treatment, does not replace professional medical advice, and is not an appointment-booking platform.</span>
             </div>
 
             <!-- VIEW: HOME -->
             <div id="view-home" class="view-section active">
                 <div class="hero">
-                    <h1 data-i18n="hero_title">Specialist Registry &amp; Directory</h1>
-                    <p data-i18n="hero_desc">Accredited doctor qualifications, clinic locations, and verified credentials across India.</p>
+                    <h1>Specialist Registry &amp; Directory</h1>
+                    <p>Accredited doctor qualifications, clinic locations, and verified credentials across India.</p>
                     
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:800px; margin:16px auto 0;">
                         <div>
@@ -541,11 +599,11 @@
 
                     <div class="search-container">
                         <input type="text" id="main-search" placeholder="Search by symptom, specialty, doctor, or clinic">
-                        <button onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="search_btn">Search</span></button>
+                        <button onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i> <span>Search</span></button>
                     </div>
 
                     <div class="quick-symptom-bar">
-                        <span style="font-size: 0.8rem; opacity: 0.85; align-self: center;" data-i18n="popular_searches">Popular:</span>
+                        <span style="font-size: 0.8rem; opacity: 0.85; align-self: center;">Popular:</span>
                         <button class="symptom-chip" onclick="searchBySymptom('heart')">🫀 Chest Pain</button>
                         <button class="symptom-chip" onclick="searchBySymptom('skin')">🧴 Skin &amp; Acne</button>
                         <button class="symptom-chip" onclick="searchBySymptom('bone')">🦴 Knee &amp; Joint</button>
@@ -577,7 +635,7 @@
                     <select id="f-city" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;"><option value="">All Cities</option></select>
                     
                     <button class="btn btn-outline" id="filter-open-now-btn" onclick="toggleOpenNowFilter()" style="white-space: nowrap;">
-                        <i class="fa-regular fa-clock"></i> <span data-i18n="filter_open_now">Open Now</span>
+                        <i class="fa-regular fa-clock"></i> <span>Open Now</span>
                     </button>
 
                     <select id="f-sort" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;">
@@ -594,23 +652,47 @@
 
             <!-- VIEW: LOCALITIES -->
             <div id="view-near-me" class="view-section">
-                <h3 data-i18n="localities_title">Nashik &amp; Metro Localities</h3>
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;" data-i18n="localities_desc">Filter medical practices across specific geographical zones.</p>
+                <h3>Nashik &amp; Metro Localities</h3>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">Filter medical practices across specific geographical zones.</p>
                 <div class="area-chips" id="area-chip-container"></div>
                 <div class="doctor-grid" id="nearme-results"></div>
             </div>
 
-            <!-- VIEW: MEDICAL VAULT -->
-            <div id="view-records" class="view-section">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <h3 data-i18n="vault_title">Private Patient Medical Vault</h3>
-                        <p style="font-size:0.85rem; color:var(--text-muted);" data-i18n="vault_desc">Encrypted document storage restricted solely to your authenticated account.</p>
+            <!-- VIEW: PATIENT PRIVATE PROFILE -->
+            <div id="view-patient-profile" class="view-section">
+                <div class="form-section">
+                    <div class="private-id-card">
+                        <div>
+                            <div class="id-title">Patient Confidential Registration ID</div>
+                            <div class="id-value" id="pat-profile-id-display">Generating...</div>
+                        </div>
+                        <span class="id-pill"><i class="fa-solid fa-lock"></i> Visible only to your account</span>
                     </div>
-                    <button class="btn btn-primary" onclick="document.getElementById('vault-file-input').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Record</button>
-                    <input type="file" id="vault-file-input" style="display:none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleVaultUpload(event)">
+
+                    <h3>My Patient Profile</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Your private patient identity registered in MediRank.</p>
+
+                    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:18px;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                            <div>
+                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">FULL NAME</label>
+                                <div id="pat-profile-name" style="font-weight:700; font-size:1.05rem;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">REGISTERED EMAIL</label>
+                                <div id="pat-profile-email" style="font-weight:600;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">MEMBERSHIP TYPE</label>
+                                <div><span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Active Citizen Account</span></div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">INTERNAL SYSTEM KEY</label>
+                                <div id="pat-profile-raw-uid" style="font-family:monospace; color:var(--text-muted);">-</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="records-container"></div>
             </div>
 
             <!-- VIEW: DOCTOR PORTAL -->
@@ -640,6 +722,14 @@
 
             <!-- VIEW: ADMIN VERIFICATION QUEUE -->
             <div id="view-admin-verification" class="view-section">
+                <div class="private-id-card">
+                    <div>
+                        <div class="id-title">Council Admin Terminal Registry ID</div>
+                        <div class="id-value" id="admin-profile-id-display">Generating...</div>
+                    </div>
+                    <span class="id-pill"><i class="fa-solid fa-shield-halved"></i> Authorized Root Administrator</span>
+                </div>
+
                 <div class="admin-stat-grid" id="admin-kpi-row"></div>
                 <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
                     <input type="text" id="admin-search" placeholder="Search by doctor or registration number..." oninput="filterAdminQueue()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1; min-width:240px; outline:none;">
@@ -652,6 +742,19 @@
                     </select>
                 </div>
                 <div id="admin-verify-list"></div>
+            </div>
+
+            <!-- VIEW: ADMIN PATIENT FEEDBACK MODERATION DESK -->
+            <div id="view-admin-reviews" class="view-section">
+                <div class="form-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div>
+                            <h3>Patient Experience Moderation Desk</h3>
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Review patient consultation narratives and verify attached clinic receipts before allowing them on doctor profiles.</p>
+                        </div>
+                    </div>
+                    <div id="admin-reviews-list"></div>
+                </div>
             </div>
 
             <!-- VIEW: ADMIN AUDIT LOGS -->
@@ -687,6 +790,96 @@
         </div>
     </div>
 
+    <!-- NEW PATIENT EXPERIENCE FEEDBACK MODAL -->
+    <div id="feedback-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 580px;">
+            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeFeedbackModal()">&times;</button>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <div style="background:#e6fffa; color:var(--brand); width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
+                    <i class="fa-solid fa-comment-medical"></i>
+                </div>
+                <div>
+                    <h3 style="margin:0;">How was your experience?</h3>
+                    <small id="feedback-modal-subtitle" style="color:var(--text-muted);"></small>
+                </div>
+            </div>
+
+            <form id="form-patient-feedback" onsubmit="handleFeedbackSubmit(event)">
+                <input type="hidden" id="fb-doctor-id">
+                
+                <div class="form-group">
+                    <label for="fb-narrative">Describe your experience in your own words*</label>
+                    <textarea id="fb-narrative" rows="4" required placeholder="Describe your consultation experience: Did the doctor explain your health condition clearly? How was the waiting time and clinic behavior? (Please avoid unverified medical allegations)..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="fb-proof-file">Upload Consultation Proof* (Prescription, Receipt or OPD Bill)</label>
+                    <input type="file" id="fb-proof-file" required accept=".pdf, .png, .jpg, .jpeg" onchange="previewFeedbackProof(event)">
+                    <small style="color:var(--text-muted); font-size:0.75rem;">Proof ensures only genuine patients post feedback. Documents are audited exclusively by council administrators.</small>
+                </div>
+
+                <div id="fb-proof-preview" style="display:none; background:#f8fafc; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:12px; font-size:0.8rem; color:#334155;">
+                    <i class="fa-solid fa-paperclip"></i> <span id="fb-proof-filename"></span>
+                </div>
+
+                <div style="background:#fffbeb; border:1px solid #fef3c7; color:#92400e; padding:10px 12px; border-radius:8px; font-size:0.75rem; margin-bottom:15px; line-height:1.4;">
+                    <i class="fa-solid fa-shield-halved"></i> <strong>Admin Approval Notice:</strong> To maintain strict authenticity and protect medical integrity, all experience descriptions and receipts are manually audited by the council desk before appearing on the doctor's profile.
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeFeedbackModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-fb"><i class="fa-solid fa-paper-plane"></i> Submit for Admin Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PROOF INSPECTION MODAL -->
+    <div id="inspect-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 580px;">
+            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeInspectModal()">&times;</button>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <div style="background: #e6fffa; color: var(--brand); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fa-solid fa-file-shield"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0;">Proof Audit</h3>
+                    <small id="inspect-doc-subtitle" style="color: var(--text-muted);"></small>
+                </div>
+            </div>
+            <div id="inspect-modal-body" style="font-size: 0.88rem; line-height: 1.6;"></div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="closeInspectModal()">Close Viewer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN STATUS MODAL -->
+    <div id="status-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 500px;">
+            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeStatusModal()">&times;</button>
+            <h3 style="margin-bottom: 8px;">Modify Practitioner Status</h3>
+            <p id="status-modal-subtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;"></p>
+            <div class="form-group">
+                <label>Select Status</label>
+                <select id="modal-status-choice">
+                    <option value="Verified">Verified</option>
+                    <option value="Pending Review">Pending Review</option>
+                    <option value="Correction Required">Correction Required</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Audit Comment / Reason</label>
+                <textarea id="modal-status-note" rows="3" placeholder="Provide note for audit ledger..."></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                <button class="btn btn-outline" onclick="closeStatusModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitStatusModalUpdate()">Update &amp; Log</button>
+            </div>
+        </div>
+    </div>
+
     <!-- CONFIRMATION MODAL -->
     <div id="confirm-modal" class="modal" role="dialog" aria-modal="true">
         <div class="modal-content" style="max-width:440px;">
@@ -702,9 +895,8 @@
     <div id="toast" class="toast" role="alert"></div>
 
     <script>
-        const CURRENT_DATA_VERSION = "mr_complete_unabridged_v7_mobile_fixed";
+        const CURRENT_DATA_VERSION = "mr_complete_v16_expanded_nashik_doctors";
         
-        // Auto-detect production vs local environment to prevent mobile localhost fetch stalls
         const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         const API_BASE = IS_LOCAL ? "http://localhost:5000/api" : null;
 
@@ -774,81 +966,16 @@
             Radiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g12"><stop stop-color="#d9ecff"/><stop offset="1" stop-color="#7090b8"/></linearGradient></defs><rect x="30" y="14" width="100" height="102" rx="10" fill="url(#g12)" stroke="#527094" stroke-width="4"/><circle cx="80" cy="63" r="34" fill="#24354e"/><circle cx="80" cy="63" r="22" fill="none" stroke="#9bd8ff" stroke-width="4"/><path d="M80 29v68M46 63h68" stroke="#9bd8ff" stroke-width="3"/></svg>`
         };
 
-        let currentLang = 'en';
-        const I18N = {
-            en: {
-                ai_btn: "AI Health Assistant",
-                ai_title: "MediAssist AI Triage",
-                ai_desc: "Describe your symptoms in simple language",
-                ai_hint: 'Tell us what you are feeling (e.g. "chest pain after walking", "severe headache with vomiting", or "toddler fever").',
-                ai_analyze: "Analyze & Match Specialists",
-                nav_discover: "Discover",
-                nav_doctors: "All Doctors",
-                nav_localities: "Localities",
-                nav_vault: "Medical Vault",
-                nav_about: "About & Disclaimer",
-                view_home: "Clinical Discovery",
-                disclaimer_bar: "<strong>Notice:</strong> MediRank is an informational doctor directory. It does not provide medical treatment, does not replace professional medical advice, and is not an appointment-booking platform.",
-                hero_title: "Specialist Registry & Directory",
-                hero_desc: "Accredited doctor qualifications, clinic locations, and verified credentials across India.",
-                search_btn: "Search",
-                popular_searches: "Popular:",
-                filter_open_now: "Open Now",
-                localities_title: "Nashik & Metro Localities",
-                localities_desc: "Filter medical practices across specific geographical zones.",
-                vault_title: "Private Patient Medical Vault",
-                vault_desc: "Encrypted document storage restricted solely to your authenticated account.",
-                call_ambulance: "Call 108 (Ambulance)",
-                call_police: "Call 112 (Emergency)",
-                emergency_detected: "Urgent Medical Alert Detected",
-                emergency_desc: "Your description indicates acute symptoms that may need immediate hospital evaluation. Do not wait for a routine clinic OPD."
-            },
-            mr: {
-                ai_btn: "एआय आरोग्य सहाय्यक",
-                ai_title: "मेडीअसिस्ट एआय ट्रायज",
-                ai_desc: "तुमची लक्षणे साध्या भाषेत सांगा",
-                ai_hint: 'तुम्हाला काय त्रास होतोय ते सांगा (उदा. "छातीत दुखणे", "तीव्र डोकेदुखी व उलटी", "लहान मुलांचा ताप").',
-                ai_analyze: "विश्लेषण करा आणि तज्ज्ञ शोधा",
-                nav_discover: "शोध",
-                nav_doctors: "सर्व डॉक्टर",
-                nav_localities: "परिसर विभाग",
-                nav_vault: "वैद्यकीय व्हॉल्ट",
-                nav_about: "माहिती व अस्वीकरण",
-                view_home: "वैद्यकीय शोध",
-                disclaimer_bar: "<strong>सूचना:</strong> मेडीरँक ही केवळ माहिती देणारी निर्देशिका आहे. हे वैद्यकीय उपचार देत नाही व अपॉइंटमेंट बुकिंग व्यासपीठ नाही.",
-                hero_title: "डॉक्टर व तज्ज्ञ निर्देशिका",
-                hero_desc: "नोंदणीकृत डॉक्टर, दवाखान्यांचे पत्ते आणि तपासणीच्या अचूक वेळा.",
-                search_btn: "शोधा",
-                popular_searches: "लोकप्रिय शोध:",
-                filter_open_now: "सध्या सुरू असलेले",
-                localities_title: "परिसर विभाग",
-                localities_desc: "परिसरानुसार दवाखाने आणि हॉस्पिटल्स निवडा.",
-                vault_title: "खाजगी वैद्यकीय व्हॉल्ट",
-                vault_desc: "केवळ तुमच्या खात्यापुरते सुरक्षित असलेले एन्क्रिप्टेड वैद्यकीय दस्तऐवज.",
-                call_ambulance: "१०८ रुग्णवाहिका बोलवा",
-                call_police: "११२ आपत्कालीन संपर्क",
-                emergency_detected: "तातडीचा वैद्यकीय इशारा!",
-                emergency_desc: "तुमच्या लक्षणांवरून त्वरित उपचारांची गरज भासू शकते. कृपया ओपीडीच्या वेळेची वाट न पाहता त्वरित जवळच्या हॉस्पिटलमध्ये जा."
-            }
-        };
-
-        function toggleLanguage() {
-            currentLang = (currentLang === 'en') ? 'mr' : 'en';
-            document.getElementById('current-lang-label').innerText = (currentLang === 'en') ? 'मराठी' : 'English';
-            applyTranslations();
-        }
-
-        function applyTranslations() {
-            const dict = I18N[currentLang];
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (dict[key]) el.innerHTML = dict[key];
-            });
+        function generateUniqueAccountId(role) {
+            const prefix = role === 'ADMIN' ? 'ADM' : (role === 'DOCTOR' ? 'DOC' : 'PAT');
+            const rand = Math.floor(100000 + Math.random() * 900000);
+            return `${prefix}-${rand}`;
         }
 
         const ALL_SEED_DOCTORS = [
             {
                 id: "nashik_doc_01",
+                profileId: "DOC-784912",
                 fullName: "Dr. Vikram Patil",
                 email: "dr.vikram@medirank.in",
                 publicPhone: "9822011000",
@@ -870,25 +997,46 @@
                 pincode: "422003",
                 clinicName: "Apollo Hospitals Nashik",
                 address: "Swaminarayan Nagar, Panchavati, Nashik 422003",
-                availabilityTimings: "Monday: 09:00 AM–02:00 PM\nTuesday: 09:00 AM–02:00 PM\nThursday: 09:00 AM–02:00 PM",
+                availabilityTimings: "Monday–Saturday: 09:00 AM–02:00 PM",
                 slots: [
                     { day: "Monday", start: "09:00", end: "14:00" },
                     { day: "Tuesday", start: "09:00", end: "14:00" },
-                    { day: "Thursday", start: "09:00", end: "14:00" }
+                    { day: "Wednesday", start: "09:00", end: "14:00" },
+                    { day: "Thursday", start: "09:00", end: "14:00" },
+                    { day: "Friday", start: "09:00", end: "14:00" },
+                    { day: "Saturday", start: "09:00", end: "14:00" }
+                ],
+                clinics: [
+                    {
+                        name: "Apollo Hospitals Nashik",
+                        locality: "Panchavati",
+                        address: "Swaminarayan Nagar, Panchavati, Nashik 422003",
+                        hours: "Mon–Sat: 09:00 AM–02:00 PM",
+                        fee: "800",
+                        phone: "9822011000"
+                    },
+                    {
+                        name: "Heart Care Clinic & Diagnostic Center",
+                        locality: "College Road",
+                        address: "Above Modern Medico, Near BYK College, College Road, Nashik 422005",
+                        hours: "Wed & Sat: 05:00 PM–08:30 PM",
+                        fee: "700",
+                        phone: "9822011001"
+                    }
                 ],
                 expertise: "Coronary artery disease, Angioplasty, Hypertension",
                 services: "Coronary Angiography, Complex Angioplasty, 2D Echo, Pacemaker Implantation",
-                about: "Experienced interventional cardiologist with over 14 years performing complex cardiac catheterizations.",
+                about: "Experienced interventional cardiologist with over 14 years performing complex cardiac catheterizations and lifestyle management.",
                 languages: "English, Hindi, Marathi",
                 lat: 20.0125, lng: 73.7933,
                 avatarUrl: "",
                 documentStoragePath: "local://cert_10491.pdf",
                 verificationStatus: "Verified",
-                isTemporarilyAway: false,
-                rating: "4.9", reviewsCount: 142, patientsTreated: 3200
+                isTemporarilyAway: false
             },
             {
                 id: "nashik_doc_02",
+                profileId: "DOC-912384",
                 fullName: "Dr. Snehal Deshmukh",
                 email: "dr.snehal@medirank.in",
                 publicPhone: "9822011666",
@@ -910,11 +1058,24 @@
                 pincode: "422002",
                 clinicName: "Sahyadri Super Speciality Hospital",
                 address: "Wadala Naka, Near Mumbai Naka, Nashik 422002",
-                availabilityTimings: "Monday: 10:00 AM–08:00 PM\nWednesday: 10:00 AM–08:00 PM\nFriday: 10:00 AM–08:00 PM",
+                availabilityTimings: "Monday–Saturday: 10:00 AM–08:00 PM",
                 slots: [
                     { day: "Monday", start: "10:00", end: "20:00" },
+                    { day: "Tuesday", start: "10:00", end: "20:00" },
                     { day: "Wednesday", start: "10:00", end: "20:00" },
-                    { day: "Friday", start: "10:00", end: "20:00" }
+                    { day: "Thursday", start: "10:00", end: "20:00" },
+                    { day: "Friday", start: "10:00", end: "20:00" },
+                    { day: "Saturday", start: "10:00", end: "20:00" }
+                ],
+                clinics: [
+                    {
+                        name: "Sahyadri Super Speciality Hospital",
+                        locality: "Mumbai Naka",
+                        address: "Wadala Naka, Near Mumbai Naka, Nashik 422002",
+                        hours: "Mon–Sat: 10:00 AM–08:00 PM",
+                        fee: "600",
+                        phone: "9822011666"
+                    }
                 ],
                 expertise: "Child development, Neonatal intensive care, Pediatric asthma",
                 services: "Vaccinations, Developmental milestone tracking, Neonatal phototherapy",
@@ -924,128 +1085,298 @@
                 avatarUrl: "",
                 documentStoragePath: "local://cert_18921.pdf",
                 verificationStatus: "Verified",
-                isTemporarilyAway: false,
-                rating: "4.8", reviewsCount: 98, patientsTreated: 2100
+                isTemporarilyAway: false
             },
             {
                 id: "nashik_doc_03",
-                fullName: "Dr. Ananya Joshi",
-                email: "dr.ananya@medirank.in",
-                publicPhone: "9822011777",
-                specialty: "Gynecology",
-                sub: "Obstetrics & High-Risk Pregnancy",
-                highestDegree: "MD / MS (OBGY)",
-                university: "B.J. Medical College, Pune",
-                year: "2014",
-                certifications: "FOGSI Certified Laparoscopic Surgeon",
-                registrationNumber: "MMC-28341",
+                profileId: "DOC-334190",
+                fullName: "Dr. Rohan Kulkarni",
+                email: "dr.rohan@medirank.in",
+                publicPhone: "9822033441",
+                specialty: "Orthopedics",
+                sub: "Joint Replacement & Arthroscopy",
+                highestDegree: "MS (Orthopedics)",
+                university: "BJ Government Medical College, Pune",
+                year: "2013",
+                certifications: "Fellowship in Adult Knee & Hip Reconstruction (Germany)",
+                registrationNumber: "MMC-2013098",
                 council: "Maharashtra Medical Council",
-                experience: "12",
-                position: "Consultant Obstetrician",
-                fee: "700",
-                online: "Yes",
+                experience: "13",
+                position: "Chief Joint Replacement Surgeon",
+                fee: "750",
+                online: "No",
                 state: "Maharashtra",
                 city: "Nashik",
                 locality: "College Road",
                 pincode: "422005",
-                clinicName: "Matrucare Maternity & Women's Clinic",
-                address: "Plot 14, Near Model Colony, College Road, Nashik 422005",
-                availabilityTimings: "Monday: 10:00 AM–02:00 PM\nTuesday: 10:00 AM–02:00 PM\nThursday: 05:00 PM–08:30 PM",
+                clinicName: "Apex Bone & Joint Clinic",
+                address: "Opp. Big Bazaar, College Road, Nashik 422005",
+                availabilityTimings: "Monday–Saturday: 10:00 AM–02:00 PM, 05:30 PM–08:30 PM",
                 slots: [
                     { day: "Monday", start: "10:00", end: "14:00" },
+                    { day: "Monday", start: "17:30", end: "20:30" },
                     { day: "Tuesday", start: "10:00", end: "14:00" },
-                    { day: "Thursday", start: "17:00", end: "20:30" }
+                    { day: "Tuesday", start: "17:30", end: "20:30" },
+                    { day: "Wednesday", start: "10:00", end: "14:00" },
+                    { day: "Thursday", start: "10:00", end: "14:00" },
+                    { day: "Friday", start: "10:00", end: "14:00" },
+                    { day: "Friday", start: "17:30", end: "20:30" },
+                    { day: "Saturday", start: "10:00", end: "14:00" }
                 ],
-                expertise: "High-risk pregnancy, PCOS, Laparoscopic hysterectomy",
-                services: "Antenatal checkups, Normal and Cesarean delivery, Infertility counseling",
-                about: "Specialized in compassionate care for adolescent health, pregnancy journeys, and menopausal wellness.",
+                clinics: [
+                    {
+                        name: "Apex Bone & Joint Clinic",
+                        locality: "College Road",
+                        address: "Opp. Big Bazaar, College Road, Nashik 422005",
+                        hours: "Mon–Sat: 10:00 AM–02:00 PM, 05:30 PM–08:30 PM",
+                        fee: "750",
+                        phone: "9822033441"
+                    },
+                    {
+                        name: "Wockhardt Super Speciality Hospital",
+                        locality: "Mumbai Naka",
+                        address: "Wani House, Near Mumbai Naka, Nashik 422001",
+                        hours: "Wed & Thu: 03:00 PM–05:00 PM",
+                        fee: "900",
+                        phone: "9822033442"
+                    }
+                ],
+                expertise: "Total Knee Replacement, Hip Arthroplasty, Sports Ligament Tears",
+                services: "Robotic Knee Surgery, ACL Reconstruction, Fracture Management, Osteoarthritis Therapy",
+                about: "Consultant orthopedic surgeon with extensive experience in primary and revision knee replacements and arthroscopic sports medicine.",
                 languages: "English, Hindi, Marathi",
                 lat: 20.0076, lng: 73.7601,
                 avatarUrl: "",
-                documentStoragePath: "local://cert_28341.pdf",
+                documentStoragePath: "local://cert_2013098.pdf",
                 verificationStatus: "Verified",
-                isTemporarilyAway: false,
-                rating: "4.9", reviewsCount: 116, patientsTreated: 2600
+                isTemporarilyAway: false
             },
             {
                 id: "nashik_doc_04",
-                fullName: "Dr. Rajeshwar Deshmukh",
-                email: "dr.rajeshwar@medirank.in",
-                publicPhone: "9822011888",
-                specialty: "Orthopedics",
-                sub: "Joint Replacement & Arthroscopy",
-                highestDegree: "MS Ortho, DNB",
-                university: "Sancheti Institute, Pune",
-                year: "2011",
-                certifications: "Fellowship in Knee & Hip Replacement (Germany)",
-                registrationNumber: "MMC-11234",
+                profileId: "DOC-551209",
+                fullName: "Dr. Ananya Joshi",
+                email: "dr.ananya@medirank.in",
+                publicPhone: "9822044882",
+                specialty: "Dermatology",
+                sub: "Clinical & Aesthetic Dermatology",
+                highestDegree: "MD (Dermatology, Venereology & Leprosy)",
+                university: "Lokmanya Tilak Municipal Medical College, Sion, Mumbai",
+                year: "2016",
+                certifications: "Fellowship in Dermatosurgery (IADVL)",
+                registrationNumber: "MMC-2016045",
                 council: "Maharashtra Medical Council",
-                experience: "15",
-                position: "Senior Joint Replacement Surgeon",
-                fee: "850",
-                online: "No",
+                experience: "10",
+                position: "Consultant Dermatologist & Trichologist",
+                fee: "650",
+                online: "Yes",
                 state: "Maharashtra",
                 city: "Nashik",
                 locality: "Gangapur Road",
-                pincode: "422002",
-                clinicName: "Shree Bone & Joint Hospital",
-                address: "Opposite Dongre Vasti Ground, Gangapur Road, Nashik 422002",
-                availabilityTimings: "Monday: 11:00 AM–03:00 PM\nWednesday: 11:00 AM–03:00 PM\nFriday: 11:00 AM–03:00 PM",
+                pincode: "422013",
+                clinicName: "DermaGlow Skin & Laser Clinic",
+                address: "1st Floor, Horizon Square, Near Prasad Circle, Gangapur Road, Nashik 422013",
+                availabilityTimings: "Monday–Friday: 11:00 AM–07:30 PM, Saturday: 11:00 AM–03:00 PM",
                 slots: [
-                    { day: "Monday", start: "11:00", end: "15:00" },
-                    { day: "Wednesday", start: "11:00", end: "15:00" },
-                    { day: "Friday", start: "11:00", end: "15:00" }
+                    { day: "Monday", start: "11:00", end: "19:30" },
+                    { day: "Tuesday", start: "11:00", end: "19:30" },
+                    { day: "Wednesday", start: "11:00", end: "19:30" },
+                    { day: "Thursday", start: "11:00", end: "19:30" },
+                    { day: "Friday", start: "11:00", end: "19:30" },
+                    { day: "Saturday", start: "11:00", end: "15:00" }
                 ],
-                expertise: "Total knee replacement, Robotic joint replacement, Sciatica spine care",
-                services: "Arthroscopic ACL reconstruction, Fracture casting, Knee cartilage repair",
-                about: "Senior orthopedic consultant focusing on rapid-recovery joint surgeries and sports rehab.",
+                clinics: [
+                    {
+                        name: "DermaGlow Skin & Laser Clinic",
+                        locality: "Gangapur Road",
+                        address: "1st Floor, Horizon Square, Near Prasad Circle, Gangapur Road, Nashik 422013",
+                        hours: "Mon–Fri: 11:00 AM–07:30 PM",
+                        fee: "650",
+                        phone: "9822044882"
+                    }
+                ],
+                expertise: "Cystic Acne, Alopecia (Hair Loss), Fungal Infections, Psoriasis",
+                services: "Chemical Peels, PRP for Hair Fall, Scar Revision, Phototherapy for Vitiligo",
+                about: "Evidence-based clinical dermatologist focused on chronic inflammatory dermatoses, adolescent acne, and trichology procedures.",
                 languages: "English, Hindi, Marathi",
                 lat: 20.0169, lng: 73.7634,
                 avatarUrl: "",
-                documentStoragePath: "local://cert_11234.pdf",
-                verificationStatus: "Pending Review",
-                isTemporarilyAway: false,
-                rating: "4.7", reviewsCount: 84, patientsTreated: 1850
+                documentStoragePath: "local://cert_2016045.pdf",
+                verificationStatus: "Verified",
+                isTemporarilyAway: false
             },
             {
                 id: "nashik_doc_05",
-                fullName: "Dr. Meenakshi Soni",
-                email: "dr.meenakshi@medirank.in",
-                publicPhone: "9822011999",
-                specialty: "Dermatology",
-                sub: "Trichology & Clinical Dermatology",
-                highestDegree: "MD Dermatology",
-                university: "LTMMC Sion Hospital, Mumbai",
-                year: "2018",
-                certifications: "Diploma in Aesthetic Medicine",
-                registrationNumber: "MMC-49210",
+                profileId: "DOC-889102",
+                fullName: "Dr. Sandeep Shinde",
+                email: "dr.sandeep@medirank.in",
+                publicPhone: "9822055113",
+                specialty: "Neurology",
+                sub: "Stroke & Epilepsy Care",
+                highestDegree: "DM (Neurology)",
+                university: "NIMHANS, Bengaluru",
+                year: "2011",
+                certifications: "Fellow in Clinical Neurophysiology (EEG & EMG)",
+                registrationNumber: "MMC-2011077",
                 council: "Maharashtra Medical Council",
-                experience: "8",
-                position: "Consultant Dermatologist",
+                experience: "15",
+                position: "Senior Neurologist",
+                fee: "1000",
+                online: "Yes",
+                state: "Maharashtra",
+                city: "Nashik",
+                locality: "Govind Nagar",
+                pincode: "422009",
+                clinicName: "NeuroCare Brain & Spine Center",
+                address: "City Center Mall Road, Govind Nagar, Nashik 422009",
+                availabilityTimings: "Monday–Friday: 10:00 AM–03:00 PM",
+                slots: [
+                    { day: "Monday", start: "10:00", end: "15:00" },
+                    { day: "Tuesday", start: "10:00", end: "15:00" },
+                    { day: "Wednesday", start: "10:00", end: "15:00" },
+                    { day: "Thursday", start: "10:00", end: "15:00" },
+                    { day: "Friday", start: "10:00", end: "15:00" }
+                ],
+                clinics: [
+                    {
+                        name: "NeuroCare Brain & Spine Center",
+                        locality: "Govind Nagar",
+                        address: "City Center Mall Road, Govind Nagar, Nashik 422009",
+                        hours: "Mon–Fri: 10:00 AM–03:00 PM",
+                        fee: "1000",
+                        phone: "9822055113"
+                    },
+                    {
+                        name: "Magnum Heart & Neuro Institute",
+                        locality: "College Road",
+                        address: "Near Vasant Market, College Road, Nashik 422005",
+                        hours: "Tue & Fri: 06:00 PM–08:30 PM",
+                        fee: "1000",
+                        phone: "9822055114"
+                    }
+                ],
+                expertise: "Acute Ischemic Stroke, Refractory Migraine, Peripheral Neuropathy, Parkinson's",
+                services: "Video EEG, Nerve Conduction Studies (NCS), Electromyography (EMG), Migraine Botulinum Injections",
+                about: "Specialized neurologist dedicated to comprehensive care for recurrent migraines, complex epilepsy syndromes, and stroke rehabilitation.",
+                languages: "English, Hindi, Marathi",
+                lat: 19.9812, lng: 73.7663,
+                avatarUrl: "",
+                documentStoragePath: "local://cert_2011077.pdf",
+                verificationStatus: "Verified",
+                isTemporarilyAway: false
+            },
+            {
+                id: "nashik_doc_06",
+                profileId: "DOC-642199",
+                fullName: "Dr. Meenakshi Sonawane",
+                email: "dr.meenakshi@medirank.in",
+                publicPhone: "9822066224",
+                specialty: "Gynecology",
+                sub: "High-Risk Obstetrics & Laparoscopy",
+                highestDegree: "MS (Obstetrics & Gynecology)",
+                university: "Government Medical College, Miraj",
+                year: "2014",
+                certifications: "Fellow of the Indian College of Obstetricians & Gynaecologists (FICOG)",
+                registrationNumber: "MMC-2014082",
+                council: "Maharashtra Medical Council",
+                experience: "12",
+                position: "Consultant Obstetrician & Gynecologist",
                 fee: "600",
                 online: "Yes",
                 state: "Maharashtra",
                 city: "Nashik",
                 locality: "Indira Nagar",
                 pincode: "422009",
-                clinicName: "Aura Skin & Hair Clinic",
-                address: "Govind Park, Deepali Nagar, Indira Nagar, Nashik 422009",
-                availabilityTimings: "Tuesday: 10:00 AM–07:00 PM\nThursday: 10:00 AM–07:00 PM\nSaturday: 10:00 AM–07:00 PM",
+                clinicName: "Matruchhaya Maternity & Nursing Home",
+                address: "Near Parijat Nagar Bus Stop, Indira Nagar, Nashik 422009",
+                availabilityTimings: "Monday–Saturday: 09:30 AM–01:30 PM, 06:00 PM–09:00 PM",
                 slots: [
-                    { day: "Tuesday", start: "10:00", end: "19:00" },
-                    { day: "Thursday", start: "10:00", end: "19:00" },
-                    { day: "Saturday", start: "10:00", end: "19:00" }
+                    { day: "Monday", start: "09:30", end: "13:30" },
+                    { day: "Monday", start: "18:00", end: "21:00" },
+                    { day: "Tuesday", start: "09:30", end: "13:30" },
+                    { day: "Tuesday", start: "18:00", end: "21:00" },
+                    { day: "Wednesday", start: "09:30", end: "13:30" },
+                    { day: "Thursday", start: "09:30", end: "13:30" },
+                    { day: "Friday", start: "09:30", end: "13:30" },
+                    { day: "Friday", start: "18:00", end: "21:00" },
+                    { day: "Saturday", start: "09:30", end: "13:30" }
                 ],
-                expertise: "Severe cystic acne, Hair fall/alopecia, Chronic fungal infections",
-                services: "PRP hair therapy, Chemical peeling, Wart and skin tag removal",
-                about: "Evidence-based clinical skincare specialist dedicated to chronic skin diseases and hair restoration.",
+                clinics: [
+                    {
+                        name: "Matruchhaya Maternity & Nursing Home",
+                        locality: "Indira Nagar",
+                        address: "Near Parijat Nagar Bus Stop, Indira Nagar, Nashik 422009",
+                        hours: "Mon–Sat: 09:30 AM–01:30 PM, 06:00 PM–09:00 PM",
+                        fee: "600",
+                        phone: "9822066224"
+                    }
+                ],
+                expertise: "High-Risk Pregnancy, PCOS/PCOD, Endometriosis, Infertility Evaluation",
+                services: "Antenatal Checkups, Normal & C-Section Deliveries, Diagnostic Laparoscopy, Uterine Fibroid Care",
+                about: "Compassionate women's health specialist delivering patient-centered maternity management and minimally invasive gynecological surgery.",
                 languages: "English, Hindi, Marathi",
                 lat: 19.9678, lng: 73.7712,
                 avatarUrl: "",
-                documentStoragePath: "local://cert_49210.pdf",
-                verificationStatus: "Correction Required",
-                isTemporarilyAway: false,
-                rating: "4.6", reviewsCount: 42, patientsTreated: 950
+                documentStoragePath: "local://cert_2014082.pdf",
+                verificationStatus: "Verified",
+                isTemporarilyAway: false
+            },
+            {
+                id: "nashik_doc_07",
+                profileId: "DOC-209844",
+                fullName: "Dr. Nilesh Bhavsar",
+                email: "dr.nilesh@medirank.in",
+                publicPhone: "9822077335",
+                specialty: "General Medicine",
+                sub: "Diabetology & Infectious Diseases",
+                highestDegree: "MD (Internal Medicine)",
+                university: "Savitribai Phule Pune University",
+                year: "2010",
+                certifications: "Post-Graduate Diploma in Diabetology (PGDD)",
+                registrationNumber: "MMC-2010061",
+                council: "Maharashtra Medical Council",
+                experience: "16",
+                position: "Senior Physician & Diabetologist",
+                fee: "500",
+                online: "Yes",
+                state: "Maharashtra",
+                city: "Nashik",
+                locality: "Nashik Road",
+                pincode: "422101",
+                clinicName: "Sanjivani Medical Clinic & Daycare",
+                address: "Near Datta Mandir, Shivaji Nagar, Nashik Road, Nashik 422101",
+                availabilityTimings: "Monday–Saturday: 09:00 AM–01:00 PM, 05:00 PM–09:00 PM",
+                slots: [
+                    { day: "Monday", start: "09:00", end: "13:00" },
+                    { day: "Monday", start: "17:00", end: "21:00" },
+                    { day: "Tuesday", start: "09:00", end: "13:00" },
+                    { day: "Tuesday", start: "17:00", end: "21:00" },
+                    { day: "Wednesday", start: "09:00", end: "13:00" },
+                    { day: "Wednesday", start: "17:00", end: "21:00" },
+                    { day: "Thursday", start: "09:00", end: "13:00" },
+                    { day: "Thursday", start: "17:00", end: "21:00" },
+                    { day: "Friday", start: "09:00", end: "13:00" },
+                    { day: "Friday", start: "17:00", end: "21:00" },
+                    { day: "Saturday", start: "09:00", end: "13:00" }
+                ],
+                clinics: [
+                    {
+                        name: "Sanjivani Medical Clinic & Daycare",
+                        locality: "Nashik Road",
+                        address: "Near Datta Mandir, Shivaji Nagar, Nashik Road, Nashik 422101",
+                        hours: "Mon–Sat: 09:00 AM–01:00 PM, 05:00 PM–09:00 PM",
+                        fee: "500",
+                        phone: "9822077335"
+                    }
+                ],
+                expertise: "Type 2 Diabetes, Dengue/Malaria Fevers, Hypertension, Thyroid Disorders",
+                services: "Comprehensive Diabetic Foot Screening, Annual Preventive Health Checkups, Adult Immunization",
+                about: "Consulting physician with over 16 years serving the Nashik Road region with personalized diabetes management and internal medicine treatments.",
+                languages: "English, Hindi, Marathi",
+                lat: 19.9575, lng: 73.8340,
+                avatarUrl: "",
+                documentStoragePath: "local://cert_2010061.pdf",
+                verificationStatus: "Verified",
+                isTemporarilyAway: false
             }
         ];
 
@@ -1075,28 +1406,40 @@
             try { sessionStorage.removeItem(k); } catch (e) {}
         };
 
-        // Initialize state
+        // SEED DATA INITIALIZATION
         if (safeRead('mr_ver', null) !== CURRENT_DATA_VERSION) {
             safeWrite('mr_docs', ALL_SEED_DOCTORS);
             safeWrite('mr_reviews', [
-                { id: "rev_01", doctorId: "nashik_doc_01", patientId: "usr_patient_demo", rating: 5, comment: "Punctual consultation timings and very clearly explained ECG test results." },
-                { id: "rev_02", doctorId: "nashik_doc_02", patientId: "usr_patient_demo", rating: 5, comment: "Extremely gentle with infants. Precise prescription and no unnecessary diagnostics." },
-                { id: "rev_03", doctorId: "nashik_doc_03", patientId: "usr_patient_demo", rating: 5, comment: "Caring demeanor throughout my prenatal checkups. Very patiently answered every question." }
+                { 
+                    id: "fb_01", 
+                    doctorId: "nashik_doc_01", 
+                    patientId: "usr_patient_demo", 
+                    patientName: "Rahul Patil",
+                    experienceText: "Visited Dr. Vikram Patil for a cardiology consultation. He was remarkably punctual and explained my father's 2D Echo results with clear lifestyle guidelines. The clinic premises were very clean.",
+                    proofFileName: "OPD_Prescription_Apollo_Patil.pdf",
+                    submittedDate: "2026-03-12",
+                    status: "APPROVED",
+                    adminNote: "Verified against Apollo OPD bill slip."
+                },
+                { 
+                    id: "fb_02", 
+                    doctorId: "nashik_doc_02", 
+                    patientId: "usr_patient_demo", 
+                    patientName: "Sunita Kulkarni",
+                    experienceText: "Took my 6-month infant for routine immunization. The doctor was exceedingly gentle and explained the mild fever expectation post-shot clearly.",
+                    proofFileName: "Sahyadri_Pediatric_Card.jpg",
+                    submittedDate: "2026-04-05",
+                    status: "APPROVED",
+                    adminNote: "Valid vaccination chart provided."
+                }
             ]);
             safeWrite('mr_audit', [
-                { id: "aud_01", targetDoctorName: "Dr. Vikram Patil", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Credentials confirmed with MMC state register.", date: "2026-03-10" },
-                { id: "aud_02", targetDoctorName: "Dr. Snehal Deshmukh", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Pediatric specialization document audited.", date: "2026-02-18" },
-                { id: "aud_03", targetDoctorName: "Dr. Ananya Joshi", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Gynecology degree & FOGSI certification verified against council database.", date: "2026-04-12" },
-                { id: "aud_04", targetDoctorName: "Dr. Meenakshi Soni", action: "CORRECTION_REQUESTED", adminUser: "Chief Council Admin", note: "Upload clearer scan of Maharashtra Medical Council registration renewal.", date: "2026-08-04" }
+                { id: "aud_01", targetDoctorName: "Dr. Vikram Patil", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Credentials confirmed with MMC state register.", date: "2026-03-10" }
             ]);
             safeWrite('mr_users', [
-                { userId: "admin_root", fullName: "Chief Council Admin", email: "admin@council.gov.in", password: "AdminPassword123", role: "ADMIN" },
-                { userId: "usr_patient_demo", fullName: "Rahul Patil", email: "patient@medirank.in", password: "PatientPassword123", role: "PATIENT" },
-                { userId: "usr_doctor_demo", fullName: "Dr. Vikram Patil", email: "dr.vikram@medirank.in", password: "DoctorPassword123", role: "DOCTOR", doctorId: "nashik_doc_01" }
-            ]);
-            safeWrite('mr_vault', [
-                { id: "vault-demo-1", ownerId: "usr_patient_demo", fileName: "Cardiology_ECG_Report_Nashik.pdf", size: 245000, uploadedAt: "2026-03-14T10:30:00.000Z" },
-                { id: "vault-demo-2", ownerId: "usr_patient_demo", fileName: "Pediatric_Vaccination_Card_Sahyadri.pdf", size: 184000, uploadedAt: "2026-05-22T14:15:00.000Z" }
+                { userId: "admin_root", profileId: "ADM-10001", fullName: "Chief Council Admin", email: "admin@council.gov.in", password: "AdminPassword123", role: "ADMIN" },
+                { userId: "usr_patient_demo", profileId: "PAT-34821", fullName: "Rahul Patil", email: "patient@medirank.in", password: "PatientPassword123", role: "PATIENT" },
+                { userId: "usr_doctor_demo", profileId: "DOC-784912", fullName: "Dr. Vikram Patil", email: "dr.vikram@medirank.in", password: "DoctorPassword123", role: "DOCTOR", doctorId: "nashik_doc_01" }
             ]);
             safeWrite('mr_ver', CURRENT_DATA_VERSION);
         }
@@ -1113,6 +1456,8 @@
         const PAGE_SIZE = 6;
         let filteredDoctorList = [];
         let confirmCallback = null;
+        let selectedDoctorForStatus = null;
+        let activeFeedbackProofName = "";
 
         window.addEventListener('DOMContentLoaded', function() {
             populateStateSelectors();
@@ -1126,7 +1471,6 @@
             renderNearMe();
             openDeepLinkedDoctor();
 
-            // Self-healing session restoration
             const sess = safeRead('mr_session', null);
             if (sess && (sess.uid || sess.user)) {
                 const users = safeRead('mr_users', []);
@@ -1287,7 +1631,6 @@
             else if (authRole === 'DOCTOR') fDoc.style.display = 'block';
         }
 
-        /* --- STABLE MOBILE AUTHENTICATION --- */
         async function handleUniversalLogin(e) {
             e.preventDefault();
             showAuthError(null);
@@ -1300,7 +1643,6 @@
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-pass').value;
 
-            // Only attempt network API if actually hosted alongside a live backend
             if (API_BASE) {
                 try {
                     const controller = new AbortController();
@@ -1322,12 +1664,9 @@
                         unlockApp();
                         return;
                     }
-                } catch (err) {
-                    // Localhost or offline fallback
-                }
+                } catch (err) {}
             }
 
-            // Reliable Local Storage Authentication
             const users = safeRead('mr_users', []);
             const user = users.find(u => u.email.toLowerCase() === email && u.password === pass);
 
@@ -1343,9 +1682,13 @@
                 return;
             }
 
+            if (!user.profileId) {
+                user.profileId = generateUniqueAccountId(user.role);
+                safeWrite('mr_users', users);
+            }
+
             currentUser = user;
             currentUserRole = user.role;
-            // Store complete snapshot so tab refreshes on mobile don't lose session state
             safeWrite('mr_session', { uid: user.userId, user: user });
             unlockApp();
         }
@@ -1354,6 +1697,7 @@
             document.getElementById('auth-landing-screen').style.display = 'none';
             document.getElementById('user-display-name').innerText = currentUser.fullName || currentUser.email;
             document.getElementById('user-display-role').innerText = currentUserRole;
+            document.getElementById('user-display-id').innerText = `ID: ${currentUser.profileId || '-'}`;
 
             const isPatient = currentUserRole === 'PATIENT';
             const isDoctor = currentUserRole === 'DOCTOR';
@@ -1363,12 +1707,13 @@
             document.getElementById('nav-specs').style.display = isPatient ? 'flex' : 'none';
             document.getElementById('nav-find').style.display = isPatient ? 'flex' : 'none';
             document.getElementById('nav-nearme').style.display = isPatient ? 'flex' : 'none';
-            document.getElementById('nav-records').style.display = isPatient ? 'flex' : 'none';
+            document.getElementById('nav-patient-profile').style.display = isPatient ? 'flex' : 'none';
 
             document.getElementById('nav-doc-portal').style.display = isDoctor ? 'flex' : 'none';
             document.getElementById('nav-doc-docs').style.display = isDoctor ? 'flex' : 'none';
 
             document.getElementById('nav-admin-verify').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('nav-admin-reviews').style.display = isAdmin ? 'flex' : 'none';
             document.getElementById('nav-admin-audit').style.display = isAdmin ? 'flex' : 'none';
 
             const aiBtn = document.getElementById('btn-ai-triage');
@@ -1408,7 +1753,17 @@
             if (users.some(u => u.email.toLowerCase() === email)) return showAuthError("Email already registered.");
 
             const uid = "usr_" + Date.now();
-            const newUser = { userId: uid, fullName: name, email, password: pass, role: "PATIENT" };
+            const generatedProfileId = generateUniqueAccountId("PATIENT");
+
+            const newUser = { 
+                userId: uid, 
+                profileId: generatedProfileId, 
+                fullName: name, 
+                email, 
+                password: pass, 
+                role: "PATIENT" 
+            };
+            
             users.push(newUser);
             safeWrite('mr_users', users);
 
@@ -1416,7 +1771,7 @@
             currentUserRole = "PATIENT";
             safeWrite('mr_session', { uid, user: newUser });
             unlockApp();
-            showToast("Account created successfully!");
+            showToast(`Account registered! Your Private ID is ${generatedProfileId}`);
         }
 
         async function handleDoctorRegister(e) {
@@ -1426,16 +1781,30 @@
             const phone = document.getElementById('reg-doc-phone').value.trim();
             const pass = document.getElementById('reg-doc-pass').value;
             const confirmPass = document.getElementById('reg-doc-confirm-pass').value;
+            const gender = document.getElementById('reg-doc-gender').value;
+            const age = document.getElementById('reg-doc-age').value;
             const specialty = document.getElementById('reg-doc-specialty').value;
+            const sub = document.getElementById('reg-doc-sub').value.trim();
             const degree = document.getElementById('reg-doc-degree').value.trim();
+            const univ = document.getElementById('reg-doc-univ').value.trim();
+            const year = document.getElementById('reg-doc-year').value;
+            const cert = document.getElementById('reg-doc-cert').value.trim();
             const regno = document.getElementById('reg-doc-regno').value.trim();
+            const council = document.getElementById('reg-doc-council').value.trim();
             const expVal = document.getElementById('reg-doc-exp').value;
+            const position = document.getElementById('reg-doc-position').value.trim() || 'Senior Consultant';
             const feeVal = document.getElementById('reg-doc-fee').value;
+            const online = document.getElementById('reg-doc-online').value;
             const state = document.getElementById('reg-doc-state').value;
             const city = document.getElementById('reg-doc-city').value;
             const clinic = document.getElementById('reg-doc-clinic').value.trim();
+            const area = document.getElementById('reg-doc-area').value.trim() || city;
+            const pin = document.getElementById('reg-doc-pin').value.trim();
+            const languages = document.getElementById('reg-doc-languages').value.trim() || 'English, Hindi, Marathi';
             const address = document.getElementById('reg-doc-address').value.trim();
             const opd = document.getElementById('reg-doc-opd').value.trim();
+            const services = document.getElementById('reg-doc-services').value.trim() || 'General Clinical Services';
+            const about = document.getElementById('reg-doc-about').value.trim() || 'Accredited medical specialist.';
 
             if (!/^[a-zA-Z\s\.]+$/.test(name)) return showAuthError("Doctor Name must contain letters and spaces only.");
             if (!/^[6-9][0-9]{9}$/.test(phone)) return showAuthError("Valid 10-digit Indian phone number required.");
@@ -1443,27 +1812,62 @@
             if (!validatePasswordComplexity(pass)) return showAuthError("Password must be at least 8 characters long.");
 
             const uid = "doc_" + Date.now();
+            const generatedProfileId = generateUniqueAccountId("DOCTOR");
+
             const docEntry = {
                 id: uid,
+                profileId: generatedProfileId,
                 fullName: name,
                 email,
                 publicPhone: phone,
+                gender,
+                age,
                 specialty,
+                sub,
                 highestDegree: degree,
+                university: univ,
+                year,
+                certifications: cert,
                 registrationNumber: regno,
+                council: council || 'State Medical Council',
                 experience: expVal,
+                position,
                 fee: feeVal,
+                online,
                 state, city,
                 clinicName: clinic,
-                locality: city,
+                locality: area,
+                pincode: pin,
+                languages,
                 address,
                 availabilityTimings: opd,
+                services,
+                about,
+                clinics: [
+                    {
+                        name: clinic,
+                        locality: area,
+                        address: address,
+                        hours: opd,
+                        fee: feeVal,
+                        phone: phone
+                    }
+                ],
                 slots: [{ day: "Monday", start: "10:00", end: "14:00" }],
                 verificationStatus: "Pending Review",
-                rating: "New", reviewsCount: 0, patientsTreated: 0
+                documentStoragePath: "local://proof_" + regno + ".pdf"
             };
 
-            const newUser = { userId: uid, fullName: name, email, password: pass, role: "DOCTOR", doctorId: uid };
+            const newUser = { 
+                userId: uid, 
+                profileId: generatedProfileId, 
+                fullName: name, 
+                email, 
+                password: pass, 
+                role: "DOCTOR", 
+                doctorId: uid 
+            };
+            
             const users = safeRead('mr_users', []);
             if (users.some(u => u.email.toLowerCase() === email)) return showAuthError("Email already in use.");
 
@@ -1478,7 +1882,7 @@
             currentUserRole = "DOCTOR";
             safeWrite('mr_session', { uid, user: newUser });
             unlockApp();
-            showToast("Doctor application registered.");
+            showToast(`Doctor registration complete! Your System Profile ID is ${generatedProfileId}`);
         }
 
         let activeResetEmail = "";
@@ -1526,10 +1930,20 @@
             closeForgotPasswordModal();
         }
 
+        function renderPatientProfile() {
+            if (!currentUser || currentUserRole !== 'PATIENT') return;
+            const pid = currentUser.profileId || generateUniqueAccountId('PATIENT');
+            currentUser.profileId = pid;
+            document.getElementById('pat-profile-id-display').innerText = pid;
+            document.getElementById('pat-profile-name').innerText = currentUser.fullName || 'Patient User';
+            document.getElementById('pat-profile-email').innerText = currentUser.email || '-';
+            document.getElementById('pat-profile-raw-uid').innerText = currentUser.userId || '-';
+        }
+
         function showView(viewId) {
-            const patientViews = ['home', 'specialties', 'find-doctors', 'near-me', 'records'];
+            const patientViews = ['home', 'specialties', 'find-doctors', 'near-me', 'patient-profile'];
             const doctorViews = ['doc-portal', 'doc-documents'];
-            const adminViews = ['admin-verification', 'admin-audit'];
+            const adminViews = ['admin-verification', 'admin-reviews', 'admin-audit'];
 
             if (patientViews.includes(viewId) && currentUserRole !== 'PATIENT') {
                 showToast("Access restricted: Patient portal feature only.");
@@ -1555,20 +1969,22 @@
                 'specialties': 'nav-specs',
                 'find-doctors': 'nav-find',
                 'near-me': 'nav-nearme',
-                'records': 'nav-records',
+                'patient-profile': 'nav-patient-profile',
                 'doc-portal': 'nav-doc-portal',
                 'doc-documents': 'nav-doc-docs',
                 'admin-verification': 'nav-admin-verify',
+                'admin-reviews': 'nav-admin-reviews',
                 'admin-audit': 'nav-admin-audit',
                 'about-legal': 'nav-about'
             };
             if (navMap[viewId]) document.getElementById(navMap[viewId])?.classList.add('active');
             document.querySelector('aside')?.classList.remove('mobile-open');
 
-            if (viewId === 'records') renderMedicalVault();
+            if (viewId === 'patient-profile') renderPatientProfile();
             if (viewId === 'doc-portal') renderDoctorPortal();
             if (viewId === 'doc-documents') renderDoctorCredentialsVault();
             if (viewId === 'admin-verification') renderAdminVerification();
+            if (viewId === 'admin-reviews') renderAdminReviewsModeration();
             if (viewId === 'admin-audit') renderAdminAuditLogs();
         }
 
@@ -1633,13 +2049,17 @@
                 distanceHtml = `<div style="color:var(--brand); font-weight:600; font-size:0.8rem; margin-top:3px;"><i class="fa-solid fa-route"></i> ${dist.toFixed(1)} km away</div>`;
             }
 
-            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.clinicName + ' ' + (doc.address || doc.city))}`;
+            const primaryClinicName = doc.clinicName || (doc.clinics && doc.clinics[0]?.name) || 'Clinic';
+            const primaryClinicAddress = doc.address || (doc.clinics && doc.clinics[0]?.address) || doc.city;
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(primaryClinicName + ' ' + primaryClinicAddress)}`;
             const initials = (doc.fullName || 'Dr').replace('Dr.', '').trim().substring(0, 2).toUpperCase();
             const avatarHtml = doc.avatarUrl ? 
                 `<img src="${escapeHtml(doc.avatarUrl)}" class="doctor-avatar" alt="${escapeHtml(doc.fullName)}">` : 
                 `<div class="doctor-avatar">${initials}</div>`;
 
             const specHelp = SPECIALTY_META[doc.specialty]?.simpleHelp || '';
+            const clinicCount = (doc.clinics && doc.clinics.length) || 1;
+            const approvedFeedbackCount = safeRead('mr_reviews', []).filter(r => r.doctorId === doc.id && r.status === 'APPROVED').length;
 
             return `
                 <div class="doctor-card">
@@ -1655,10 +2075,11 @@
                         </div>
 
                         <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin:10px 0;">
-                            <div><i class="fa-solid fa-hospital"></i> ${escapeHtml(doc.clinicName || 'Clinic')}, ${escapeHtml(doc.locality || doc.city || 'Nashik')}</div>
+                            <div><i class="fa-solid fa-hospital"></i> <strong>Primary:</strong> ${escapeHtml(primaryClinicName)}, ${escapeHtml(doc.locality || doc.city || 'Nashik')}</div>
+                            ${clinicCount > 1 ? `<div style="color:var(--brand); font-weight:600; margin-top:2px;"><i class="fa-solid fa-building-circle-check"></i> Visits ${clinicCount} Clinics / Hospitals</div>` : ''}
                             <div><i class="fa-solid fa-indian-rupee-sign"></i> <strong>₹${escapeHtml(doc.fee || '—')}</strong> Consultation Fee</div>
                             <div><i class="fa-solid fa-briefcase"></i> ${escapeHtml(doc.experience || '10')} years clinical experience</div>
-                            <div><i class="fa-solid fa-star" style="color:#f59e0b;"></i> ${escapeHtml(doc.rating || 'New')} (${escapeHtml(doc.reviewsCount || 0)} reviews)</div>
+                            <div><i class="fa-solid fa-comments" style="color:var(--brand);"></i> <strong>${approvedFeedbackCount}</strong> verified patient experience stories</div>
                             <div style="white-space:pre-line; margin-top:4px;"><i class="fa-regular fa-clock"></i> <strong>Hours:</strong><br>${escapeHtml(doc.availabilityTimings || 'Timings available at clinic')}</div>
                         </div>
 
@@ -1670,10 +2091,10 @@
 
                     <div>
                         <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-outline" style="width:100%; margin-bottom:8px; font-size:0.82rem;">
-                            <i class="fa-solid fa-diamond-turn-right"></i> Navigate on Maps
+                            <i class="fa-solid fa-diamond-turn-right"></i> Navigate to Primary Clinic
                         </a>
                         <button class="btn btn-primary" style="width:100%;" onclick="openProfile('${doc.id}')">
-                            <i class="fa-solid fa-qrcode"></i> View Profile &amp; QR
+                            <i class="fa-solid fa-hospital-user"></i> View Profile &amp; Feedback
                         </button>
                     </div>
                 </div>
@@ -1698,8 +2119,9 @@
                 const docCity = (d.city || '').toLowerCase();
                 const docArea = (d.locality || '').toLowerCase();
                 const specHelp = (SPECIALTY_META[d.specialty]?.simpleHelp || '').toLowerCase();
+                const otherClinicsText = (d.clinics || []).map(cl => `${cl.name} ${cl.locality} ${cl.address}`).join(' ').toLowerCase();
 
-                const matchQuery = !q || docName.includes(q) || docSpec.includes(q) || docClinic.includes(q) || docArea.includes(q) || specHelp.includes(q);
+                const matchQuery = !q || docName.includes(q) || docSpec.includes(q) || docClinic.includes(q) || docArea.includes(q) || specHelp.includes(q) || otherClinicsText.includes(q);
                 const matchSpec = !s || docSpec === s;
                 const matchCity = !c || docCity === c;
                 const matchOpenNow = !filterOnlyOpenNow || isClinicCurrentlyOpen(d.slots) === true;
@@ -1798,7 +2220,11 @@
         function renderNearMe() {
             const cont = document.getElementById('nearme-results');
             const verified = cachedDoctors.filter(d => d.verificationStatus === 'Verified');
-            const list = selectedArea === 'All Areas' ? verified : verified.filter(d => (d.locality||'').toLowerCase() === selectedArea.toLowerCase());
+            const list = selectedArea === 'All Areas' ? verified : verified.filter(d => {
+                const inLocality = (d.locality||'').toLowerCase() === selectedArea.toLowerCase();
+                const inVisiting = (d.clinics || []).some(cl => (cl.locality||'').toLowerCase() === selectedArea.toLowerCase());
+                return inLocality || inVisiting;
+            });
             cont.innerHTML = list.length ? list.map(createDoctorCard).join('') : `<div class="empty-placeholder" style="grid-column: 1 / -1;">No practices found in ${selectedArea}.</div>`;
         }
 
@@ -1813,8 +2239,60 @@
             const doc = cachedDoctors.find(d => d.id === id);
             if (!doc) return;
 
-            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.clinicName + ' ' + (doc.address || doc.city))}`;
             const specHelp = SPECIALTY_META[doc.specialty]?.simpleHelp || '';
+            const isVerified = doc.verificationStatus === 'Verified';
+            const statusBadge = isVerified 
+                ? `<span class="verify-tag tag-verified" style="font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Verified</span>`
+                : `<span class="verify-tag tag-pending" style="font-size:0.8rem;"><i class="fa-solid fa-clock"></i> Verification Pending</span>`;
+
+            const clinicsList = (doc.clinics && doc.clinics.length > 0) ? doc.clinics : [
+                {
+                    name: doc.clinicName || 'Main Medical Center',
+                    locality: doc.locality || doc.city || 'Nashik',
+                    address: doc.address || 'Address registered on file',
+                    hours: doc.availabilityTimings || 'Regular Hours',
+                    fee: doc.fee || '—',
+                    phone: doc.publicPhone || '—'
+                }
+            ];
+
+            const clinicsHtml = clinicsList.map((cl, idx) => {
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cl.name + ' ' + cl.address)}`;
+                return `
+                    <div class="visiting-clinic-item" style="margin-bottom: 10px; border-left: 4px solid var(--brand);">
+                        <div class="visiting-clinic-header">
+                            <div>
+                                <span style="color:var(--brand); font-weight:800;">${idx + 1}. ${escapeHtml(cl.name)}</span>
+                                <span style="font-size:0.75rem; background:#e6fffa; color:var(--brand); padding:2px 8px; border-radius:12px; margin-left:6px;">${escapeHtml(cl.locality || '')}</span>
+                            </div>
+                            <div style="font-size:0.85rem; font-weight:700; color:#1e293b;">₹${escapeHtml(cl.fee || doc.fee || '—')}</div>
+                        </div>
+                        <div class="visiting-clinic-detail">
+                            <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(cl.address)}</div>
+                            <div style="margin-top:2px;"><i class="fa-regular fa-clock"></i> <strong>Timings:</strong> ${escapeHtml(cl.hours)}</div>
+                            ${cl.phone ? `<div style="margin-top:2px;"><i class="fa-solid fa-phone"></i> ${escapeHtml(cl.phone)}</div>` : ''}
+                        </div>
+                        <div style="margin-top:8px; text-align:right;">
+                            <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-outline" style="padding:5px 12px; font-size:0.78rem;">
+                                <i class="fa-solid fa-diamond-turn-right"></i> Direct GPS to this Clinic
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const approvedFeedbacks = safeRead('mr_reviews', []).filter(r => r.doctorId === doc.id && r.status === 'APPROVED');
+            
+            const feedbacksHtml = approvedFeedbacks.length > 0 ? approvedFeedbacks.map(fb => `
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <strong>${escapeHtml(fb.patientName)}</strong>
+                        <span class="verify-tag tag-verified" style="font-size:0.72rem;"><i class="fa-solid fa-shield-check"></i> Verified Consultation</span>
+                    </div>
+                    <p style="font-size:0.85rem; color:#334155; line-height:1.5; margin:0 0 6px;">"${escapeHtml(fb.experienceText)}"</p>
+                    <small style="color:var(--text-muted); font-size:0.72rem;">Consultation Date: ${escapeHtml(fb.submittedDate)} • Receipt Audited by Council</small>
+                </div>
+            `).join('') : `<div class="empty-placeholder" style="padding:20px; font-size:0.85rem;">No verified patient consultation stories posted yet.</div>`;
 
             document.getElementById('modal-body').innerHTML = `
                 <div style="display:flex; gap:16px; align-items:center; border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:16px; flex-wrap:wrap;">
@@ -1822,39 +2300,208 @@
                         ${doc.avatarUrl ? `<img src="${escapeHtml(doc.avatarUrl)}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : (doc.fullName.replace('Dr.','').trim().substring(0,2).toUpperCase())}
                     </div>
                     <div>
-                        <h2>${escapeHtml(doc.fullName)} <span class="verify-tag tag-verified" style="font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Verified</span></h2>
+                        <h2>${escapeHtml(doc.fullName)} ${statusBadge}</h2>
                         <p style="color:var(--brand); font-weight:700;">${escapeHtml(doc.specialty)} ${specHelp ? `(${specHelp})` : ''}</p>
-                        <p style="font-size:0.85rem; color:var(--text-muted);">Council ID: <code>${escapeHtml(doc.registrationNumber || 'Verified')}</code> • ${escapeHtml(doc.experience || '10')} Years Exp</p>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Council ID: <code>${escapeHtml(doc.registrationNumber || 'Under Review')}</code> • ${escapeHtml(doc.experience || '10')} Years Exp</p>
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:0.88rem; line-height:1.6;">
+                ${!isVerified ? `
+                    <div style="background:#fffbeb; border:1px solid #fde68a; color:#92400e; padding:10px 14px; border-radius:8px; font-size:0.83rem; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span><strong>Administrative Notice:</strong> This profile is currently unverified and undergoing compliance audit by the state medical council desk.</span>
+                    </div>
+                ` : ''}
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:0.88rem; line-height:1.6; margin-bottom:18px;">
                     <div><strong>Qualification:</strong> ${escapeHtml(doc.highestDegree || 'Medical Graduate')}</div>
                     <div><strong>Council:</strong> ${escapeHtml(doc.council || 'State Medical Council')}</div>
-                    <div><strong>Clinic:</strong> ${escapeHtml(doc.clinicName || 'Clinic')}</div>
-                    <div><strong>Consultation Fee:</strong> ₹${escapeHtml(doc.fee || '—')}</div>
-                    <div style="grid-column:span 2;"><strong>Address:</strong> ${escapeHtml(doc.address || 'Address on file')}</div>
-                    <div style="grid-column:span 2; white-space:pre-line;"><strong>Hours:</strong><br>${escapeHtml(doc.availabilityTimings || 'Regular clinic hours')}</div>
+                    <div><strong>Position:</strong> ${escapeHtml(doc.position || 'Consultant Specialist')}</div>
+                    <div><strong>Contact:</strong> ${escapeHtml(doc.publicPhone || 'Available upon inquiry')}</div>
+                    <div style="grid-column:span 2;"><strong>Services:</strong> ${escapeHtml(doc.services || 'General Medical Consultation')}</div>
+                    <div style="grid-column:span 2;"><strong>Professional Bio:</strong><br>${escapeHtml(doc.about || 'Practicing physician focused on patient care.')}</div>
                 </div>
 
-                <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-                    <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fa-solid fa-diamond-turn-right"></i> Directions</a>
-                    <button class="btn btn-outline" onclick="copyProfileLink('${doc.id}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                <div style="border-top:1px solid var(--border); padding-top:14px; margin-top:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h4 style="font-size:0.95rem; color:var(--brand);"><i class="fa-solid fa-hospital"></i> Hospitals &amp; Visiting Clinics (${clinicsList.length})</h4>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">Select facility for exact directions</span>
+                    </div>
+                    <div class="clinic-pill-box">${clinicsHtml}</div>
                 </div>
 
-                <div style="text-align:center; margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
-                    <div id="qr-box" style="display:flex; justify-content:center;"></div>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">Scan QR to share this profile</p>
+                <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div>
+                            <h4 style="font-size:0.95rem; color:var(--brand); margin:0;"><i class="fa-solid fa-comments"></i> Patient Consultation Experiences (${approvedFeedbacks.length})</h4>
+                            <small style="color:var(--text-muted); font-size:0.75rem;">Verified by administrative review of OPD receipt</small>
+                        </div>
+                        <button class="btn btn-outline" style="font-size:0.8rem; padding:6px 12px;" onclick="openFeedbackModal('${doc.id}', '${escapeHtml(doc.fullName)}')">
+                            <i class="fa-solid fa-pen-to-square"></i> How was your experience?
+                        </button>
+                    </div>
+                    <div id="doc-profile-feedbacks-container">${feedbacksHtml}</div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;">
+                    <button class="btn btn-outline" onclick="copyProfileLink('${doc.id}')"><i class="fa-solid fa-share-nodes"></i> Share Doctor Profile</button>
                 </div>
             `;
             document.getElementById('main-modal').style.display = 'flex';
-            setTimeout(() => {
-                const qrBox = document.getElementById('qr-box');
-                if (qrBox) {
-                    qrBox.innerHTML = '';
-                    new QRCode(qrBox, { text: `${window.location.origin}${window.location.pathname}?doc=${encodeURIComponent(doc.id)}`, width: 120, height: 120 });
-                }
-            }, 60);
+        }
+
+        function openFeedbackModal(doctorId, doctorName) {
+            if (!currentUser || currentUserRole !== 'PATIENT') {
+                showToast("Please sign in as a patient to share your consultation experience.");
+                return;
+            }
+            document.getElementById('fb-doctor-id').value = doctorId;
+            document.getElementById('feedback-modal-subtitle').innerText = `Consultation experience with ${doctorName}`;
+            document.getElementById('fb-narrative').value = '';
+            document.getElementById('fb-proof-file').value = '';
+            document.getElementById('fb-proof-preview').style.display = 'none';
+            document.getElementById('feedback-modal').style.display = 'flex';
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedback-modal').style.display = 'none';
+        }
+
+        function previewFeedbackProof(e) {
+            const file = e.target.files[0];
+            if (file) {
+                activeFeedbackProofName = file.name;
+                document.getElementById('fb-proof-filename').innerText = file.name;
+                document.getElementById('fb-proof-preview').style.display = 'block';
+            }
+        }
+
+        function handleFeedbackSubmit(e) {
+            e.preventDefault();
+            const doctorId = document.getElementById('fb-doctor-id').value;
+            const text = document.getElementById('fb-narrative').value.trim();
+            const fileInput = document.getElementById('fb-proof-file');
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showToast("Please attach prescription slip or receipt as visit proof.");
+                return;
+            }
+
+            const fileName = fileInput.files[0].name;
+            const reviews = safeRead('mr_reviews', []);
+
+            const newFeedback = {
+                id: "fb_" + Date.now(),
+                doctorId: doctorId,
+                patientId: currentUser.userId,
+                patientName: currentUser.fullName || "Patient",
+                experienceText: text,
+                proofFileName: fileName,
+                submittedDate: new Date().toISOString().split('T')[0],
+                status: "PENDING_APPROVAL",
+                adminNote: ""
+            };
+
+            reviews.unshift(newFeedback);
+            safeWrite('mr_reviews', reviews);
+
+            closeFeedbackModal();
+            showToast("Feedback submitted! It will appear after admin approval.");
+        }
+
+        function renderAdminReviewsModeration() {
+            const cont = document.getElementById('admin-reviews-list');
+            const reviews = safeRead('mr_reviews', []);
+            const docs = safeRead('mr_docs', []);
+
+            if (reviews.length === 0) {
+                cont.innerHTML = `<div class="empty-placeholder">No feedback submissions found.</div>`;
+                return;
+            }
+
+            cont.innerHTML = reviews.map(r => {
+                const doc = docs.find(d => d.id === r.doctorId);
+                const isPending = r.status === 'PENDING_APPROVAL';
+                const isApproved = r.status === 'APPROVED';
+
+                return `
+                    <div style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+                            <div>
+                                <h4 style="margin:0; font-size:1rem; color:var(--text-dark);">
+                                    Patient: <strong>${escapeHtml(r.patientName)}</strong> 
+                                    <span style="font-weight:400; color:var(--text-muted);">for</span> 
+                                    ${escapeHtml(doc ? doc.fullName : 'Doctor')}
+                                </h4>
+                                <small style="color:var(--text-muted);">Submitted: ${escapeHtml(r.submittedDate)} • ID: <code>${r.id}</code></small>
+                            </div>
+                            <span class="verify-tag ${isApproved ? 'tag-verified' : (isPending ? 'tag-pending' : 'tag-rejected')}">
+                                ${escapeHtml(r.status)}
+                            </span>
+                        </div>
+
+                        <div style="background:#f8fafc; border-left:4px solid var(--brand); padding:10px 14px; border-radius:6px; margin-bottom:12px;">
+                            <strong style="font-size:0.8rem; color:var(--brand); display:block; margin-bottom:4px;">Patient's Written Experience:</strong>
+                            <p style="font-size:0.88rem; color:#334155; margin:0; line-height:1.5;">"${escapeHtml(r.experienceText)}"</p>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px dashed var(--border); padding-top:10px;">
+                            <div style="font-size:0.82rem; color:var(--text-dark);">
+                                <i class="fa-solid fa-file-invoice" style="color:var(--brand);"></i> 
+                                Attached Consultation Proof: <strong>${escapeHtml(r.proofFileName || 'Receipt_Doc.pdf')}</strong>
+                            </div>
+
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="showToast('Viewing receipt proof scan: ' + '${escapeHtml(r.proofFileName)}')">
+                                    <i class="fa-solid fa-eye"></i> View Proof
+                                </button>
+                                ${isPending ? `
+                                    <button class="btn btn-primary" style="padding:6px 14px; font-size:0.8rem;" onclick="adminApproveFeedback('${r.id}')">
+                                        <i class="fa-solid fa-check"></i> Approve &amp; Publish
+                                    </button>
+                                    <button class="btn btn-danger-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="adminRejectFeedback('${r.id}')">
+                                        <i class="fa-solid fa-xmark"></i> Reject
+                                    </button>
+                                ` : (isApproved ? `
+                                    <button class="btn btn-danger-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="adminRejectFeedback('${r.id}')">
+                                        <i class="fa-solid fa-ban"></i> Revoke Publication
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-primary" style="padding:6px 12px; font-size:0.8rem;" onclick="adminApproveFeedback('${r.id}')">
+                                        <i class="fa-solid fa-rotate-left"></i> Re-Approve
+                                    </button>
+                                `)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function adminApproveFeedback(reviewId) {
+            let reviews = safeRead('mr_reviews', []);
+            let rev = reviews.find(r => r.id === reviewId);
+            if (!rev) return;
+
+            rev.status = "APPROVED";
+            rev.adminNote = "Proof verified and content cleared by admin.";
+            safeWrite('mr_reviews', reviews);
+
+            renderAdminReviewsModeration();
+            showToast("Feedback approved and visible on doctor profile.");
+        }
+
+        function adminRejectFeedback(reviewId) {
+            let reviews = safeRead('mr_reviews', []);
+            let rev = reviews.find(r => r.id === reviewId);
+            if (!rev) return;
+
+            rev.status = "REJECTED";
+            rev.adminNote = "Rejected during administrative compliance audit.";
+            safeWrite('mr_reviews', reviews);
+
+            renderAdminReviewsModeration();
+            showToast("Feedback rejected.");
         }
 
         function copyProfileLink(id) {
@@ -1891,11 +2538,10 @@
             box.style.display = 'block';
 
             if (RED_FLAG_SYMPTOMS.some(t => input.includes(t))) {
-                const dict = I18N[currentLang];
                 cont.innerHTML = `
                     <div style="background:#fee2e2; border:2px solid #ef4444; border-radius:12px; padding:16px;">
-                        <h4 style="color:#b91c1c; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> ${dict.emergency_detected}</h4>
-                        <p style="font-size:0.85rem; color:#7f1d1d; margin-bottom:12px;">${dict.emergency_desc}</p>
+                        <h4 style="color:#b91c1c; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> Urgent Medical Alert Detected</h4>
+                        <p style="font-size:0.85rem; color:#7f1d1d; margin-bottom:12px;">Your description indicates acute symptoms that may need immediate hospital evaluation. Do not wait for a routine clinic OPD.</p>
                         <div style="display:flex; gap:10px;">
                             <a href="tel:108" class="btn btn-primary" style="background:#dc2626; flex:1; text-decoration:none;"><i class="fa-solid fa-phone"></i> 108</a>
                             <a href="tel:112" class="btn btn-outline" style="border-color:#dc2626; color:#dc2626; flex:1; text-decoration:none;"><i class="fa-solid fa-phone"></i> 112</a>
@@ -1931,42 +2577,13 @@
             const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!Speech) return showToast("Speech recognition is not supported in this browser.");
             const r = new Speech();
-            r.lang = (currentLang === 'mr') ? 'mr-IN' : 'en-IN';
+            r.lang = 'en-IN';
             showToast("Listening...");
             r.onresult = (e) => {
                 document.getElementById('ai-symptom-input').value = e.results[0][0].transcript;
                 runAITriage();
             };
             r.start();
-        }
-
-        function handleVaultUpload(e) {
-            const file = e.target.files[0];
-            e.target.value = '';
-            if (!file || currentUserRole !== 'PATIENT') return showToast('Please sign in as a patient.');
-            const recs = safeRead('mr_vault', []);
-            recs.unshift({ id: `vault-${Date.now()}`, ownerId: currentUser.userId, fileName: file.name, size: file.size, uploadedAt: new Date().toISOString() });
-            safeWrite('mr_vault', recs);
-            renderMedicalVault();
-            showToast('Document securely added to your vault.');
-        }
-
-        function renderMedicalVault() {
-            const cont = document.getElementById('records-container');
-            const recs = safeRead('mr_vault', []).filter(r => r.ownerId === currentUser.userId);
-            if (!recs.length) {
-                cont.innerHTML = `<div class="empty-placeholder">No medical records uploaded yet.</div>`;
-                return;
-            }
-            cont.innerHTML = recs.map(r => `
-                <div style="background:white; border:1px solid var(--border); padding:14px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <strong><i class="fa-regular fa-file"></i> ${escapeHtml(r.fileName)}</strong>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">${(r.size / 1024).toFixed(1)} KB • ${new Date(r.uploadedAt).toLocaleDateString()}</div>
-                    </div>
-                    <button class="btn btn-outline" onclick="showToast('Simulating secure file download...')"><i class="fa-solid fa-download"></i> Download</button>
-                </div>
-            `).join('');
         }
 
         function renderDoctorCredentialsVault() {
@@ -1979,58 +2596,454 @@
             `;
         }
 
+        let doctorPortalClinicsDraft = [];
+
         function renderDoctorPortal() {
             const cont = document.getElementById('doc-portal-content');
             let doc = cachedDoctors.find(d => d.email === currentUser.email) || cachedDoctors[0];
 
+            if (!doc.profileId) {
+                doc.profileId = currentUser.profileId || generateUniqueAccountId('DOCTOR');
+            }
+
+            if (doc.verificationStatus !== 'Verified') {
+                const isCorrection = doc.verificationStatus === 'Correction Required';
+                const isRejected = doc.verificationStatus === 'Rejected';
+
+                cont.innerHTML = `
+                    <div class="form-section" style="text-align: center; padding: 40px 20px;">
+                        <div class="private-id-card" style="max-width:500px; margin: 0 auto 20px;">
+                            <div>
+                                <div class="id-title">Doctor Confidential Portal ID</div>
+                                <div class="id-value">${escapeHtml(doc.profileId)}</div>
+                            </div>
+                            <span class="id-pill"><i class="fa-solid fa-lock"></i> Hidden from Public</span>
+                        </div>
+
+                        <div style="background: #fef9c3; color: #854d0e; width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 16px;">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                        <h2 style="margin-bottom: 8px;">Verification Pending</h2>
+                        <p style="color: var(--text-muted); max-width: 520px; margin: 0 auto 16px; font-size: 0.9rem;">
+                            Welcome, <strong>${escapeHtml(doc.fullName)}</strong>. Your registration application has been submitted successfully and is currently under administrative audit by the state medical council review desk.
+                        </p>
+
+                        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 18px; max-width: 500px; margin: 0 auto 20px; text-align: left;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <strong>Application Status:</strong>
+                                <span class="verify-tag ${isCorrection ? 'tag-correction' : (isRejected ? 'tag-rejected' : 'tag-pending')}">
+                                    <i class="fa-solid fa-clock"></i> ${escapeHtml(doc.verificationStatus)}
+                                </span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>Council Reg No:</span>
+                                <code>${escapeHtml(doc.registrationNumber || 'Under Review')}</code>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>Clinic / Facility:</span>
+                                <span>${escapeHtml(doc.clinicName || 'N/A')}</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: #dc2626; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);">
+                                <i class="fa-solid fa-shield-halved"></i> <strong>Directory Visibility:</strong> Your practice is quarantined from public search and will not appear to patients until approved by the council administrator.
+                            </div>
+                        </div>
+
+                        <p style="font-size: 0.82rem; color: var(--text-muted);">
+                            Need expedited verification? Contact council compliance desk: <code>compliance@medirank-registry.in</code>
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            doctorPortalClinicsDraft = (doc.clinics && doc.clinics.length > 0) ? JSON.parse(JSON.stringify(doc.clinics)) : [
+                {
+                    name: doc.clinicName || 'Apollo Hospitals Nashik',
+                    locality: doc.locality || 'Panchavati',
+                    address: doc.address || 'Swaminarayan Nagar, Panchavati, Nashik 422003',
+                    hours: doc.availabilityTimings || 'Mon–Fri: 10:00 AM–02:00 PM',
+                    fee: doc.fee || '800',
+                    phone: doc.publicPhone || '9822011000'
+                }
+            ];
+
             cont.innerHTML = `
                 <div class="form-section">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h2>${escapeHtml(doc.fullName)}</h2>
-                        <span class="verify-tag tag-verified">${escapeHtml(doc.verificationStatus)}</span>
+                    <div class="private-id-card">
+                        <div>
+                            <div class="id-title">Doctor Confidential Portal ID</div>
+                            <div class="id-value">${escapeHtml(doc.profileId)}</div>
+                        </div>
+                        <span class="id-pill"><i class="fa-solid fa-lock"></i> Visible only to your portal &amp; council</span>
                     </div>
-                    <p style="color:var(--brand); font-weight:700; margin:4px 0 16px;">${escapeHtml(doc.specialty)} • Reg: <code>${escapeHtml(doc.registrationNumber)}</code></p>
-                    <div class="form-grid">
-                        <div class="form-group"><label>Clinic Name</label><input type="text" id="p-clinic" value="${escapeHtml(doc.clinicName || '')}"></div>
-                        <div class="form-group"><label>Fee (₹)</label><input type="number" id="p-fee" value="${escapeHtml(doc.fee || '')}"></div>
-                        <div class="form-group full"><label>Hours</label><textarea id="p-hours" rows="2">${escapeHtml(doc.availabilityTimings || '')}</textarea></div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 4px;">
+                        <div>
+                            <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-dark);">${escapeHtml(doc.fullName)}</h2>
+                            <p style="color:var(--brand); font-weight:700; margin-top: 2px;">
+                                ${escapeHtml(doc.specialty)} • Reg: <code>${escapeHtml(doc.registrationNumber)}</code>
+                            </p>
+                        </div>
+                        <span class="verify-tag tag-verified" style="padding: 4px 12px; font-size: 0.78rem;">
+                            <i class="fa-solid fa-circle-check"></i> Verified
+                        </span>
                     </div>
-                    <button class="btn btn-primary" onclick="showToast('Practice details updated.')"><i class="fa-solid fa-floppy-disk"></i> Save Details</button>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:16px 20px; border-radius:12px; margin: 18px 0 22px; border:1px solid var(--border);">
+                        <div style="font-size:0.95rem;">Practice Availability: <strong>${doc.isTemporarilyAway ? 'Away / On Leave' : 'Active'}</strong></div>
+                        <button class="btn btn-outline" style="border-radius: 8px; padding: 7px 16px; font-weight: 600;" onclick="toggleDoctorLeave('${doc.id}')">
+                            ${doc.isTemporarilyAway ? 'Mark Active' : 'Mark on Leave'}
+                        </button>
+                    </div>
+
+                    <form onsubmit="saveDoctorPortalUpdates(event, '${doc.id}')">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="p-clinic">Primary Clinic / Hospital Name</label>
+                                <input type="text" id="p-clinic" value="${escapeHtml(doc.clinicName || '')}">
+                            </div>
+                            <div class="form-group">
+                                <label for="p-fee">Primary Consultation Fee (₹ 0–50,000)</label>
+                                <input type="number" id="p-fee" min="0" max="50000" value="${escapeHtml(doc.fee || '')}">
+                            </div>
+                            <div class="form-group">
+                                <label for="p-phone">Public Contact Phone (10-digit)</label>
+                                <input type="tel" id="p-phone" pattern="[6-9][0-9]{9}" maxlength="10" value="${escapeHtml(doc.publicPhone || '')}">
+                            </div>
+                            <div class="form-group">
+                                <label for="p-position">Current Position</label>
+                                <input type="text" id="p-position" value="${escapeHtml(doc.position || '')}">
+                            </div>
+                            <div class="form-group full">
+                                <label for="p-hours">Primary Clinic Consultation Hours</label>
+                                <textarea id="p-hours" rows="2">${escapeHtml(doc.availabilityTimings || '')}</textarea>
+                            </div>
+                            <div class="form-group full">
+                                <label for="p-address">Primary Clinic Full Address</label>
+                                <textarea id="p-address" rows="2">${escapeHtml(doc.address || '')}</textarea>
+                            </div>
+                            <div class="form-group full">
+                                <label for="p-services">Treatments &amp; Clinical Services</label>
+                                <textarea id="p-services" rows="2">${escapeHtml(doc.services || '')}</textarea>
+                            </div>
+                            <div class="form-group full">
+                                <label for="p-about">Professional Bio / About</label>
+                                <textarea id="p-about" rows="3">${escapeHtml(doc.about || '')}</textarea>
+                            </div>
+                        </div>
+
+                        <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:18px; margin-top:16px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+                                <div>
+                                    <h4 style="color:var(--brand); font-size:1rem; margin:0;"><i class="fa-solid fa-hospital"></i> Visiting Clinics &amp; Multiple Hospitals</h4>
+                                    <small style="color:var(--text-muted);">Add all clinics, consulting centers, and visiting hospitals you practice at</small>
+                                </div>
+                                <button type="button" class="btn btn-outline" onclick="addVisitingClinicRow()">
+                                    <i class="fa-solid fa-plus"></i> Add Another Hospital/Clinic
+                                </button>
+                            </div>
+
+                            <div id="portal-visiting-clinics-container"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 11px 24px;">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Practice Details &amp; Locations
+                        </button>
+                    </form>
                 </div>
             `;
+            renderVisitingClinicsEditor();
         }
 
-        function renderAdminVerification() {
-            const docs = safeRead('mr_docs', []);
-            const pending = docs.filter(d => d.verificationStatus === 'Pending Review');
-            const verified = docs.filter(d => d.verificationStatus === 'Verified');
-            const corrections = docs.filter(d => d.verificationStatus === 'Correction Required');
+        function renderVisitingClinicsEditor() {
+            const container = document.getElementById('portal-visiting-clinics-container');
+            if (!container) return;
 
-            document.getElementById('admin-kpi-row').innerHTML = `
-                <div class="admin-stat-card pending"><div class="admin-stat-num">${pending.length}</div><div class="admin-stat-title">Pending</div></div>
-                <div class="admin-stat-card verified"><div class="admin-stat-num">${verified.length}</div><div class="admin-stat-title">Verified</div></div>
-                <div class="admin-stat-card corrections"><div class="admin-stat-num">${corrections.length}</div><div class="admin-stat-title">Corrections</div></div>
-            `;
+            if (doctorPortalClinicsDraft.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:15px; color:var(--text-muted); font-size:0.85rem;">No clinics added yet. Click 'Add Another Hospital/Clinic'.</div>`;
+                return;
+            }
 
-            document.getElementById('admin-verify-list').innerHTML = docs.map(d => `
-                <div class="doctor-card" style="margin-bottom:12px;" data-status="${escapeHtml(d.verificationStatus)}">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
-                        <div>
-                            <strong>${escapeHtml(d.fullName)}</strong> (${escapeHtml(d.specialty)})<br>
-                            <small>Reg: <code>${escapeHtml(d.registrationNumber)}</code></small>
-                            <div style="margin-top:6px;">Status: <span class="verify-tag tag-verified">${escapeHtml(d.verificationStatus)}</span></div>
+            container.innerHTML = doctorPortalClinicsDraft.map((cl, i) => `
+                <div style="background:white; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:12px; position:relative;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-weight:700; color:var(--brand); font-size:0.88rem;">Location #${i + 1}</span>
+                        ${doctorPortalClinicsDraft.length > 1 ? `
+                            <button type="button" class="btn btn-danger-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="removeVisitingClinicRow(${i})">
+                                <i class="fa-solid fa-trash"></i> Remove
+                            </button>
+                        ` : ''}
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Hospital / Clinic Name*</label>
+                            <input type="text" value="${escapeHtml(cl.name || '')}" oninput="doctorPortalClinicsDraft[${i}].name = this.value" required placeholder="e.g. Wockhardt Hospital">
+                        </div>
+                        <div class="form-group">
+                            <label>Area / Locality*</label>
+                            <input type="text" value="${escapeHtml(cl.locality || '')}" oninput="doctorPortalClinicsDraft[${i}].locality = this.value" required placeholder="e.g. Mumbai Naka">
+                        </div>
+                        <div class="form-group">
+                            <label>Consultation Fee (₹)</label>
+                            <input type="number" min="0" value="${escapeHtml(cl.fee || '')}" oninput="doctorPortalClinicsDraft[${i}].fee = this.value" placeholder="e.g. 700">
+                        </div>
+                        <div class="form-group">
+                            <label>Visiting Timings*</label>
+                            <input type="text" value="${escapeHtml(cl.hours || '')}" oninput="doctorPortalClinicsDraft[${i}].hours = this.value" required placeholder="e.g. Wed &amp; Fri: 04:00 PM–07:00 PM">
+                        </div>
+                        <div class="form-group full">
+                            <label>Complete Address (for GPS directions)*</label>
+                            <input type="text" value="${escapeHtml(cl.address || '')}" oninput="doctorPortalClinicsDraft[${i}].address = this.value" required placeholder="Full street address and landmark for Google Maps navigation">
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
+        function addVisitingClinicRow() {
+            doctorPortalClinicsDraft.push({
+                name: "",
+                locality: "Nashik",
+                address: "",
+                hours: "",
+                fee: "800",
+                phone: ""
+            });
+            renderVisitingClinicsEditor();
+        }
+
+        function removeVisitingClinicRow(index) {
+            doctorPortalClinicsDraft.splice(index, 1);
+            renderVisitingClinicsEditor();
+        }
+
+        function toggleDoctorLeave(id) {
+            let docs = safeRead('mr_docs', []);
+            let d = docs.find(x => x.id === id);
+            if (d) {
+                d.isTemporarilyAway = !d.isTemporarilyAway;
+                safeWrite('mr_docs', docs);
+                loadDirectoryData();
+                renderDoctorPortal();
+                showToast("Practice availability status updated.");
+            }
+        }
+
+        function saveDoctorPortalUpdates(e, id) {
+            e.preventDefault();
+            const fee = document.getElementById('p-fee').value.trim();
+            const clinic = document.getElementById('p-clinic').value.trim();
+            const phone = document.getElementById('p-phone').value.trim();
+            const position = document.getElementById('p-position').value.trim();
+            const hours = document.getElementById('p-hours').value.trim();
+            const address = document.getElementById('p-address').value.trim();
+            const services = document.getElementById('p-services').value.trim();
+            const about = document.getElementById('p-about').value.trim();
+
+            let docs = safeRead('mr_docs', []);
+            let d = docs.find(x => x.id === id);
+            if (d) {
+                d.fee = String(fee);
+                d.clinicName = clinic;
+                d.publicPhone = phone;
+                d.position = position;
+                d.availabilityTimings = hours;
+                d.address = address;
+                d.services = services;
+                d.about = about;
+
+                if (doctorPortalClinicsDraft.length > 0) {
+                    doctorPortalClinicsDraft[0].name = clinic || doctorPortalClinicsDraft[0].name;
+                    doctorPortalClinicsDraft[0].fee = fee || doctorPortalClinicsDraft[0].fee;
+                    doctorPortalClinicsDraft[0].hours = hours || doctorPortalClinicsDraft[0].hours;
+                    doctorPortalClinicsDraft[0].address = address || doctorPortalClinicsDraft[0].address;
+                }
+                d.clinics = JSON.parse(JSON.stringify(doctorPortalClinicsDraft));
+
+                safeWrite('mr_docs', docs);
+                loadDirectoryData();
+                showToast("Practice details and all clinic locations saved.");
+            }
+        }
+
+        function renderAdminVerification() {
+            if (currentUser && currentUserRole === 'ADMIN') {
+                const aId = currentUser.profileId || 'ADM-10001';
+                const el = document.getElementById('admin-profile-id-display');
+                if (el) el.innerText = aId;
+            }
+
+            const docs = safeRead('mr_docs', []);
+            const pending = docs.filter(d => d.verificationStatus === 'Pending Review');
+            const verified = docs.filter(d => d.verificationStatus === 'Verified');
+            const corrections = docs.filter(d => d.verificationStatus === 'Correction Required');
+
+            document.getElementById('admin-kpi-row').innerHTML = `
+                <div class="admin-stat-card pending"><div class="admin-stat-num">${pending.length}</div><div class="admin-stat-title">Pending Doctors</div></div>
+                <div class="admin-stat-card verified"><div class="admin-stat-num">${verified.length}</div><div class="admin-stat-title">Verified Doctors</div></div>
+                <div class="admin-stat-card corrections"><div class="admin-stat-num">${corrections.length}</div><div class="admin-stat-title">Corrections</div></div>
+            `;
+
+            document.getElementById('admin-verify-list').innerHTML = docs.map(d => {
+                const isVerified = d.verificationStatus === 'Verified';
+                const countClinics = (d.clinics && d.clinics.length) || 1;
+                return `
+                    <div class="doctor-card" style="margin-bottom:12px; border-radius:14px; padding:16px 20px;" data-status="${escapeHtml(d.verificationStatus)}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                            <div>
+                                <h3 style="font-size: 1.05rem; margin-bottom: 2px;">
+                                    ${escapeHtml(d.fullName)} <span style="font-weight: 500; color: var(--text-muted);">(${escapeHtml(d.specialty)})</span>
+                                </h3>
+                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">
+                                    System ID: <code>${escapeHtml(d.profileId || 'DOC-PENDING')}</code> | Reg: <code>${escapeHtml(d.registrationNumber)}</code> | ${escapeHtml(d.clinicName)}, ${escapeHtml(d.city || 'Nashik')} (${countClinics} ${countClinics > 1 ? 'locations' : 'location'})
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+                                    <span>Status:</span>
+                                    <span class="verify-tag ${isVerified ? 'tag-verified' : (d.verificationStatus === 'Correction Required' ? 'tag-correction' : (d.verificationStatus === 'Rejected' ? 'tag-rejected' : 'tag-pending'))}">
+                                        ${escapeHtml(d.verificationStatus)}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                                <button class="btn btn-outline" style="padding: 7px 14px; font-size: 0.82rem; border-color: var(--brand);" onclick="openInspectProofModal('${d.id}')">
+                                    <i class="fa-solid fa-file-lines"></i> Inspect Council Proof
+                                </button>
+                                
+                                ${isVerified ? `
+                                    <button class="btn btn-danger-outline" style="padding: 7px 14px; font-size: 0.82rem;" onclick="confirmAdminAction('REVOKE', '${d.id}', '${escapeHtml(d.fullName)}')">
+                                        <i class="fa-solid fa-ban"></i> Revoke
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-primary" style="padding: 7px 14px; font-size: 0.82rem;" onclick="confirmAdminAction('APPROVE', '${d.id}', '${escapeHtml(d.fullName)}')">
+                                        <i class="fa-solid fa-circle-check"></i> Approve
+                                    </button>
+                                `}
+
+                                <button class="btn btn-outline" style="padding: 7px 14px; font-size: 0.82rem;" onclick="openStatusChangeModal('${d.id}')">
+                                    <i class="fa-regular fa-comment-dots"></i> Change
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openInspectProofModal(id) {
+            const doc = cachedDoctors.find(d => d.id === id);
+            if (!doc) return;
+
+            document.getElementById('inspect-doc-subtitle').innerText = `${doc.fullName} (${doc.specialty})`;
+            document.getElementById('inspect-modal-body').innerHTML = `
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <strong>System Profile ID:</strong>
+                        <code>${escapeHtml(doc.profileId || 'DOC-PENDING')}</code>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <strong>Medical Registration Number:</strong>
+                        <code>${escapeHtml(doc.registrationNumber)}</code>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <strong>State Council:</strong>
+                        <span>${escapeHtml(doc.council || 'Maharashtra Medical Council')}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <strong>Highest Qualification:</strong>
+                        <span>${escapeHtml(doc.highestDegree)} (${escapeHtml(doc.year || '2014')})</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>College / University:</strong>
+                        <span>${escapeHtml(doc.university || 'BJ Medical College')}</span>
+                    </div>
+                </div>
+
+                <div style="border: 2px dashed #99f6e4; background: #f0fdfa; border-radius: 12px; padding: 24px; text-align: center;">
+                    <i class="fa-solid fa-file-pdf" style="font-size: 2.2rem; color: #0b6e69; margin-bottom: 8px;"></i>
+                    <p style="font-weight: 700; margin-bottom: 4px;">Certificate Document Attached</p>
+                    <small style="color: var(--text-muted); display: block; margin-bottom: 12px;">Storage ref: ${escapeHtml(doc.documentStoragePath || 'local://cert_verified.pdf')}</small>
+                    <button class="btn btn-primary" onclick="showToast('Simulating certificate proof viewer...')">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Council Proof Scan
+                    </button>
+                </div>
+            `;
+            document.getElementById('inspect-modal').style.display = 'flex';
+        }
+
+        function closeInspectModal() {
+            document.getElementById('inspect-modal').style.display = 'none';
+        }
+
+        function openStatusChangeModal(id) {
+            const doc = cachedDoctors.find(d => d.id === id);
+            if (!doc) return;
+
+            selectedDoctorForStatus = doc;
+            document.getElementById('status-modal-subtitle').innerText = `Updating verification state for ${doc.fullName}`;
+            document.getElementById('modal-status-choice').value = doc.verificationStatus;
+            document.getElementById('modal-status-note').value = '';
+            document.getElementById('status-modal').style.display = 'flex';
+        }
+
+        function closeStatusModal() {
+            document.getElementById('status-modal').style.display = 'none';
+            selectedDoctorForStatus = null;
+        }
+
+        function submitStatusModalUpdate() {
+            if (!selectedDoctorForStatus) return;
+            const newStatus = document.getElementById('modal-status-choice').value;
+            const note = document.getElementById('modal-status-note').value.trim() || `Status manually changed to ${newStatus}`;
+            executeAdminStatusUpdate(selectedDoctorForStatus.id, selectedDoctorForStatus.fullName, newStatus, note);
+            closeStatusModal();
+        }
+
+        function confirmAdminAction(type, doctorId, doctorName) {
+            const titleEl = document.getElementById('confirm-title');
+            const descEl = document.getElementById('confirm-desc');
+            const btn = document.getElementById('confirm-action-btn');
+
+            if (type === 'APPROVE') {
+                titleEl.innerText = "Approve Medical Listing";
+                descEl.innerText = `Confirm council verification for ${doctorName}? Their listing will be un-quarantined and visible to patients across the directory.`;
+                confirmCallback = () => executeAdminStatusUpdate(doctorId, doctorName, 'Verified', 'Credentials certified under Council Gazette.');
+            } else if (type === 'REVOKE') {
+                titleEl.innerText = "Revoke Verification";
+                descEl.innerText = `Quarantine and revoke verified badge for ${doctorName}?`;
+                confirmCallback = () => executeAdminStatusUpdate(doctorId, doctorName, 'Pending Review', 'Verification placed under audit.');
+            }
+
+            document.getElementById('confirm-modal').style.display = 'flex';
+            btn.onclick = () => {
+                if (confirmCallback) confirmCallback();
+                closeConfirmDialog();
+            };
+        }
+
+        function executeAdminStatusUpdate(id, docName, newStatus, note) {
+            let docs = safeRead('mr_docs', []);
+            let d = docs.find(x => x.id === id);
+            if (!d) return;
+
+            d.verificationStatus = newStatus;
+            safeWrite('mr_docs', docs);
+
+            let audit = safeRead('mr_audit', []);
+            audit.unshift({ id: "aud_"+Date.now(), targetDoctorName: docName, action: newStatus, adminUser: currentUser.fullName || "Admin", note: note, date: new Date().toISOString().split('T')[0] });
+            safeWrite('mr_audit', audit);
+
+            loadDirectoryData();
+            renderAdminVerification();
+            showToast(`Status updated to ${newStatus}.`);
+        }
+
         function renderAdminAuditLogs() {
             const logs = safeRead('mr_audit', []);
             document.getElementById('admin-audit-table-container').innerHTML = `
                 <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                    <thead><tr style="background:#f8fafc; text-align:left;"><th style="padding:8px;">Date</th><th style="padding:8px;">Doctor</th><th style="padding:8px;">Action</th></tr></thead>
-                    <tbody>${logs.map(l => `<tr><td style="padding:8px;">${escapeHtml(l.date)}</td><td style="padding:8px;">${escapeHtml(l.targetDoctorName)}</td><td style="padding:8px;"><code>${escapeHtml(l.action)}</code></td></tr>`).join('')}</tbody>
+                    <thead><tr style="background:#f8fafc; text-align:left;"><th style="padding:8px;">Date</th><th style="padding:8px;">Doctor</th><th style="padding:8px;">Action</th><th style="padding:8px;">Reviewer Note</th></tr></thead>
+                    <tbody>${logs.map(l => `<tr><td style="padding:8px;">${escapeHtml(l.date)}</td><td style="padding:8px;">${escapeHtml(l.targetDoctorName)}</td><td style="padding:8px;"><code>${escapeHtml(l.action)}</code></td><td style="padding:8px; color:var(--text-muted);">${escapeHtml(l.note || '')}</td></tr>`).join('')}</tbody>
                 </table>
             `;
         }
