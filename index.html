@@ -6,6 +6,9 @@
     <title>MediRank &amp; Doctor Diary | Comprehensive Specialist Registry</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SUPABASE CLIENT SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
@@ -119,7 +122,7 @@
         .nav-item { padding: 10px 14px; cursor: pointer; border-radius: 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; transition: 0.2s; color: #cbd5e1; font-weight: 500; font-size: 0.88rem; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.14); color: white; }
         .nav-item i { width: 18px; font-size: 1rem; text-align: center; }
-        .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 12px 0; }
+        .nav-divider { height: 1px; background: rgba(255,255,205,0.1); margin: 12px 0; }
 
         .user-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px; margin-top: auto; margin-bottom: 10px; }
         .user-badge .name { font-size: 0.85rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -315,15 +318,15 @@
             <form id="form-login" onsubmit="handleUniversalLogin(event)">
                 <div class="form-group">
                     <label for="login-email">Email Address</label>
-                    <input type="email" id="login-email" required placeholder="patient@medirank.in" value="patient@medirank.in" autocomplete="username">
+                    <input type="email" id="login-email" required placeholder="e.g. user@mail.com" value="" autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label for="login-pass">Password</label>
-                    <input type="password" id="login-pass" required placeholder="PatientPassword123" value="PatientPassword123" autocomplete="current-password">
+                    <input type="password" id="login-pass" required placeholder="Enter your password" value="" autocomplete="current-password">
                     <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('login-pass', this)"></i>
                 </div>
                 <div style="text-align:right; margin-bottom:14px;">
-                    <a onclick="openForgotPasswordModal()" style="color:var(--brand); font-size:0.82rem; font-weight:600; cursor:pointer; text-decoration:underline;">Forgot Password? Reset via OTP</a>
+                    <a onclick="openForgotPasswordModal()" style="color:var(--brand); font-size:0.82rem; font-weight:600; cursor:pointer; text-decoration:underline;">Forgot Password? Reset via Email</a>
                 </div>
                 <button type="submit" class="btn-submit" id="btn-login-submit">Sign In to Dashboard</button>
             </form>
@@ -336,7 +339,7 @@
                 </div>
                 <div class="form-group">
                     <label for="reg-pat-email">Email Address*</label>
-                    <input type="email" id="reg-pat-email" required placeholder="name@email.com" autocomplete="email">
+                    <input type="email" id="reg-pat-email" required placeholder="e.g. rahul.patil@mail.com" autocomplete="email">
                 </div>
                 <div class="form-group">
                     <label for="reg-pat-pass">Password* (8+ chars)</label>
@@ -359,7 +362,7 @@
                     </div>
                     <div class="form-group">
                         <label for="reg-doc-email">Official Email*</label>
-                        <input type="email" id="reg-doc-email" required placeholder="doctor@clinic.com" autocomplete="email">
+                        <input type="email" id="reg-doc-email" required placeholder="doctor@mail.com" autocomplete="email">
                     </div>
                     <div class="form-group">
                         <label for="reg-doc-phone">Phone Number* (10 Digits)</label>
@@ -488,35 +491,39 @@
         </div>
     </div>
 
-    <!-- OTP FORGOT PASSWORD MODAL -->
+    <!-- SUPABASE EMAIL PASSWORD RESET MODAL -->
     <div id="forgot-password-modal" class="modal" role="dialog" aria-modal="true">
         <div class="modal-content" style="max-width: 460px;">
             <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeForgotPasswordModal()">&times;</button>
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
                 <div style="background:#e6fffa; color:var(--brand); width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
-                    <i class="fa-solid fa-shield-keyhole"></i>
+                    <i class="fa-solid fa-envelope-open-text"></i>
                 </div>
                 <div>
-                    <h3 style="margin:0;">Reset Account Password</h3>
-                    <small style="color:var(--text-muted);">2-Step Secure OTP Verification</small>
+                    <h3 style="margin:0;" id="fp-modal-title">Reset Account Password</h3>
+                    <small style="color:var(--text-muted);" id="fp-modal-subtitle">Real Email Recovery via Supabase</small>
                 </div>
             </div>
             
+            <!-- Step 1: Request Email -->
             <div id="fp-step-1">
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">Enter your registered email address. We will verify your account and dispatch a 6-digit one-time passcode.</p>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+                    Enter your registered email address. We will dispatch a secure cryptographic reset link straight to your inbox.
+                </p>
                 <div class="form-group">
                     <label for="fp-email">Registered Email Address*</label>
-                    <input type="email" id="fp-email" required placeholder="user@medirank.in">
+                    <input type="email" id="fp-email" required placeholder="e.g. user@mail.com">
                 </div>
-                <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="sendResetOtp()"><i class="fa-solid fa-paper-plane"></i> Send 6-Digit OTP</button>
+                <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="btn-send-reset-link" onclick="sendSupabasePasswordReset()">
+                    <i class="fa-solid fa-paper-plane"></i> Send Password Reset Link
+                </button>
             </div>
 
+            <!-- Step 2: Set New Password (Activated by email link) -->
             <div id="fp-step-2" style="display:none;">
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">Enter the 6-digit OTP code sent to your email and create a new secure password.</p>
-                <div class="form-group">
-                    <label for="fp-otp">6-Digit Verification Code*</label>
-                    <input type="text" id="fp-otp" maxlength="6" placeholder="e.g. 582914" pattern="[0-9]{6}">
-                </div>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+                    Your identity is verified via the secure recovery link. Set a new password for your account.
+                </p>
                 <div class="form-group">
                     <label for="fp-new-pass">New Password* (8+ chars)</label>
                     <input type="password" id="fp-new-pass" required placeholder="New password">
@@ -525,7 +532,9 @@
                     <label for="fp-confirm-pass">Confirm New Password*</label>
                     <input type="password" id="fp-confirm-pass" required placeholder="Confirm new password">
                 </div>
-                <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="verifyResetOtp()"><i class="fa-solid fa-lock"></i> Update &amp; Set New Password</button>
+                <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="btn-save-new-pass" onclick="saveNewPasswordFromRecovery()">
+                    <i class="fa-solid fa-lock"></i> Update &amp; Set New Password
+                </button>
             </div>
         </div>
     </div>
@@ -790,7 +799,7 @@
         </div>
     </div>
 
-    <!-- NEW PATIENT EXPERIENCE FEEDBACK MODAL -->
+    <!-- PATIENT EXPERIENCE FEEDBACK MODAL -->
     <div id="feedback-modal" class="modal" role="dialog" aria-modal="true">
         <div class="modal-content" style="max-width: 580px;">
             <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeFeedbackModal()">&times;</button>
@@ -895,7 +904,19 @@
     <div id="toast" class="toast" role="alert"></div>
 
     <script>
-        const CURRENT_DATA_VERSION = "mr_complete_v16_expanded_nashik_doctors";
+        /* ========================================================
+           SUPABASE CREDENTIALS & INITIALIZATION
+           Replace the strings below with your keys from:
+           Supabase Dashboard -> Settings -> API
+        ======================================================== */
+        const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
+        const SUPABASE_ANON_KEY = "YOUR_ANON_PUBLIC_KEY";
+
+        const supabaseClient = (window.supabase && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT"))
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            : null;
+
+        const CURRENT_DATA_VERSION = "mr_complete_v21_multi_device_sync_fix";
         
         const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         const API_BASE = IS_LOCAL ? "http://localhost:5000/api" : null;
@@ -966,10 +987,19 @@
             Radiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g12"><stop stop-color="#d9ecff"/><stop offset="1" stop-color="#7090b8"/></linearGradient></defs><rect x="30" y="14" width="100" height="102" rx="10" fill="url(#g12)" stroke="#527094" stroke-width="4"/><circle cx="80" cy="63" r="34" fill="#24354e"/><circle cx="80" cy="63" r="22" fill="none" stroke="#9bd8ff" stroke-width="4"/><path d="M80 29v68M46 63h68" stroke="#9bd8ff" stroke-width="3"/></svg>`
         };
 
+        /* ID GENERATORS */
         function generateUniqueAccountId(role) {
             const prefix = role === 'ADMIN' ? 'ADM' : (role === 'DOCTOR' ? 'DOC' : 'PAT');
-            const rand = Math.floor(100000 + Math.random() * 900000);
-            return `${prefix}-${rand}`;
+            return `${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
+        }
+        function generateHospitalId() {
+            return `HOSP-${Math.floor(100000 + Math.random() * 900000)}`;
+        }
+        function generateFeedbackId() {
+            return `FB-${Math.floor(100000 + Math.random() * 900000)}`;
+        }
+        function generateAuditId() {
+            return `AUD-${Math.floor(100000 + Math.random() * 900000)}`;
         }
 
         const ALL_SEED_DOCTORS = [
@@ -977,7 +1007,7 @@
                 id: "nashik_doc_01",
                 profileId: "DOC-784912",
                 fullName: "Dr. Vikram Patil",
-                email: "dr.vikram@medirank.in",
+                email: "dr.vikram.patil@mail.com",
                 publicPhone: "9822011000",
                 specialty: "Cardiology",
                 sub: "Interventional Cardiology",
@@ -1008,6 +1038,7 @@
                 ],
                 clinics: [
                     {
+                        id: "HOSP-104911",
                         name: "Apollo Hospitals Nashik",
                         locality: "Panchavati",
                         address: "Swaminarayan Nagar, Panchavati, Nashik 422003",
@@ -1016,6 +1047,7 @@
                         phone: "9822011000"
                     },
                     {
+                        id: "HOSP-104912",
                         name: "Heart Care Clinic & Diagnostic Center",
                         locality: "College Road",
                         address: "Above Modern Medico, Near BYK College, College Road, Nashik 422005",
@@ -1038,7 +1070,7 @@
                 id: "nashik_doc_02",
                 profileId: "DOC-912384",
                 fullName: "Dr. Snehal Deshmukh",
-                email: "dr.snehal@medirank.in",
+                email: "dr.snehal.deshmukh@mail.com",
                 publicPhone: "9822011666",
                 specialty: "Pediatrics",
                 sub: "Pediatric Critical Care & Neonatology",
@@ -1069,6 +1101,7 @@
                 ],
                 clinics: [
                     {
+                        id: "HOSP-189211",
                         name: "Sahyadri Super Speciality Hospital",
                         locality: "Mumbai Naka",
                         address: "Wadala Naka, Near Mumbai Naka, Nashik 422002",
@@ -1091,7 +1124,7 @@
                 id: "nashik_doc_03",
                 profileId: "DOC-334190",
                 fullName: "Dr. Rohan Kulkarni",
-                email: "dr.rohan@medirank.in",
+                email: "dr.rohan.kulkarni@mail.com",
                 publicPhone: "9822033441",
                 specialty: "Orthopedics",
                 sub: "Joint Replacement & Arthroscopy",
@@ -1125,6 +1158,7 @@
                 ],
                 clinics: [
                     {
+                        id: "HOSP-201301",
                         name: "Apex Bone & Joint Clinic",
                         locality: "College Road",
                         address: "Opp. Big Bazaar, College Road, Nashik 422005",
@@ -1133,6 +1167,7 @@
                         phone: "9822033441"
                     },
                     {
+                        id: "HOSP-201302",
                         name: "Wockhardt Super Speciality Hospital",
                         locality: "Mumbai Naka",
                         address: "Wani House, Near Mumbai Naka, Nashik 422001",
@@ -1155,7 +1190,7 @@
                 id: "nashik_doc_04",
                 profileId: "DOC-551209",
                 fullName: "Dr. Ananya Joshi",
-                email: "dr.ananya@medirank.in",
+                email: "dr.ananya.joshi@mail.com",
                 publicPhone: "9822044882",
                 specialty: "Dermatology",
                 sub: "Clinical & Aesthetic Dermatology",
@@ -1186,6 +1221,7 @@
                 ],
                 clinics: [
                     {
+                        id: "HOSP-201601",
                         name: "DermaGlow Skin & Laser Clinic",
                         locality: "Gangapur Road",
                         address: "1st Floor, Horizon Square, Near Prasad Circle, Gangapur Road, Nashik 422013",
@@ -1208,7 +1244,7 @@
                 id: "nashik_doc_05",
                 profileId: "DOC-889102",
                 fullName: "Dr. Sandeep Shinde",
-                email: "dr.sandeep@medirank.in",
+                email: "dr.sandeep.shinde@mail.com",
                 publicPhone: "9822055113",
                 specialty: "Neurology",
                 sub: "Stroke & Epilepsy Care",
@@ -1238,6 +1274,7 @@
                 ],
                 clinics: [
                     {
+                        id: "HOSP-201101",
                         name: "NeuroCare Brain & Spine Center",
                         locality: "Govind Nagar",
                         address: "City Center Mall Road, Govind Nagar, Nashik 422009",
@@ -1246,6 +1283,7 @@
                         phone: "9822055113"
                     },
                     {
+                        id: "HOSP-201102",
                         name: "Magnum Heart & Neuro Institute",
                         locality: "College Road",
                         address: "Near Vasant Market, College Road, Nashik 422005",
@@ -1268,7 +1306,7 @@
                 id: "nashik_doc_06",
                 profileId: "DOC-642199",
                 fullName: "Dr. Meenakshi Sonawane",
-                email: "dr.meenakshi@medirank.in",
+                email: "dr.meenakshi.sonawane@mail.com",
                 publicPhone: "9822066224",
                 specialty: "Gynecology",
                 sub: "High-Risk Obstetrics & Laparoscopy",
@@ -1302,6 +1340,7 @@
                 ],
                 clinics: [
                     {
+                        id: "HOSP-201401",
                         name: "Matruchhaya Maternity & Nursing Home",
                         locality: "Indira Nagar",
                         address: "Near Parijat Nagar Bus Stop, Indira Nagar, Nashik 422009",
@@ -1324,7 +1363,7 @@
                 id: "nashik_doc_07",
                 profileId: "DOC-209844",
                 fullName: "Dr. Nilesh Bhavsar",
-                email: "dr.nilesh@medirank.in",
+                email: "dr.nilesh.bhavsar@mail.com",
                 publicPhone: "9822077335",
                 specialty: "General Medicine",
                 sub: "Diabetology & Infectious Diseases",
@@ -1360,6 +1399,7 @@
                 ],
                 clinics: [
                     {
+                        id: "HOSP-201001",
                         name: "Sanjivani Medical Clinic & Daycare",
                         locality: "Nashik Road",
                         address: "Near Datta Mandir, Shivaji Nagar, Nashik Road, Nashik 422101",
@@ -1380,7 +1420,7 @@
             }
         ];
 
-        /* --- MOBILE SAFE STORAGE WITH RETRY & FALLBACK --- */
+        /* --- STORAGE UTILITIES --- */
         const memoryFallbackStore = {};
         const safeRead = (k, def) => {
             try {
@@ -1411,7 +1451,7 @@
             safeWrite('mr_docs', ALL_SEED_DOCTORS);
             safeWrite('mr_reviews', [
                 { 
-                    id: "fb_01", 
+                    id: "FB-881901", 
                     doctorId: "nashik_doc_01", 
                     patientId: "usr_patient_demo", 
                     patientName: "Rahul Patil",
@@ -1422,7 +1462,7 @@
                     adminNote: "Verified against Apollo OPD bill slip."
                 },
                 { 
-                    id: "fb_02", 
+                    id: "FB-912344", 
                     doctorId: "nashik_doc_02", 
                     patientId: "usr_patient_demo", 
                     patientName: "Sunita Kulkarni",
@@ -1431,15 +1471,76 @@
                     submittedDate: "2026-04-05",
                     status: "APPROVED",
                     adminNote: "Valid vaccination chart provided."
+                },
+                { 
+                    id: "FB-439102", 
+                    doctorId: "nashik_doc_03", 
+                    patientId: "usr_patient_demo", 
+                    patientName: "Girish Ahire",
+                    experienceText: "Dr. Rohan diagnosed my meniscus tear accurately and avoided unnecessary early surgery with physical rehabilitation.",
+                    proofFileName: "Apex_Joint_OPD_Girish.pdf",
+                    submittedDate: "2026-05-18",
+                    status: "APPROVED",
+                    adminNote: "Clinical prescription confirmed."
+                },
+                { 
+                    id: "FB-771203", 
+                    doctorId: "nashik_doc_04", 
+                    patientId: "usr_patient_demo", 
+                    patientName: "Pooja Jadhav",
+                    experienceText: "Effective acne management program. Clear guidance on sunscreen and topical treatments without excessive medication.",
+                    proofFileName: "DermaGlow_Receipt_Pooja.pdf",
+                    submittedDate: "2026-06-22",
+                    status: "APPROVED",
+                    adminNote: "Valid clinic consultation receipt."
+                },
+                { 
+                    id: "FB-339182", 
+                    doctorId: "nashik_doc_05", 
+                    patientId: "usr_patient_demo", 
+                    patientName: "Mahesh Bhalerao",
+                    experienceText: "Detailed neurological evaluation for migraine. The preventative treatment regimen provided major relief within two weeks.",
+                    proofFileName: "NeuroCare_Prescription_Mahesh.jpg",
+                    submittedDate: "2026-07-10",
+                    status: "APPROVED",
+                    adminNote: "OPD slip verified."
+                },
+                { 
+                    id: "FB-619283", 
+                    doctorId: "nashik_doc_06", 
+                    patientId: "usr_patient_demo", 
+                    patientName: "Rutuja Shinde",
+                    experienceText: "Very compassionate guidance during antenatal trimester checkups. Clear answers to every query.",
+                    proofFileName: "Matruchhaya_ANC_Card.pdf",
+                    submittedDate: "2026-08-14",
+                    status: "APPROVED",
+                    adminNote: "Maternity record audited."
+                },
+                { 
+                    id: "FB-118273", 
+                    doctorId: "nashik_doc_07", 
+                    patientId: "usr_patient_demo", 
+                    patientName: "Kishor Wagh",
+                    experienceText: "Dr. Bhavsar adjusted my diabetes medication safely and guided me on continuous glucose monitoring.",
+                    proofFileName: "Sanjivani_Diabetes_Checkup.pdf",
+                    submittedDate: "2026-09-02",
+                    status: "APPROVED",
+                    adminNote: "Valid diagnostic lab bill attached."
                 }
             ]);
             safeWrite('mr_audit', [
-                { id: "aud_01", targetDoctorName: "Dr. Vikram Patil", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Credentials confirmed with MMC state register.", date: "2026-03-10" }
+                { id: "AUD-104910", targetDoctorName: "Dr. Vikram Patil", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Credentials confirmed with MMC state register.", date: "2026-03-10" },
+                { id: "AUD-189210", targetDoctorName: "Dr. Snehal Deshmukh", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Pediatric credentials and hospital attachment verified.", date: "2026-04-01" },
+                { id: "AUD-201300", targetDoctorName: "Dr. Rohan Kulkarni", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Orthopedic surgery license verified.", date: "2026-05-12" },
+                { id: "AUD-201600", targetDoctorName: "Dr. Ananya Joshi", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Dermatology council registration checked.", date: "2026-06-15" },
+                { id: "AUD-201100", targetDoctorName: "Dr. Sandeep Shinde", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Neurology superspecialty certification approved.", date: "2026-07-01" },
+                { id: "AUD-201400", targetDoctorName: "Dr. Meenakshi Sonawane", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Gynecology accreditation confirmed.", date: "2026-08-05" },
+                { id: "AUD-201000", targetDoctorName: "Dr. Nilesh Bhavsar", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Internal medicine qualification validated.", date: "2026-09-01" }
             ]);
             safeWrite('mr_users', [
-                { userId: "admin_root", profileId: "ADM-10001", fullName: "Chief Council Admin", email: "admin@council.gov.in", password: "AdminPassword123", role: "ADMIN" },
-                { userId: "usr_patient_demo", profileId: "PAT-34821", fullName: "Rahul Patil", email: "patient@medirank.in", password: "PatientPassword123", role: "PATIENT" },
-                { userId: "usr_doctor_demo", profileId: "DOC-784912", fullName: "Dr. Vikram Patil", email: "dr.vikram@medirank.in", password: "DoctorPassword123", role: "DOCTOR", doctorId: "nashik_doc_01" }
+                { userId: "admin_root", profileId: "ADM-10001", fullName: "Chief Council Admin", email: "admin.council@mail.com", password: "AdminPassword123", role: "ADMIN" },
+                { userId: "usr_patient_demo", profileId: "PAT-34821", fullName: "Rahul Patil", email: "patient.rahul@mail.com", password: "PatientPassword123", role: "PATIENT" },
+                { userId: "usr_doctor_demo", profileId: "DOC-784912", fullName: "Dr. Vikram Patil", email: "dr.vikram.patil@mail.com", password: "DoctorPassword123", role: "DOCTOR", doctorId: "nashik_doc_01" }
             ]);
             safeWrite('mr_ver', CURRENT_DATA_VERSION);
         }
@@ -1459,17 +1560,27 @@
         let selectedDoctorForStatus = null;
         let activeFeedbackProofName = "";
 
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', async function() {
             populateStateSelectors();
             populateSpecialtyDropdowns();
             renderSpecialtiesVisualGrid();
             renderAreaChips();
 
-            cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
-            renderHome();
-            filterDoctors();
-            renderNearMe();
+            await loadDirectoryData();
             openDeepLinkedDoctor();
+
+            // SUPABASE AUTH STATE LISTENER (CAPTURES EMAIL PASSWORD RECOVERY TOKENS)
+            if (supabaseClient) {
+                supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                    if (event === 'PASSWORD_RECOVERY') {
+                        document.getElementById('fp-modal-title').innerText = "Create New Password";
+                        document.getElementById('fp-modal-subtitle').innerText = "Recovery verified via email";
+                        document.getElementById('fp-step-1').style.display = 'none';
+                        document.getElementById('fp-step-2').style.display = 'block';
+                        document.getElementById('forgot-password-modal').style.display = 'flex';
+                    }
+                });
+            }
 
             const sess = safeRead('mr_session', null);
             if (sess && (sess.uid || sess.user)) {
@@ -1559,6 +1670,10 @@
             currentUser = null;
             currentUserRole = null;
             document.getElementById('auth-landing-screen').style.display = 'flex';
+            
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-pass').value = '';
+            
             toggleAuthMode('LOGIN');
         }
 
@@ -1579,18 +1694,10 @@
             document.querySelectorAll('.role-pill').forEach(btn => {
                 btn.classList.toggle('active', btn.id === `pill-${role.toLowerCase()}`);
             });
-            const emailInput = document.getElementById('login-email');
-            const passInput = document.getElementById('login-pass');
-            if (role === 'ADMIN') {
-                emailInput.value = "admin@council.gov.in";
-                passInput.value = "AdminPassword123";
-            } else if (role === 'DOCTOR') {
-                emailInput.value = "dr.vikram@medirank.in";
-                passInput.value = "DoctorPassword123";
-            } else {
-                emailInput.value = "patient@medirank.in";
-                passInput.value = "PatientPassword123";
-            }
+            
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-pass').value = '';
+
             renderAuthForm();
         }
 
@@ -1601,6 +1708,9 @@
             const subtitle = document.getElementById('auth-subtitle');
             const toggleBox = document.getElementById('auth-toggle-link');
             const adminPill = document.getElementById('pill-admin');
+
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-pass').value = '';
 
             if (isLoginMode) {
                 title.innerText = "Sign In";
@@ -1643,30 +1753,44 @@
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-pass').value;
 
-            if (API_BASE) {
+            // 1. Supabase remote authentication
+            if (supabaseClient) {
                 try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 1200);
+                    const { data: dbUsers, error } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .ilike('email', email)
+                        .eq('password', pass);
 
-                    const response = await fetch(`${API_BASE}/auth/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password: pass, role: authRole }),
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        currentUser = data.user;
-                        currentUserRole = data.user.role;
-                        safeWrite('mr_session', { uid: data.user.userId, user: data.user, token: data.token });
+                    if (!error && dbUsers && dbUsers.length > 0) {
+                        const user = dbUsers[0];
+                        if (user.role !== authRole) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = originalBtnText;
+                            showAuthError(`Role mismatch: This account is registered as ${user.role}. Click the '${user.role}' tab above.`);
+                            return;
+                        }
+                        currentUser = {
+                            userId: user.id,
+                            profileId: user.profile_id,
+                            fullName: user.full_name,
+                            email: user.email,
+                            role: user.role,
+                            doctorId: user.doctor_id
+                        };
+                        currentUserRole = user.role;
+                        safeWrite('mr_session', { uid: user.id, user: currentUser });
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = originalBtnText;
                         unlockApp();
                         return;
                     }
-                } catch (err) {}
+                } catch (err) {
+                    console.warn("Supabase auth check failed, checking local store", err);
+                }
             }
 
+            // 2. Local storage authentication fallback
             const users = safeRead('mr_users', []);
             const user = users.find(u => u.email.toLowerCase() === email && u.password === pass);
 
@@ -1749,11 +1873,27 @@
             if (pass !== confirm) return showAuthError("Passwords do not match.");
             if (!validatePasswordComplexity(pass)) return showAuthError("Password must be at least 8 characters long.");
 
-            const users = safeRead('mr_users', []);
-            if (users.some(u => u.email.toLowerCase() === email)) return showAuthError("Email already registered.");
-
             const uid = "usr_" + Date.now();
             const generatedProfileId = generateUniqueAccountId("PATIENT");
+
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient.from('users').insert([{
+                        id: uid,
+                        profile_id: generatedProfileId,
+                        full_name: name,
+                        email: email,
+                        password: pass,
+                        role: "PATIENT"
+                    }]);
+                    if (error) return showAuthError(error.message);
+                } catch (err) {
+                    console.error("Supabase patient signup failed:", err);
+                }
+            }
+
+            const users = safeRead('mr_users', []);
+            if (users.some(u => u.email.toLowerCase() === email)) return showAuthError("Email already registered.");
 
             const newUser = { 
                 userId: uid, 
@@ -1782,18 +1922,18 @@
             const pass = document.getElementById('reg-doc-pass').value;
             const confirmPass = document.getElementById('reg-doc-confirm-pass').value;
             const gender = document.getElementById('reg-doc-gender').value;
-            const age = document.getElementById('reg-doc-age').value;
+            const ageVal = document.getElementById('reg-doc-age').value.trim();
             const specialty = document.getElementById('reg-doc-specialty').value;
             const sub = document.getElementById('reg-doc-sub').value.trim();
             const degree = document.getElementById('reg-doc-degree').value.trim();
             const univ = document.getElementById('reg-doc-univ').value.trim();
-            const year = document.getElementById('reg-doc-year').value;
+            const yearVal = document.getElementById('reg-doc-year').value.trim();
             const cert = document.getElementById('reg-doc-cert').value.trim();
             const regno = document.getElementById('reg-doc-regno').value.trim();
             const council = document.getElementById('reg-doc-council').value.trim();
-            const expVal = document.getElementById('reg-doc-exp').value;
+            const expVal = document.getElementById('reg-doc-exp').value.trim();
             const position = document.getElementById('reg-doc-position').value.trim() || 'Senior Consultant';
-            const feeVal = document.getElementById('reg-doc-fee').value;
+            const feeVal = document.getElementById('reg-doc-fee').value.trim();
             const online = document.getElementById('reg-doc-online').value;
             const state = document.getElementById('reg-doc-state').value;
             const city = document.getElementById('reg-doc-city').value;
@@ -1811,8 +1951,27 @@
             if (pass !== confirmPass) return showAuthError("Passwords do not match.");
             if (!validatePasswordComplexity(pass)) return showAuthError("Password must be at least 8 characters long.");
 
+            // Safe integer casting to eliminate PostgreSQL integer syntax errors
+            const parsedAge = ageVal ? parseInt(ageVal, 10) : null;
+            const parsedYear = yearVal ? parseInt(yearVal, 10) : null;
+            const parsedExp = expVal ? parseInt(expVal, 10) : 0;
+            const parsedFee = feeVal ? parseFloat(feeVal) : 0;
+
             const uid = "doc_" + Date.now();
             const generatedProfileId = generateUniqueAccountId("DOCTOR");
+            const generatedHospId = generateHospitalId();
+
+            const docClinics = [
+                {
+                    id: generatedHospId,
+                    name: clinic,
+                    locality: area,
+                    address: address,
+                    hours: opd,
+                    fee: String(parsedFee),
+                    phone: phone
+                }
+            ];
 
             const docEntry = {
                 id: uid,
@@ -1821,18 +1980,18 @@
                 email,
                 publicPhone: phone,
                 gender,
-                age,
+                age: parsedAge,
                 specialty,
                 sub,
                 highestDegree: degree,
                 university: univ,
-                year,
+                year: parsedYear,
                 certifications: cert,
                 registrationNumber: regno,
                 council: council || 'State Medical Council',
-                experience: expVal,
+                experience: String(parsedExp),
                 position,
-                fee: feeVal,
+                fee: String(parsedFee),
                 online,
                 state, city,
                 clinicName: clinic,
@@ -1843,20 +2002,74 @@
                 availabilityTimings: opd,
                 services,
                 about,
-                clinics: [
-                    {
-                        name: clinic,
-                        locality: area,
-                        address: address,
-                        hours: opd,
-                        fee: feeVal,
-                        phone: phone
-                    }
-                ],
+                clinics: docClinics,
                 slots: [{ day: "Monday", start: "10:00", end: "14:00" }],
                 verificationStatus: "Pending Review",
                 documentStoragePath: "local://proof_" + regno + ".pdf"
             };
+
+            // Sync with Supabase Database
+            if (supabaseClient) {
+                try {
+                    const { error: docError } = await supabaseClient.from('doctors').insert([{
+                        id: uid,
+                        profile_id: generatedProfileId,
+                        full_name: name,
+                        email: email,
+                        public_phone: phone,
+                        gender: gender,
+                        age: parsedAge,
+                        specialty: specialty,
+                        sub: sub,
+                        highest_degree: degree,
+                        university: univ,
+                        year: parsedYear,
+                        certifications: cert,
+                        registration_number: regno,
+                        council: council || 'State Medical Council',
+                        experience: parsedExp,
+                        position: position,
+                        fee: parsedFee,
+                        online: online,
+                        state: state,
+                        city: city,
+                        locality: area,
+                        pincode: pin,
+                        clinic_name: clinic,
+                        address: address,
+                        availability_timings: opd,
+                        slots: [{ day: "Monday", start: "10:00", end: "14:00" }],
+                        clinics: docClinics,
+                        services: services,
+                        about: about,
+                        languages: languages,
+                        verification_status: "Pending Review"
+                    }]);
+
+                    if (docError) return showAuthError(docError.message);
+
+                    await supabaseClient.from('users').insert([{
+                        id: uid,
+                        profile_id: generatedProfileId,
+                        full_name: name,
+                        email: email,
+                        password: pass,
+                        role: "DOCTOR",
+                        doctor_id: uid
+                    }]);
+
+                    await supabaseClient.from('audit_logs').insert([{
+                        id: generateAuditId(),
+                        target_doctor_name: name,
+                        action: "PENDING_REVIEW",
+                        admin_user: "System Onboarding",
+                        note: `New practitioner application registered. Primary Clinic ID: ${generatedHospId}`,
+                        date: new Date().toISOString().split('T')[0]
+                    }]);
+                } catch (err) {
+                    console.error("Supabase Doctor Registration Error:", err);
+                }
+            }
 
             const newUser = { 
                 userId: uid, 
@@ -1882,52 +2095,101 @@
             currentUserRole = "DOCTOR";
             safeWrite('mr_session', { uid, user: newUser });
             unlockApp();
-            showToast(`Doctor registration complete! Your System Profile ID is ${generatedProfileId}`);
+            showToast(`Doctor registration complete! Your ID: ${generatedProfileId}`);
         }
 
-        let activeResetEmail = "";
-
+        /* ========================================================
+           REAL SUPABASE EMAIL PASSWORD RESET FLOW
+        ======================================================== */
         function openForgotPasswordModal() {
+            document.getElementById('fp-modal-title').innerText = "Reset Account Password";
+            document.getElementById('fp-modal-subtitle').innerText = "Real Email Recovery via Supabase";
             document.getElementById('fp-step-1').style.display = 'block';
             document.getElementById('fp-step-2').style.display = 'none';
-            document.getElementById('fp-email').value = document.getElementById('login-email').value || '';
+            document.getElementById('fp-email').value = '';
             document.getElementById('forgot-password-modal').style.display = 'flex';
         }
 
         function closeForgotPasswordModal() {
             document.getElementById('forgot-password-modal').style.display = 'none';
-            activeResetEmail = "";
         }
 
-        function sendResetOtp() {
+        async function sendSupabasePasswordReset() {
             const email = document.getElementById('fp-email').value.trim().toLowerCase();
-            if (!email) return showToast("Please enter your registered email.");
+            if (!email) return showToast("Please enter your registered email address.");
 
-            activeResetEmail = email;
-            showToast("Demo OTP Code is: 123456");
-            document.getElementById('fp-step-1').style.display = 'none';
-            document.getElementById('fp-step-2').style.display = 'block';
+            if (!supabaseClient) {
+                showToast("Supabase is not configured. Please supply valid SUPABASE_URL and key.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-send-reset-link');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Dispatching Email...`;
+
+            try {
+                const redirectTarget = window.location.origin + window.location.pathname;
+                const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: redirectTarget
+                });
+
+                if (error) {
+                    showToast("Error: " + error.message);
+                } else {
+                    showToast("Password reset link sent! Check your inbox.");
+                    closeForgotPasswordModal();
+                }
+            } catch (err) {
+                console.error("Reset email error:", err);
+                showToast("Failed to send reset email. Verify network settings.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
 
-        function verifyResetOtp() {
-            const otp = document.getElementById('fp-otp').value.trim();
+        async function saveNewPasswordFromRecovery() {
             const newPass = document.getElementById('fp-new-pass').value;
             const confirmPass = document.getElementById('fp-confirm-pass').value;
 
-            if (otp !== "123456" && !/^[0-9]{6}$/.test(otp)) return showToast("Enter valid 6-digit OTP (Demo: 123456)");
+            if (!newPass || newPass.length < 8) return showToast("Password must be at least 8 characters.");
             if (newPass !== confirmPass) return showToast("Passwords do not match.");
-            if (newPass.length < 8) return showToast("Password must be at least 8 characters.");
 
-            const users = safeRead('mr_users', []);
-            const u = users.find(x => x.email.toLowerCase() === activeResetEmail);
-            if (!u) return showToast("User email not registered.");
+            const btn = document.getElementById('btn-save-new-pass');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Updating Password...`;
 
-            u.password = newPass;
-            safeWrite('mr_users', users);
-            showToast("Password reset successfully. Please sign in.");
-            document.getElementById('login-email').value = activeResetEmail;
-            document.getElementById('login-pass').value = newPass;
-            closeForgotPasswordModal();
+            try {
+                const { data, error } = await supabaseClient.auth.updateUser({
+                    password: newPass
+                });
+
+                if (error) {
+                    showToast("Password update failed: " + error.message);
+                } else {
+                    if (data?.user?.email) {
+                        const userEmail = data.user.email.toLowerCase();
+                        const users = safeRead('mr_users', []);
+                        const localUser = users.find(u => u.email.toLowerCase() === userEmail);
+                        if (localUser) {
+                            localUser.password = newPass;
+                            safeWrite('mr_users', users);
+                        }
+                    }
+
+                    showToast("Password updated successfully! Please sign in.");
+                    closeForgotPasswordModal();
+                    showAuthScreen();
+                }
+            } catch (err) {
+                console.error("Password update error:", err);
+                showToast("Unable to update password.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
 
         function renderPatientProfile() {
@@ -1979,6 +2241,11 @@
             };
             if (navMap[viewId]) document.getElementById(navMap[viewId])?.classList.add('active');
             document.querySelector('aside')?.classList.remove('mobile-open');
+
+            // Automatic live fetch on view transition to ensure other devices reflect real-time status updates
+            if (viewId === 'home' || viewId === 'find-doctors' || viewId === 'near-me') {
+                loadDirectoryData();
+            }
 
             if (viewId === 'patient-profile') renderPatientProfile();
             if (viewId === 'doc-portal') renderDoctorPortal();
@@ -2049,9 +2316,8 @@
                 distanceHtml = `<div style="color:var(--brand); font-weight:600; font-size:0.8rem; margin-top:3px;"><i class="fa-solid fa-route"></i> ${dist.toFixed(1)} km away</div>`;
             }
 
-            const primaryClinicName = doc.clinicName || (doc.clinics && doc.clinics[0]?.name) || 'Clinic';
-            const primaryClinicAddress = doc.address || (doc.clinics && doc.clinics[0]?.address) || doc.city;
-            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(primaryClinicName + ' ' + primaryClinicAddress)}`;
+            const primaryClinic = (doc.clinics && doc.clinics[0]) || { id: "HOSP-001", name: doc.clinicName || 'Clinic', address: doc.address || doc.city };
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(primaryClinic.name + ' ' + primaryClinic.address)}`;
             const initials = (doc.fullName || 'Dr').replace('Dr.', '').trim().substring(0, 2).toUpperCase();
             const avatarHtml = doc.avatarUrl ? 
                 `<img src="${escapeHtml(doc.avatarUrl)}" class="doctor-avatar" alt="${escapeHtml(doc.fullName)}">` : 
@@ -2070,13 +2336,14 @@
                             <div>
                                 <h3 style="font-size:1.05rem; margin-bottom:2px;">${escapeHtml(doc.fullName)}</h3>
                                 <div style="font-size:0.82rem; color:var(--brand); font-weight:700;">${escapeHtml(doc.highestDegree || 'MD')} ${specHelp ? `• ${specHelp}` : ''}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">ID: ${escapeHtml(doc.profileId || doc.id)}</div>
                                 ${distanceHtml}
                             </div>
                         </div>
 
                         <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin:10px 0;">
-                            <div><i class="fa-solid fa-hospital"></i> <strong>Primary:</strong> ${escapeHtml(primaryClinicName)}, ${escapeHtml(doc.locality || doc.city || 'Nashik')}</div>
-                            ${clinicCount > 1 ? `<div style="color:var(--brand); font-weight:600; margin-top:2px;"><i class="fa-solid fa-building-circle-check"></i> Visits ${clinicCount} Clinics / Hospitals</div>` : ''}
+                            <div><i class="fa-solid fa-hospital"></i> <strong>Primary:</strong> ${escapeHtml(primaryClinic.name)} <code style="font-size:0.72rem;">[${escapeHtml(primaryClinic.id || 'HOSP-PRI')}]</code>, ${escapeHtml(doc.locality || doc.city || 'Nashik')}</div>
+                            ${clinicCount > 1 ? `<div style="color:var(--brand); font-weight:600; margin-top:2px;"><i class="fa-solid fa-building-circle-check"></i> Visits ${clinicCount} Facilities</div>` : ''}
                             <div><i class="fa-solid fa-indian-rupee-sign"></i> <strong>₹${escapeHtml(doc.fee || '—')}</strong> Consultation Fee</div>
                             <div><i class="fa-solid fa-briefcase"></i> ${escapeHtml(doc.experience || '10')} years clinical experience</div>
                             <div><i class="fa-solid fa-comments" style="color:var(--brand);"></i> <strong>${approvedFeedbackCount}</strong> verified patient experience stories</div>
@@ -2094,7 +2361,7 @@
                             <i class="fa-solid fa-diamond-turn-right"></i> Navigate to Primary Clinic
                         </a>
                         <button class="btn btn-primary" style="width:100%;" onclick="openProfile('${doc.id}')">
-                            <i class="fa-solid fa-hospital-user"></i> View Profile &amp; Feedback
+                            <i class="fa-solid fa-hospital-user"></i> View Profile &amp; Feedback (${approvedFeedbackCount})
                         </button>
                     </div>
                 </div>
@@ -2119,7 +2386,7 @@
                 const docCity = (d.city || '').toLowerCase();
                 const docArea = (d.locality || '').toLowerCase();
                 const specHelp = (SPECIALTY_META[d.specialty]?.simpleHelp || '').toLowerCase();
-                const otherClinicsText = (d.clinics || []).map(cl => `${cl.name} ${cl.locality} ${cl.address}`).join(' ').toLowerCase();
+                const otherClinicsText = (d.clinics || []).map(cl => `${cl.name} ${cl.locality} ${cl.address} ${cl.id}`).join(' ').toLowerCase();
 
                 const matchQuery = !q || docName.includes(q) || docSpec.includes(q) || docClinic.includes(q) || docArea.includes(q) || specHelp.includes(q) || otherClinicsText.includes(q);
                 const matchSpec = !s || docSpec === s;
@@ -2228,8 +2495,92 @@
             cont.innerHTML = list.length ? list.map(createDoctorCard).join('') : `<div class="empty-placeholder" style="grid-column: 1 / -1;">No practices found in ${selectedArea}.</div>`;
         }
 
-        function loadDirectoryData() {
-            cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
+        async function loadDirectoryData() {
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('doctors')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data && data.length > 0) {
+                        cachedDoctors = data.map(d => ({
+                            id: d.id,
+                            profileId: d.profile_id,
+                            fullName: d.full_name,
+                            email: d.email,
+                            publicPhone: d.public_phone,
+                            gender: d.gender,
+                            age: d.age,
+                            specialty: d.specialty,
+                            sub: d.sub,
+                            highestDegree: d.highest_degree,
+                            university: d.university,
+                            year: d.year,
+                            certifications: d.certifications,
+                            registrationNumber: d.registration_number,
+                            council: d.council,
+                            experience: String(d.experience || 0),
+                            position: d.position,
+                            fee: String(d.fee || 0),
+                            online: d.online,
+                            state: d.state,
+                            city: d.city,
+                            locality: d.locality,
+                            pincode: d.pincode,
+                            clinicName: d.clinic_name,
+                            address: d.address,
+                            availabilityTimings: d.availability_timings,
+                            slots: d.slots || [],
+                            clinics: (d.clinics || []).map(cl => ({ ...cl, id: cl.id || generateHospitalId() })),
+                            expertise: d.expertise,
+                            services: d.services,
+                            about: d.about,
+                            languages: d.languages,
+                            lat: d.lat,
+                            lng: d.lng,
+                            avatarUrl: d.avatar_url,
+                            documentStoragePath: d.document_storage_path,
+                            verificationStatus: d.verification_status,
+                            isTemporarilyAway: d.is_temporarily_away
+                        }));
+                        safeWrite('mr_docs', cachedDoctors);
+                    } else {
+                        cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
+                    }
+                } catch (e) {
+                    console.warn("Supabase fetch failed, falling back to cache", e);
+                    cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
+                }
+            } else {
+                cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
+            }
+
+            // Sync Reviews from Supabase
+            if (supabaseClient) {
+                try {
+                    const { data: revData, error: revErr } = await supabaseClient
+                        .from('reviews')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!revErr && revData && revData.length > 0) {
+                        const formattedRev = revData.map(r => ({
+                            id: r.id || generateFeedbackId(),
+                            doctorId: r.doctor_id,
+                            patientId: r.patient_id,
+                            patientName: r.patient_name,
+                            experienceText: r.experience_text || r.comment,
+                            proofFileName: r.proof_file_name,
+                            submittedDate: r.submitted_date,
+                            status: r.status,
+                            adminNote: r.admin_note
+                        }));
+                        safeWrite('mr_reviews', formattedRev);
+                    }
+                } catch (e) {}
+            }
+
             renderHome();
             filterDoctors();
             renderNearMe();
@@ -2247,6 +2598,7 @@
 
             const clinicsList = (doc.clinics && doc.clinics.length > 0) ? doc.clinics : [
                 {
+                    id: generateHospitalId(),
                     name: doc.clinicName || 'Main Medical Center',
                     locality: doc.locality || doc.city || 'Nashik',
                     address: doc.address || 'Address registered on file',
@@ -2264,6 +2616,7 @@
                             <div>
                                 <span style="color:var(--brand); font-weight:800;">${idx + 1}. ${escapeHtml(cl.name)}</span>
                                 <span style="font-size:0.75rem; background:#e6fffa; color:var(--brand); padding:2px 8px; border-radius:12px; margin-left:6px;">${escapeHtml(cl.locality || '')}</span>
+                                <code style="font-size:0.75rem; margin-left:6px; color:var(--text-muted);">ID: ${escapeHtml(cl.id || 'HOSP-PRI')}</code>
                             </div>
                             <div style="font-size:0.85rem; font-weight:700; color:#1e293b;">₹${escapeHtml(cl.fee || doc.fee || '—')}</div>
                         </div>
@@ -2286,11 +2639,14 @@
             const feedbacksHtml = approvedFeedbacks.length > 0 ? approvedFeedbacks.map(fb => `
                 <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <strong>${escapeHtml(fb.patientName)}</strong>
+                        <div>
+                            <strong>${escapeHtml(fb.patientName)}</strong>
+                            <code style="font-size:0.72rem; margin-left:6px; color:var(--text-muted);">Ref: ${escapeHtml(fb.id)}</code>
+                        </div>
                         <span class="verify-tag tag-verified" style="font-size:0.72rem;"><i class="fa-solid fa-shield-check"></i> Verified Consultation</span>
                     </div>
                     <p style="font-size:0.85rem; color:#334155; line-height:1.5; margin:0 0 6px;">"${escapeHtml(fb.experienceText)}"</p>
-                    <small style="color:var(--text-muted); font-size:0.72rem;">Consultation Date: ${escapeHtml(fb.submittedDate)} • Receipt Audited by Council</small>
+                    <small style="color:var(--text-muted); font-size:0.72rem;">Consultation Date: ${escapeHtml(fb.submittedDate)} • Receipt Proof: <code>${escapeHtml(fb.proofFileName || 'Receipt.pdf')}</code></small>
                 </div>
             `).join('') : `<div class="empty-placeholder" style="padding:20px; font-size:0.85rem;">No verified patient consultation stories posted yet.</div>`;
 
@@ -2302,7 +2658,7 @@
                     <div>
                         <h2>${escapeHtml(doc.fullName)} ${statusBadge}</h2>
                         <p style="color:var(--brand); font-weight:700;">${escapeHtml(doc.specialty)} ${specHelp ? `(${specHelp})` : ''}</p>
-                        <p style="font-size:0.85rem; color:var(--text-muted);">Council ID: <code>${escapeHtml(doc.registrationNumber || 'Under Review')}</code> • ${escapeHtml(doc.experience || '10')} Years Exp</p>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">System ID: <code>${escapeHtml(doc.profileId || doc.id)}</code> • Council Reg: <code>${escapeHtml(doc.registrationNumber || 'Under Review')}</code> • ${escapeHtml(doc.experience || '10')} Yrs Exp</p>
                     </div>
                 </div>
 
@@ -2376,7 +2732,7 @@
             }
         }
 
-        function handleFeedbackSubmit(e) {
+        async function handleFeedbackSubmit(e) {
             e.preventDefault();
             const doctorId = document.getElementById('fb-doctor-id').value;
             const text = document.getElementById('fb-narrative').value.trim();
@@ -2388,16 +2744,36 @@
             }
 
             const fileName = fileInput.files[0].name;
-            const reviews = safeRead('mr_reviews', []);
+            const generatedFeedbackId = generateFeedbackId();
+            const todayStr = new Date().toISOString().split('T')[0];
 
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('reviews').insert([{
+                        id: generatedFeedbackId,
+                        doctor_id: doctorId,
+                        patient_id: currentUser.userId,
+                        patient_name: currentUser.fullName || "Patient",
+                        experience_text: text,
+                        proof_file_name: fileName,
+                        status: "PENDING_APPROVAL",
+                        rating: 5,
+                        submitted_date: todayStr
+                    }]);
+                } catch (err) {
+                    console.error("Supabase feedback insert error:", err);
+                }
+            }
+
+            const reviews = safeRead('mr_reviews', []);
             const newFeedback = {
-                id: "fb_" + Date.now(),
+                id: generatedFeedbackId,
                 doctorId: doctorId,
                 patientId: currentUser.userId,
                 patientName: currentUser.fullName || "Patient",
                 experienceText: text,
                 proofFileName: fileName,
-                submittedDate: new Date().toISOString().split('T')[0],
+                submittedDate: todayStr,
                 status: "PENDING_APPROVAL",
                 adminNote: ""
             };
@@ -2406,7 +2782,7 @@
             safeWrite('mr_reviews', reviews);
 
             closeFeedbackModal();
-            showToast("Feedback submitted! It will appear after admin approval.");
+            showToast(`Feedback submitted! Reference ID: ${generatedFeedbackId}`);
         }
 
         function renderAdminReviewsModeration() {
@@ -2433,7 +2809,7 @@
                                     <span style="font-weight:400; color:var(--text-muted);">for</span> 
                                     ${escapeHtml(doc ? doc.fullName : 'Doctor')}
                                 </h4>
-                                <small style="color:var(--text-muted);">Submitted: ${escapeHtml(r.submittedDate)} • ID: <code>${r.id}</code></small>
+                                <small style="color:var(--text-muted);">Submitted: ${escapeHtml(r.submittedDate)} • Feedback Tracking ID: <code>${escapeHtml(r.id)}</code></small>
                             </div>
                             <span class="verify-tag ${isApproved ? 'tag-verified' : (isPending ? 'tag-pending' : 'tag-rejected')}">
                                 ${escapeHtml(r.status)}
@@ -2452,7 +2828,7 @@
                             </div>
 
                             <div style="display:flex; gap:8px;">
-                                <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="showToast('Viewing receipt proof scan: ' + '${escapeHtml(r.proofFileName)}')">
+                                <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="showToast('Viewing receipt proof: ' + '${escapeHtml(r.proofFileName)}')">
                                     <i class="fa-solid fa-eye"></i> View Proof
                                 </button>
                                 ${isPending ? `
@@ -2478,30 +2854,44 @@
             }).join('');
         }
 
-        function adminApproveFeedback(reviewId) {
+        async function adminApproveFeedback(reviewId) {
+            if (supabaseClient) {
+                await supabaseClient.from('reviews').update({
+                    status: "APPROVED",
+                    admin_note: "Proof verified and content cleared by admin."
+                }).eq('id', reviewId);
+            }
+
             let reviews = safeRead('mr_reviews', []);
             let rev = reviews.find(r => r.id === reviewId);
-            if (!rev) return;
-
-            rev.status = "APPROVED";
-            rev.adminNote = "Proof verified and content cleared by admin.";
-            safeWrite('mr_reviews', reviews);
+            if (rev) {
+                rev.status = "APPROVED";
+                rev.adminNote = "Proof verified and content cleared by admin.";
+                safeWrite('mr_reviews', reviews);
+            }
 
             renderAdminReviewsModeration();
-            showToast("Feedback approved and visible on doctor profile.");
+            showToast(`Feedback ${reviewId} approved and published.`);
         }
 
-        function adminRejectFeedback(reviewId) {
+        async function adminRejectFeedback(reviewId) {
+            if (supabaseClient) {
+                await supabaseClient.from('reviews').update({
+                    status: "REJECTED",
+                    admin_note: "Rejected during administrative compliance audit."
+                }).eq('id', reviewId);
+            }
+
             let reviews = safeRead('mr_reviews', []);
             let rev = reviews.find(r => r.id === reviewId);
-            if (!rev) return;
-
-            rev.status = "REJECTED";
-            rev.adminNote = "Rejected during administrative compliance audit.";
-            safeWrite('mr_reviews', reviews);
+            if (rev) {
+                rev.status = "REJECTED";
+                rev.adminNote = "Rejected during administrative compliance audit.";
+                safeWrite('mr_reviews', reviews);
+            }
 
             renderAdminReviewsModeration();
-            showToast("Feedback rejected.");
+            showToast(`Feedback ${reviewId} rejected.`);
         }
 
         function copyProfileLink(id) {
@@ -2658,6 +3048,7 @@
 
             doctorPortalClinicsDraft = (doc.clinics && doc.clinics.length > 0) ? JSON.parse(JSON.stringify(doc.clinics)) : [
                 {
+                    id: generateHospitalId(),
                     name: doc.clinicName || 'Apollo Hospitals Nashik',
                     locality: doc.locality || 'Panchavati',
                     address: doc.address || 'Swaminarayan Nagar, Panchavati, Nashik 422003',
@@ -2767,7 +3158,7 @@
             container.innerHTML = doctorPortalClinicsDraft.map((cl, i) => `
                 <div style="background:white; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:12px; position:relative;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <span style="font-weight:700; color:var(--brand); font-size:0.88rem;">Location #${i + 1}</span>
+                        <span style="font-weight:700; color:var(--brand); font-size:0.88rem;">Facility #${i + 1} &bull; <code style="font-size:0.75rem;">${escapeHtml(cl.id || 'HOSP-NEW')}</code></span>
                         ${doctorPortalClinicsDraft.length > 1 ? `
                             <button type="button" class="btn btn-danger-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="removeVisitingClinicRow(${i})">
                                 <i class="fa-solid fa-trash"></i> Remove
@@ -2802,6 +3193,7 @@
 
         function addVisitingClinicRow() {
             doctorPortalClinicsDraft.push({
+                id: generateHospitalId(),
                 name: "",
                 locality: "Nashik",
                 address: "",
@@ -2817,19 +3209,28 @@
             renderVisitingClinicsEditor();
         }
 
-        function toggleDoctorLeave(id) {
+        async function toggleDoctorLeave(id) {
             let docs = safeRead('mr_docs', []);
             let d = docs.find(x => x.id === id);
             if (d) {
-                d.isTemporarilyAway = !d.isTemporarilyAway;
+                const nextState = !d.isTemporarilyAway;
+                d.isTemporarilyAway = nextState;
                 safeWrite('mr_docs', docs);
-                loadDirectoryData();
+
+                if (supabaseClient) {
+                    await supabaseClient
+                        .from('doctors')
+                        .update({ is_temporarily_away: nextState })
+                        .eq('id', id);
+                }
+
+                await loadDirectoryData();
                 renderDoctorPortal();
                 showToast("Practice availability status updated.");
             }
         }
 
-        function saveDoctorPortalUpdates(e, id) {
+        async function saveDoctorPortalUpdates(e, id) {
             e.preventDefault();
             const fee = document.getElementById('p-fee').value.trim();
             const clinic = document.getElementById('p-clinic').value.trim();
@@ -2852,6 +3253,11 @@
                 d.services = services;
                 d.about = about;
 
+                doctorPortalClinicsDraft = doctorPortalClinicsDraft.map(cl => ({
+                    ...cl,
+                    id: cl.id || generateHospitalId()
+                }));
+
                 if (doctorPortalClinicsDraft.length > 0) {
                     doctorPortalClinicsDraft[0].name = clinic || doctorPortalClinicsDraft[0].name;
                     doctorPortalClinicsDraft[0].fee = fee || doctorPortalClinicsDraft[0].fee;
@@ -2861,8 +3267,27 @@
                 d.clinics = JSON.parse(JSON.stringify(doctorPortalClinicsDraft));
 
                 safeWrite('mr_docs', docs);
-                loadDirectoryData();
-                showToast("Practice details and all clinic locations saved.");
+
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('doctors').update({
+                            fee: parseFloat(fee) || 0,
+                            clinic_name: clinic,
+                            public_phone: phone,
+                            position: position,
+                            availability_timings: hours,
+                            address: address,
+                            services: services,
+                            about: about,
+                            clinics: d.clinics
+                        }).eq('id', id);
+                    } catch (err) {
+                        console.error("Supabase doctor update error:", err);
+                    }
+                }
+
+                await loadDirectoryData();
+                showToast("Practice details and facility locations saved.");
             }
         }
 
@@ -2895,7 +3320,7 @@
                                     ${escapeHtml(d.fullName)} <span style="font-weight: 500; color: var(--text-muted);">(${escapeHtml(d.specialty)})</span>
                                 </h3>
                                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">
-                                    System ID: <code>${escapeHtml(d.profileId || 'DOC-PENDING')}</code> | Reg: <code>${escapeHtml(d.registrationNumber)}</code> | ${escapeHtml(d.clinicName)}, ${escapeHtml(d.city || 'Nashik')} (${countClinics} ${countClinics > 1 ? 'locations' : 'location'})
+                                    Doctor ID: <code>${escapeHtml(d.profileId || d.id)}</code> | Reg: <code>${escapeHtml(d.registrationNumber)}</code> | ${escapeHtml(d.clinicName)}, ${escapeHtml(d.city || 'Nashik')} (${countClinics} ${countClinics > 1 ? 'facilities' : 'facility'})
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem;">
                                     <span>Status:</span>
@@ -2938,8 +3363,8 @@
             document.getElementById('inspect-modal-body').innerHTML = `
                 <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <strong>System Profile ID:</strong>
-                        <code>${escapeHtml(doc.profileId || 'DOC-PENDING')}</code>
+                        <strong>Doctor Confidential ID:</strong>
+                        <code>${escapeHtml(doc.profileId || doc.id)}</code>
                     </div>
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                         <strong>Medical Registration Number:</strong>
@@ -3021,29 +3446,58 @@
             };
         }
 
-        function executeAdminStatusUpdate(id, docName, newStatus, note) {
+        async function executeAdminStatusUpdate(id, docName, newStatus, note) {
+            const generatedAuditId = generateAuditId();
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('doctors').update({
+                        verification_status: newStatus
+                    }).eq('id', id);
+
+                    await supabaseClient.from('audit_logs').insert([{
+                        id: generatedAuditId,
+                        target_doctor_name: docName,
+                        action: newStatus,
+                        admin_user: currentUser?.fullName || "Chief Council Admin",
+                        note: note,
+                        date: todayStr
+                    }]);
+                } catch (err) {
+                    console.error("Supabase audit log sync error:", err);
+                }
+            }
+
             let docs = safeRead('mr_docs', []);
             let d = docs.find(x => x.id === id);
-            if (!d) return;
-
-            d.verificationStatus = newStatus;
-            safeWrite('mr_docs', docs);
+            if (d) {
+                d.verificationStatus = newStatus;
+                safeWrite('mr_docs', docs);
+            }
 
             let audit = safeRead('mr_audit', []);
-            audit.unshift({ id: "aud_"+Date.now(), targetDoctorName: docName, action: newStatus, adminUser: currentUser.fullName || "Admin", note: note, date: new Date().toISOString().split('T')[0] });
+            audit.unshift({ 
+                id: generatedAuditId, 
+                targetDoctorName: docName, 
+                action: newStatus, 
+                adminUser: currentUser?.fullName || "Chief Council Admin", 
+                note: note, 
+                date: todayStr 
+            });
             safeWrite('mr_audit', audit);
 
-            loadDirectoryData();
+            await loadDirectoryData();
             renderAdminVerification();
-            showToast(`Status updated to ${newStatus}.`);
+            showToast(`Status updated to ${newStatus} [Audit Ref: ${generatedAuditId}].`);
         }
 
         function renderAdminAuditLogs() {
             const logs = safeRead('mr_audit', []);
             document.getElementById('admin-audit-table-container').innerHTML = `
                 <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                    <thead><tr style="background:#f8fafc; text-align:left;"><th style="padding:8px;">Date</th><th style="padding:8px;">Doctor</th><th style="padding:8px;">Action</th><th style="padding:8px;">Reviewer Note</th></tr></thead>
-                    <tbody>${logs.map(l => `<tr><td style="padding:8px;">${escapeHtml(l.date)}</td><td style="padding:8px;">${escapeHtml(l.targetDoctorName)}</td><td style="padding:8px;"><code>${escapeHtml(l.action)}</code></td><td style="padding:8px; color:var(--text-muted);">${escapeHtml(l.note || '')}</td></tr>`).join('')}</tbody>
+                    <thead><tr style="background:#f8fafc; text-align:left;"><th style="padding:8px;">Audit ID</th><th style="padding:8px;">Date</th><th style="padding:8px;">Doctor</th><th style="padding:8px;">Action</th><th style="padding:8px;">Reviewer Note</th></tr></thead>
+                    <tbody>${logs.map(l => `<tr><td style="padding:8px;"><code>${escapeHtml(l.id || 'AUD-LOG')}</code></td><td style="padding:8px;">${escapeHtml(l.date)}</td><td style="padding:8px;">${escapeHtml(l.targetDoctorName)}</td><td style="padding:8px;"><code>${escapeHtml(l.action)}</code></td><td style="padding:8px; color:var(--text-muted);">${escapeHtml(l.note || '')}</td></tr>`).join('')}</tbody>
                 </table>
             `;
         }
