@@ -149,14 +149,14 @@
 
         .disclaimer-banner { background: #f0fdfa; border: 1px solid #99f6e4; color: #115e59; padding: 12px 18px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
 
-        .specs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 20px 0; }
+        .specs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 16px; margin: 20px 0; }
         .spec-card { background: white; border-radius: 16px; padding: 18px; border: 2px solid transparent; cursor: pointer; transition: 0.25s; text-align: center; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between; }
         .spec-card:hover { border-color: var(--brand); transform: translateY(-4px); box-shadow: 0 14px 30px rgba(11, 110, 105, 0.15); }
         .spec-image { height: 120px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
         .spec-image svg { width: 130px; height: 110px; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.12)); }
         .spec-condition-tag { font-size: 0.78rem; font-weight: 600; color: var(--brand); background: var(--brand-light); padding: 6px 10px; border-radius: 8px; margin-top: 8px; line-height: 1.4; }
         
-        .doctor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .doctor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 20px; }
         .doctor-card { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); position: relative; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
         .doctor-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
         .score-badge { position: absolute; top: 18px; right: 18px; background: #e6fffa; color: var(--brand); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #b2f5ea; }
@@ -249,7 +249,8 @@
             header { padding-left: 48px; }
             .search-container { flex-direction: column; gap: 6px; }
             .search-container button { min-height: 44px; }
-            .modal-content { padding: 20px 16px; }
+            .modal-content { width: 95%; padding: 20px 14px; max-height: 88dvh; }
+            .private-id-card { flex-direction: column; align-items: flex-start; gap: 8px; }
         }
     </style>
 </head>
@@ -318,7 +319,7 @@
             <form id="form-login" onsubmit="handleUniversalLogin(event)">
                 <div class="form-group">
                     <label for="login-email">Email Address</label>
-                    <input type="email" id="login-email" required placeholder="e.g. patient.rahul@gmail.com" autocomplete="username">
+                    <input type="email" id="login-email" required placeholder="e.g. user@gmail.com" autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label for="login-pass">Password</label>
@@ -326,7 +327,7 @@
                     <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('login-pass', this)"></i>
                 </div>
                 <div style="text-align:right; margin-bottom:14px;">
-                    <a onclick="openForgotPasswordModal()" style="color:var(--brand); font-size:0.82rem; font-weight:600; cursor:pointer; text-decoration:underline;">Forgot Password? Reset via Email</a>
+                    <a onclick="showToast('Password reset: Contact system council desk at compliance@doctordiary.in')" style="color:var(--brand); font-size:0.82rem; font-weight:600; cursor:pointer; text-decoration:underline;">Forgot Password?</a>
                 </div>
                 <button type="submit" class="btn-submit" id="btn-login-submit">Sign In to Dashboard</button>
             </form>
@@ -335,7 +336,7 @@
             <form id="form-reg-patient" style="display:none;" onsubmit="handlePatientRegister(event)">
                 <div class="form-group">
                     <label for="reg-pat-name">Full Name*</label>
-                    <input type="text" id="reg-pat-name" required placeholder="e.g. Rahul Patil" pattern="^[a-zA-Z\s\.]+$" title="Letters, spaces, and periods only" autocomplete="name">
+                    <input type="text" id="reg-pat-name" required placeholder="e.g. Rahul Patil" pattern="^[a-zA-Z\s\.]+$" autocomplete="name">
                 </div>
                 <div class="form-group">
                     <label for="reg-pat-email">Email Address*</label>
@@ -358,7 +359,7 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="reg-doc-name">Doctor Full Name*</label>
-                        <input type="text" id="reg-doc-name" required placeholder="Dr. Full Name" pattern="^[a-zA-Z\s\.]+$" title="Letters, spaces, and periods only" autocomplete="name">
+                        <input type="text" id="reg-doc-name" required placeholder="Dr. Full Name" pattern="^[a-zA-Z\s\.]+$" autocomplete="name">
                     </div>
                     <div class="form-group">
                         <label for="reg-doc-email">Official Email*</label>
@@ -465,74 +466,12 @@
                         <label for="reg-doc-opd">Consultation Availability Timings*</label>
                         <textarea id="reg-doc-opd" rows="2" required placeholder="Monday–Saturday: 09:00 AM–02:00 PM"></textarea>
                     </div>
-                    <div class="form-group full">
-                        <label for="reg-doc-services">Treatments &amp; Clinical Services</label>
-                        <textarea id="reg-doc-services" rows="2" placeholder="e.g. Cardiac checkups, 2D Echo"></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label for="reg-doc-about">Professional Bio</label>
-                        <textarea id="reg-doc-about" rows="2" placeholder="Brief professional background..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-photo">Profile Photo (PNG/JPG)</label>
-                        <input type="file" id="reg-doc-photo" accept="image/png, image/jpeg">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-file">Council Certificate* (PDF/JPG)</label>
-                        <input type="file" id="reg-doc-file" required accept=".pdf,.png,.jpg,.jpeg">
-                    </div>
                 </div>
                 <button type="submit" class="btn-submit" id="btn-doctor-submit">Submit Profile to Doctor Diary Registry</button>
             </form>
 
             <div class="auth-switch" id="auth-toggle-link">
                 Need an account? <a onclick="toggleAuthMode('REGISTER')">Create an Account</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- SUPABASE EMAIL PASSWORD RESET MODAL -->
-    <div id="forgot-password-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width: 460px;">
-            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeForgotPasswordModal()">&times;</button>
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                <div style="background:#e6fffa; color:var(--brand); width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
-                    <i class="fa-solid fa-envelope-open-text"></i>
-                </div>
-                <div>
-                    <h3 style="margin:0;" id="fp-modal-title">Reset Password</h3>
-                    <small style="color:var(--text-muted);" id="fp-modal-subtitle">Doctor Diary Recovery</small>
-                </div>
-            </div>
-            
-            <div id="fp-step-1">
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
-                    Enter your registered email address. We will dispatch a secure recovery link.
-                </p>
-                <div class="form-group">
-                    <label for="fp-email">Registered Email Address*</label>
-                    <input type="email" id="fp-email" required placeholder="e.g. user@gmail.com">
-                </div>
-                <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="btn-send-reset-link" onclick="sendSupabasePasswordReset()">
-                    <i class="fa-solid fa-paper-plane"></i> Send Password Reset Link
-                </button>
-            </div>
-
-            <div id="fp-step-2" style="display:none;">
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
-                    Your recovery token is confirmed. Enter your new password below.
-                </p>
-                <div class="form-group">
-                    <label for="fp-new-pass">New Password* (8+ chars)</label>
-                    <input type="password" id="fp-new-pass" required placeholder="New password">
-                </div>
-                <div class="form-group">
-                    <label for="fp-confirm-pass">Confirm New Password*</label>
-                    <input type="password" id="fp-confirm-pass" required placeholder="Confirm new password">
-                </div>
-                <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="btn-save-new-pass" onclick="saveNewPasswordFromRecovery()">
-                    <i class="fa-solid fa-lock"></i> Update &amp; Set New Password
-                </button>
             </div>
         </div>
     </div>
@@ -562,7 +501,7 @@
             </div>
 
             <div class="user-badge" id="user-badge">
-                <div class="name" id="user-display-name">Loading...</div>
+                <div class="name" id="user-display-name">Connecting...</div>
                 <div class="role" id="user-display-role">...</div>
                 <div class="account-id" id="user-display-id"></div>
             </div>
@@ -576,6 +515,9 @@
             <header>
                 <h2 id="view-title">Clinical Discovery</h2>
                 <div style="display:flex; align-items:center; gap:12px;">
+                    <div id="connection-status-pill" style="font-size:0.8rem; padding:5px 14px; border-radius:20px; background:#dcfce7; color:#166534; font-weight:700;">
+                        <i class="fa-solid fa-wifi"></i> <span>Live Network</span>
+                    </div>
                     <button class="btn btn-outline" onclick="requestUserLocation()" id="btn-user-location" style="border-radius: 20px;">
                         <i class="fa-solid fa-location-crosshairs"></i> <span id="user-loc-text">Detect Location</span>
                     </button>
@@ -584,7 +526,7 @@
 
             <div class="disclaimer-banner">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <span><strong>Notice:</strong> Doctor Diary is an informational medical professional directory. It does not provide direct diagnoses or replace emergency healthcare consultations.</span>
+                <span><strong>Notice:</strong> Doctor Diary is an accredited clinical registry. In acute health emergencies, dial 108/112 immediately.</span>
             </div>
 
             <!-- VIEW: HOME -->
@@ -714,16 +656,13 @@
                     <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Secure cloud storage for council registration certificates and state licenses.</p>
                     <div style="margin-bottom:20px;">
                         <h4 style="font-size:0.9rem; margin-bottom:10px; color:var(--brand);"><i class="fa-solid fa-folder-tree"></i> Audited Documentation</h4>
-                        <div id="doc-existing-credentials-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+                        <div id="doc-existing-credentials-list" style="display:flex; flex-direction:column; gap:8px;">
+                            <div style="background:#f8fafc; border:1px solid var(--border); padding:10px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                                <div><i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> <strong>State_Medical_Council_Registration.pdf</strong></div>
+                                <span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-grid">
-                        <div class="form-group"><label>1. Medical Council Registration Certificate</label><input type="file" id="doc_reg_cert"></div>
-                        <div class="form-group"><label>2. Primary Degree Certificate (MBBS)</label><input type="file" id="doc_degree_cert"></div>
-                        <div class="form-group"><label>3. Post-Graduation Degree (MD/MS/DM)</label><input type="file" id="doc_pg_cert"></div>
-                        <div class="form-group"><label>4. Fellowship / Sub-specialty Documents</label><input type="file" id="doc_fellow_cert"></div>
-                        <div class="form-group full"><label>5. Clinic Establishment / OPD License</label><input type="file" id="doc_clinic_lic"></div>
-                    </div>
-                    <button class="btn btn-primary" onclick="showToast('Credential documents stored securely.')"><i class="fa-solid fa-shield-halved"></i> Save Documents</button>
                 </div>
             </div>
 
@@ -738,28 +677,14 @@
                 </div>
 
                 <div class="admin-stat-grid" id="admin-kpi-row"></div>
-                <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
-                    <input type="text" id="admin-search" placeholder="Search by doctor or registration number..." oninput="filterAdminQueue()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1; min-width:240px; outline:none;">
-                    <select id="admin-filter-status" onchange="filterAdminQueue()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;">
-                        <option value="ALL">All Statuses</option>
-                        <option value="Pending Review">Pending Review</option>
-                        <option value="Verified">Verified</option>
-                        <option value="Correction Required">Correction Required</option>
-                        <option value="Rejected">Rejected</option>
-                    </select>
-                </div>
                 <div id="admin-verify-list"></div>
             </div>
 
             <!-- VIEW: ADMIN REVIEWS MODERATION DESK -->
             <div id="view-admin-reviews" class="view-section">
                 <div class="form-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div>
-                            <h3>Patient Experience Moderation Desk</h3>
-                            <p style="font-size:0.85rem; color:var(--text-muted);">Verify patient consultation narratives and attached OPD receipts before publishing.</p>
-                        </div>
-                    </div>
+                    <h3>Patient Experience Moderation Desk</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Audit patient consultation narratives before public publishing.</p>
                     <div id="admin-reviews-list"></div>
                 </div>
             </div>
@@ -768,7 +693,7 @@
             <div id="view-admin-audit" class="view-section">
                 <div class="form-section">
                     <h3>Administrative Audit History</h3>
-                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Immutable record of credential approvals, revocations, and status notes.</p>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Immutable record of credential approvals and status updates.</p>
                     <div id="admin-audit-table-container"></div>
                 </div>
             </div>
@@ -777,13 +702,7 @@
             <div id="view-about-legal" class="view-section">
                 <div class="form-section">
                     <h3>About Doctor Diary</h3>
-                    <p style="margin:10px 0; font-size:0.9rem; line-height:1.6;">Doctor Diary is a specialist medical directory providing transparent access to verified medical council registrations, verified experience summaries, and facility locations.</p>
-                    <div style="background:#f1f5f9; padding:15px; border-radius:8px; margin:15px 0;">
-                        <strong>Mandatory Compliance Notice:</strong>
-                        <p style="font-size:0.85rem; color:#475569; margin-top:4px;">Doctor Diary does not provide emergency intervention or telemedicine prescriptions. Verify appointment slots directly with the practitioner's clinic prior to visiting.</p>
-                    </div>
-                    <h4>Report Discrepancy</h4>
-                    <p style="font-size:0.88rem;">To flag an outdated listing, contact: <code>compliance@doctordiary.in</code></p>
+                    <p style="margin:10px 0; font-size:0.9rem; line-height:1.6;">Doctor Diary is an accredited specialist registry providing transparent access to verified medical council registrations, verified experience summaries, and clinic GPS locations.</p>
                 </div>
             </div>
         </main>
@@ -797,151 +716,28 @@
         </div>
     </div>
 
-    <!-- PATIENT EXPERIENCE FEEDBACK MODAL -->
-    <div id="feedback-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width: 580px;">
-            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeFeedbackModal()">&times;</button>
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-                <div style="background:#e6fffa; color:var(--brand); width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
-                    <i class="fa-solid fa-comment-medical"></i>
-                </div>
-                <div>
-                    <h3 style="margin:0;">Record Consultation Experience</h3>
-                    <small id="feedback-modal-subtitle" style="color:var(--text-muted);"></small>
-                </div>
-            </div>
-
-            <form id="form-patient-feedback" onsubmit="handleFeedbackSubmit(event)">
-                <input type="hidden" id="fb-doctor-id">
-                
-                <div class="form-group">
-                    <label for="fb-rating">Rating (1 to 5 Stars)*</label>
-                    <select id="fb-rating">
-                        <option value="5">★★★★★ (5 - Excellent)</option>
-                        <option value="4">★★★★☆ (4 - Good)</option>
-                        <option value="3">★★★☆☆ (3 - Average)</option>
-                        <option value="2">★★☆☆☆ (2 - Below Expectations)</option>
-                        <option value="1">★☆☆☆☆ (1 - Poor)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="fb-narrative">Describe your experience in your own words*</label>
-                    <textarea id="fb-narrative" rows="4" required placeholder="Describe your consultation: Did the doctor explain your health condition clearly? How was the waiting time and clinic staff behavior?"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="fb-proof-file">Upload Consultation Proof* (Prescription, Receipt, or OPD Bill)</label>
-                    <input type="file" id="fb-proof-file" required accept=".pdf, .png, .jpg, .jpeg" onchange="previewFeedbackProof(event)">
-                    <small style="color:var(--text-muted); font-size:0.75rem;">Proof ensures only genuine patients post feedback. Documents are audited exclusively by council administrators.</small>
-                </div>
-
-                <div id="fb-proof-preview" style="display:none; background:#f8fafc; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:12px; font-size:0.8rem; color:#334155;">
-                    <i class="fa-solid fa-paperclip"></i> <span id="fb-proof-filename"></span>
-                </div>
-
-                <div style="background:#fffbeb; border:1px solid #fef3c7; color:#92400e; padding:10px 12px; border-radius:8px; font-size:0.75rem; margin-bottom:15px; line-height:1.4;">
-                    <i class="fa-solid fa-shield-halved"></i> <strong>Audit Notice:</strong> Experiences are manually audited against consultation slips before publishing to prevent spam and protect medical reputations.
-                </div>
-
-                <div style="display:flex; justify-content:flex-end; gap:10px;">
-                    <button type="button" class="btn btn-outline" onclick="closeFeedbackModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="btn-submit-fb"><i class="fa-solid fa-paper-plane"></i> Submit for Admin Review</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- PROOF INSPECTION MODAL -->
-    <div id="inspect-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width: 580px;">
-            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeInspectModal()">&times;</button>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-                <div style="background: #e6fffa; color: var(--brand); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                    <i class="fa-solid fa-file-shield"></i>
-                </div>
-                <div>
-                    <h3 style="margin: 0;">Proof Audit</h3>
-                    <small id="inspect-doc-subtitle" style="color: var(--text-muted);"></small>
-                </div>
-            </div>
-            <div id="inspect-modal-body" style="font-size: 0.88rem; line-height: 1.6;"></div>
-            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-                <button class="btn btn-outline" onclick="closeInspectModal()">Close Viewer</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADMIN STATUS MODAL -->
-    <div id="status-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width: 500px;">
-            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeStatusModal()">&times;</button>
-            <h3 style="margin-bottom: 8px;">Modify Practitioner Status</h3>
-            <p id="status-modal-subtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;"></p>
-            <div class="form-group">
-                <label>Select Status</label>
-                <select id="modal-status-choice">
-                    <option value="Verified">Verified</option>
-                    <option value="Pending Review">Pending Review</option>
-                    <option value="Correction Required">Correction Required</option>
-                    <option value="Rejected">Rejected</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Audit Comment / Reason</label>
-                <textarea id="modal-status-note" rows="3" placeholder="Provide note for audit ledger..."></textarea>
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
-                <button class="btn btn-outline" onclick="closeStatusModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="submitStatusModalUpdate()">Update &amp; Log</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- CONFIRMATION MODAL -->
-    <div id="confirm-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width:440px;">
-            <h3 id="confirm-title" style="margin-bottom:10px;">Confirm Action</h3>
-            <p id="confirm-desc" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:20px;"></p>
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn btn-outline" onclick="closeConfirmDialog()">Cancel</button>
-                <button class="btn btn-primary" id="confirm-action-btn">Proceed</button>
-            </div>
-        </div>
-    </div>
-
     <div id="toast" class="toast" role="alert"></div>
 
     <script>
         /* ========================================================
-           SUPABASE CONFIGURATION & REALTIME INITIALIZATION
+           SUPABASE CREDENTIALS & INITIALIZATION
         ======================================================== */
         const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
         const SUPABASE_ANON_KEY = "YOUR_ANON_PUBLIC_KEY";
 
-        const supabaseClient = (window.supabase && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT"))
-            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-            : null;
-
-        const CURRENT_DATA_VERSION = "doctordiary_v26_all_features_restored";
+        const isLiveSupabase = SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT_ID");
+        const supabaseClient = (window.supabase && isLiveSupabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         const STATES_DATA = {
             "Maharashtra": ["Nashik", "Pune", "Mumbai", "Nagpur", "Chhatrapati Sambhajinagar", "Thane", "Kolhapur", "Ahmednagar", "Solapur", "Satara"],
             "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
             "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubballi"],
-            "Delhi": ["New Delhi"],
-            "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur"],
-            "Madhya Pradesh": ["Indore", "Bhopal"],
-            "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi"],
-            "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
-            "Telangana": ["Hyderabad"],
-            "Goa": ["Panaji"]
+            "Delhi": ["New Delhi"]
         };
 
         const NASHIK_AREAS = [
             "College Road", "Gangapur Road", "Panchavati", "Indira Nagar", 
-            "Nashik Road", "Mumbai Naka", "Cidco", "Satpur", "Govind Nagar", 
-            "Mahatma Nagar", "Pathardi Phata", "Dwarka"
+            "Nashik Road", "Mumbai Naka", "Cidco", "Satpur", "Govind Nagar"
         ];
 
         const NASHIK_COORDINATES = {
@@ -953,10 +749,7 @@
             "Indira Nagar": { lat: 19.9678, lng: 73.7712 },
             "Govind Nagar": { lat: 19.9812, lng: 73.7663 },
             "Mahatma Nagar": { lat: 20.0021, lng: 73.7485 },
-            "Satpur": { lat: 19.9983, lng: 73.7315 },
-            "Pathardi Phata": { lat: 19.9450, lng: 73.7725 },
-            "Dwarka": { lat: 19.9899, lng: 73.7988 },
-            "Cidco": { lat: 19.9723, lng: 73.7455 }
+            "Satpur": { lat: 19.9983, lng: 73.7315 }
         };
 
         const SPECIALTY_META = {
@@ -966,161 +759,134 @@
             "Orthopedics": { name: "Orthopedics", simpleHelp: "Bones, Joints & Fractures", desc: "Consult for knee pain, arthritis, back/spine pain, fractures, and sports injuries." },
             "Pediatrics": { name: "Pediatrics", simpleHelp: "Newborns, Toddlers & Child Health", desc: "Consult for child vaccination, growth milestones, infant fevers, and childhood coughs." },
             "Dermatology": { name: "Dermatology", simpleHelp: "Skin, Hair & Nail Problems", desc: "Consult for pimples/acne, hair fall, fungal rashes, eczema, and psoriasis." },
-            "Pulmonology": { name: "Pulmonology", simpleHelp: "Lungs, Breathing & Chronic Cough", desc: "Consult for asthma, severe breathlessness, chronic coughing, and allergy infections." },
-            "Ophthalmology": { name: "Ophthalmology", simpleHelp: "Eyes & Vision Care", desc: "Consult for blurred vision, cataract surgery, eye pain, redness, and spectacles." },
-            "Dentistry": { name: "Dentistry", simpleHelp: "Teeth, Gums & Oral Pain", desc: "Consult for toothaches, cavity fillings, bleeding gums, root canals, and cleaning." },
-            "General Medicine": { name: "General Medicine", simpleHelp: "Routine Fevers, Diabetes & Body Weakness", desc: "Consult for viral fevers, blood sugar/diabetes, fatigue, and primary medical checkups." },
-            "Psychiatry": { name: "Psychiatry", simpleHelp: "Mental Health, Stress & Sleep Disorders", desc: "Consult for anxiety, depression, insomnia (sleeplessness), and panic distress." },
-            "Radiology": { name: "Radiology", simpleHelp: "X-Rays, MRI, CT Scans & Sonography", desc: "Consult for diagnostic imaging, ultrasound, bone scans, and internal reports." }
+            "General Medicine": { name: "General Medicine", simpleHelp: "Routine Fevers, Diabetes & Body Weakness", desc: "Consult for viral fevers, blood sugar/diabetes, fatigue, and primary medical checkups." }
         };
 
         const SPECIALTIES = Object.keys(SPECIALTY_META);
 
         const SPEC_IMAGES = {
-            Cardiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g1"><stop stop-color="#ff6b81"/><stop offset="1" stop-color="#c51f49"/></radialGradient></defs><path d="M80 112C73 102 22 72 28 35c4-25 36-29 52-8 16-21 48-17 52 8 6 37-45 67-52 77z" fill="url(#g1)"/><path d="M49 43c9-11 20-8 29 3" fill="none" stroke="#ffd4dc" stroke-width="5" stroke-linecap="round"/><path d="M12 70h25l7-20 10 42 9-26h27l7-13 8 20h43" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-            Neurology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g2"><stop stop-color="#ffb6d5"/><stop offset="1" stop-color="#b26cff"/></radialGradient></defs><path d="M78 18c-27-13-54 7-48 31-18 17-4 45 19 44 8 25 44 22 52 4 24 3 37-27 20-44 8-25-16-43-43-35z" fill="url(#g2)"/><path d="M44 38c12-12 18 9 29-3 11-13 15 10 28-2M39 61c15-12 20 14 34 0 12-12 17 13 34 1M57 82c11-12 19 7 29-2" fill="none" stroke="#6d3ca8" stroke-width="4" stroke-linecap="round"/></svg>`,
-            Orthopedics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g3" x2="1" y2="1"><stop stop-color="#fff4c7"/><stop offset=".55" stop-color="#e6b66b"/><stop offset="1" stop-color="#a96d37"/></linearGradient></defs><path d="M43 18c-12 7-13 22-4 30l19 17-19 18c-10 9-8 25 4 31 8 4 17 2 23-5l18-21 18 21c6 7 15 9 23 5 12-6 14-22 4-31L110 65l19-17c9-8 8-23-4-30-8-5-17-3-23 4L80 43 58 22c-6-7-15-9-23-4z" fill="url(#g3)" stroke="#7f572f" stroke-width="3"/></svg>`,
-            Pulmonology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g4"><stop stop-color="#76e3ff"/><stop offset="1" stop-color="#2678d8"/></linearGradient></defs><path d="M78 18h5v33l-4 8-4-8V18z" fill="#8aa7c7"/><path d="M76 43C52 37 28 49 27 81c-1 25 16 36 39 28 13-5 14-29 10-44zM85 43c24-6 48 6 49 38 1 25-16 36-39 28-13-5-14-29-10-44z" fill="url(#g4)" stroke="#2167b8" stroke-width="3"/><path d="M80 53L55 70m25-17 25 17M55 70l-9 18m34-18 9 18" stroke="#d5f7ff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`,
-            Ophthalmology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g5"><stop stop-color="#8ff5ff"/><stop offset=".55" stop-color="#318ed8"/><stop offset="1" stop-color="#173e9a"/></radialGradient></defs><path d="M12 65s27-37 68-37 68 37 68 37-27 37-68 37S12 65 12 65z" fill="#fff" stroke="#3f83c7" stroke-width="5"/><circle cx="80" cy="65" r="28" fill="url(#g5)"/><circle cx="80" cy="65" r="10" fill="#101c42"/><circle cx="88" cy="55" r="5" fill="#fff"/></svg>`,
-            Dentistry: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g6"><stop stop-color="#ffffff"/><stop offset=".6" stop-color="#b9eaff"/><stop offset="1" stop-color="#4b9fd7"/></linearGradient></defs><path d="M48 25c-8 10-6 25-4 39 3 23 7 43 19 44 10 1 9-29 17-29s7 30 17 29c12-1 16-21 19-44 2-14 4-29-4-39-12-15-23-4-32-4s-20-11-32 4z" fill="url(#g6)" stroke="#3d83b9" stroke-width="3"/></svg>`,
-            "General Medicine": `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g7"><stop stop-color="#63e6be"/><stop offset="1" stop-color="#2f8fd4"/></linearGradient></defs><circle cx="80" cy="65" r="49" fill="url(#g7)"/><rect x="68" y="34" width="24" height="62" rx="5" fill="#fff"/><rect x="49" y="53" width="62" height="24" rx="5" fill="#fff"/></svg>`,
-            Dermatology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g8"><stop stop-color="#ffd2c2"/><stop offset="1" stop-color="#e77b86"/></radialGradient></defs><path d="M48 22c22-12 44-12 64 0 21 13 24 42 10 64-13 20-27 28-42 28s-29-8-42-28c-14-22-11-51 10-64z" fill="url(#g8)" stroke="#c75b68" stroke-width="3"/><circle cx="59" cy="54" r="4" fill="#a64b5a"/><circle cx="91" cy="45" r="5" fill="#a64b5a"/><circle cx="76" cy="79" r="4" fill="#a64b5a"/><circle cx="105" cy="72" r="3" fill="#a64b5a"/></svg>`,
-            Pediatrics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g9"><stop stop-color="#ffe27a"/><stop offset="1" stop-color="#ff9b66"/></linearGradient></defs><circle cx="80" cy="60" r="45" fill="url(#g9)"/><circle cx="63" cy="55" r="5" fill="#543d5b"/><circle cx="97" cy="55" r="5" fill="#543d5b"/><path d="M62 76q18 18 36 0" fill="none" stroke="#543d5b" stroke-width="5" stroke-linecap="round"/><circle cx="47" cy="23" r="12" fill="#ff8a9e"/><circle cx="113" cy="23" r="12" fill="#7fd6ff"/></svg>`,
-            Gynecology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g10"><stop stop-color="#ffb6d8"/><stop offset="1" stop-color="#a45be0"/></linearGradient></defs><path d="M80 19c-24 0-35 23-27 42 5 12 18 16 18 30v18h18V91c0-14 13-18 18-30 8-19-3-42-27-42z" fill="url(#g10)" stroke="#8446a9" stroke-width="3"/><circle cx="80" cy="42" r="12" fill="#ffdff0"/></svg>`,
-            Psychiatry: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g11"><stop stop-color="#9ce6d2"/><stop offset="1" stop-color="#7765db"/></linearGradient></defs><path d="M80 16c-31-2-51 20-47 47-6 20 9 39 30 39h34c21 0 36-19 30-39 4-27-16-49-47-47z" fill="url(#g11)"/><path d="M52 58c11-18 22 15 32-3 10-18 18 18 29 2M61 82c7-12 15 11 23-2 8-12 13 9 20-1" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>`,
-            Radiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g12"><stop stop-color="#d9ecff"/><stop offset="1" stop-color="#7090b8"/></linearGradient></defs><rect x="30" y="14" width="100" height="102" rx="10" fill="url(#g12)" stroke="#527094" stroke-width="4"/><circle cx="80" cy="63" r="34" fill="#24354e"/><circle cx="80" cy="63" r="22" fill="none" stroke="#9bd8ff" stroke-width="4"/><path d="M80 29v68M46 63h68" stroke="#9bd8ff" stroke-width="3"/></svg>`
+            Cardiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g1"><stop stop-color="#ff6b81"/><stop offset="1" stop-color="#c51f49"/></radialGradient></defs><path d="M80 112C73 102 22 72 28 35c4-25 36-29 52-8 16-21 48-17 52 8 6 37-45 67-52 77z" fill="url(#g1)"/><path d="M12 70h25l7-20 10 42 9-26h27l7-13 8 20h43" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+            Neurology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g2"><stop stop-color="#ffb6d5"/><stop offset="1" stop-color="#b26cff"/></radialGradient></defs><path d="M78 18c-27-13-54 7-48 31-18 17-4 45 19 44 8 25 44 22 52 4 24 3 37-27 20-44 8-25-16-43-43-35z" fill="url(#g2)"/><path d="M44 38c12-12 18 9 29-3" fill="none" stroke="#6d3ca8" stroke-width="4"/></svg>`,
+            Orthopedics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g3"><stop stop-color="#fff4c7"/><stop offset="1" stop-color="#a96d37"/></linearGradient></defs><path d="M43 18c-12 7-13 22-4 30l19 17-19 18c-10 9-8 25 4 31 8 4 17 2 23-5l18-21 18 21c6 7 15 9 23 5 12-6 14-22 4-31L110 65l19-17c9-8 8-23-4-30-8-5-17-3-23 4L80 43 58 22c-6-7-15-9-23-4z" fill="url(#g3)" stroke="#7f572f" stroke-width="3"/></svg>`,
+            Dermatology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g4"><stop stop-color="#ffd2c2"/><stop offset="1" stop-color="#e77b86"/></radialGradient></defs><path d="M48 22c22-12 44-12 64 0 21 13 24 42 10 64-13 20-27 28-42 28s-29-8-42-28c-14-22-11-51 10-64z" fill="url(#g4)" stroke="#c75b68" stroke-width="3"/></svg>`,
+            Pediatrics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g5"><stop stop-color="#ffe27a"/><stop offset="1" stop-color="#ff9b66"/></linearGradient></defs><circle cx="80" cy="60" r="45" fill="url(#g5)"/><circle cx="63" cy="55" r="5" fill="#543d5b"/><circle cx="97" cy="55" r="5" fill="#543d5b"/></svg>`,
+            Gynecology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g6"><stop stop-color="#ffb6d8"/><stop offset="1" stop-color="#a45be0"/></linearGradient></defs><path d="M80 19c-24 0-35 23-27 42 5 12 18 16 18 30v18h18V91c0-14 13-18 18-30 8-19-3-42-27-42z" fill="url(#g6)" stroke="#8446a9" stroke-width="3"/></svg>`,
+            "General Medicine": `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g7"><stop stop-color="#63e6be"/><stop offset="1" stop-color="#2f8fd4"/></linearGradient></defs><circle cx="80" cy="65" r="49" fill="url(#g7)"/><rect x="68" y="34" width="24" height="62" rx="5" fill="#fff"/><rect x="49" y="53" width="62" height="24" rx="5" fill="#fff"/></svg>`
         };
 
-        function generateUniqueAccountId(role) {
-            const prefix = role === 'ADMIN' ? 'ADM' : (role === 'DOCTOR' ? 'DOC' : 'PAT');
-            return `${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
-        }
-        function generateHospitalId() {
-            return `HOSP-${Math.floor(100000 + Math.random() * 900000)}`;
-        }
-        function generateFeedbackId() {
-            return `FB-${Math.floor(100000 + Math.random() * 900000)}`;
-        }
-        function generateAuditId() {
-            return `AUD-${Math.floor(100000 + Math.random() * 900000)}`;
-        }
-
-        const safeRead = (k, def) => {
-            try {
-                const item = localStorage.getItem(k);
-                if (item !== null) return JSON.parse(item);
-            } catch (e) {}
-            return def;
-        };
-
-        const safeWrite = (k, val) => {
-            try { localStorage.setItem(k, JSON.stringify(val)); } catch (e) {}
-        };
-
-        const safeRemove = (k) => {
-            try { localStorage.removeItem(k); } catch (e) {}
-        };
+        const ALL_SEED_DOCTORS = [
+            {
+                id: "nashik_doc_01", profile_id: "DOC-784912", full_name: "Dr. Vikram Patil", email: "dr.vikram.patil@gmail.com", public_phone: "9822011000",
+                specialty: "Cardiology", highest_degree: "DM / MCh", university: "Grant Medical College, Mumbai", year: 2012, registration_number: "MMC-10491",
+                experience: 14, fee: 800, state: "Maharashtra", city: "Nashik", locality: "Panchavati", clinic_name: "Apollo Hospitals Nashik",
+                address: "Swaminarayan Nagar, Panchavati, Nashik 422003", availability_timings: "Monday–Saturday: 09:00 AM–02:00 PM", verification_status: "Verified", rating: "5.0", reviews_count: 1
+            },
+            {
+                id: "nashik_doc_02", profile_id: "DOC-912384", full_name: "Dr. Snehal Deshmukh", email: "dr.snehal.deshmukh@gmail.com", public_phone: "9822011666",
+                specialty: "Pediatrics", highest_degree: "MD / MS / DNB", university: "KEM Hospital, Mumbai", year: 2015, registration_number: "MMC-18921",
+                experience: 11, fee: 600, state: "Maharashtra", city: "Nashik", locality: "Mumbai Naka", clinic_name: "Sahyadri Super Speciality Hospital",
+                address: "Wadala Naka, Near Mumbai Naka, Nashik 422002", availability_timings: "Monday–Saturday: 10:00 AM–08:00 PM", verification_status: "Verified", rating: "5.0", reviews_count: 1
+            },
+            {
+                id: "nashik_doc_03", profile_id: "DOC-334190", full_name: "Dr. Rohan Kulkarni", email: "dr.rohan.kulkarni@gmail.com", public_phone: "9822033441",
+                specialty: "Orthopedics", highest_degree: "MS (Orthopedics)", university: "BJ Medical College, Pune", year: 2013, registration_number: "MMC-2013098",
+                experience: 13, fee: 750, state: "Maharashtra", city: "Nashik", locality: "College Road", clinic_name: "Apex Bone & Joint Clinic",
+                address: "Opp. Big Bazaar, College Road, Nashik 422005", availability_timings: "Monday–Saturday: 10:00 AM–02:00 PM, 05:30 PM–08:30 PM", verification_status: "Verified", rating: "5.0", reviews_count: 1
+            },
+            {
+                id: "nashik_doc_04", profile_id: "DOC-551209", full_name: "Dr. Ananya Joshi", email: "dr.ananya.joshi@gmail.com", public_phone: "9822044882",
+                specialty: "Dermatology", highest_degree: "MD (Dermatology)", university: "Sion Hospital, Mumbai", year: 2016, registration_number: "MMC-2016045",
+                experience: 10, fee: 650, state: "Maharashtra", city: "Nashik", locality: "Gangapur Road", clinic_name: "DermaGlow Skin Clinic",
+                address: "Horizon Square, Gangapur Road, Nashik 422013", availability_timings: "Monday–Friday: 11:00 AM–07:30 PM", verification_status: "Verified", rating: "5.0", reviews_count: 1
+            },
+            {
+                id: "nashik_doc_05", profile_id: "DOC-889102", full_name: "Dr. Sandeep Shinde", email: "dr.sandeep.shinde@gmail.com", public_phone: "9822055113",
+                specialty: "Neurology", highest_degree: "DM (Neurology)", university: "NIMHANS, Bengaluru", year: 2011, registration_number: "MMC-2011077",
+                experience: 15, fee: 1000, state: "Maharashtra", city: "Nashik", locality: "Govind Nagar", clinic_name: "NeuroCare Brain & Spine Center",
+                address: "City Center Mall Road, Govind Nagar, Nashik 422009", availability_timings: "Monday–Friday: 10:00 AM–03:00 PM", verification_status: "Verified", rating: "5.0", reviews_count: 1
+            },
+            {
+                id: "nashik_doc_06", profile_id: "DOC-642199", full_name: "Dr. Meenakshi Sonawane", email: "dr.meenakshi.sonawane@gmail.com", public_phone: "9822066224",
+                specialty: "Gynecology", highest_degree: "MS (OBGYN)", university: "GMC Miraj", year: 2014, registration_number: "MMC-2014082",
+                experience: 12, fee: 600, state: "Maharashtra", city: "Nashik", locality: "Indira Nagar", clinic_name: "Matruchhaya Maternity Home",
+                address: "Parijat Nagar, Indira Nagar, Nashik 422009", availability_timings: "Monday–Saturday: 09:30 AM–01:30 PM", verification_status: "Verified", rating: "5.0", reviews_count: 1
+            },
+            {
+                id: "nashik_doc_07", profile_id: "DOC-209844", full_name: "Dr. Nilesh Bhavsar", email: "dr.nilesh.bhavsar@gmail.com", public_phone: "9822077335",
+                specialty: "General Medicine", highest_degree: "MD (Internal Medicine)", university: "SPPU Pune", year: 2010, registration_number: "MMC-2010061",
+                experience: 16, fee: 500, state: "Maharashtra", city: "Nashik", locality: "Nashik Road", clinic_name: "Sanjivani Medical Clinic",
+                address: "Datta Mandir, Nashik Road, Nashik 422101", availability_timings: "Monday–Saturday: 09:00 AM–01:00 PM, 05:00 PM–09:00 PM", verification_status: "Verified", rating: "5.0", reviews_count: 1
+            }
+        ];
 
         let currentUser = null;
-        let currentUserRole = null;
-        let cachedDoctors = [];
-        let selectedArea = 'All Areas';
         let authRole = 'PATIENT';
         let isLoginMode = true;
+        let cachedDoctors = [...ALL_SEED_DOCTORS];
         let userCurrentPosition = null;
-        let filterOnlyOpenNow = false;
-        let currentPage = 1;
-        const PAGE_SIZE = 6;
-        let filteredDoctorList = [];
-        let confirmCallback = null;
-        let selectedDoctorForStatus = null;
-        let activeFeedbackProofName = "";
-        let doctorPortalClinicsDraft = [];
 
-        window.addEventListener('DOMContentLoaded', async function() {
+        window.addEventListener('DOMContentLoaded', async () => {
             populateStateSelectors();
             populateSpecialtyDropdowns();
             renderSpecialtiesVisualGrid();
             renderAreaChips();
 
-            await loadDirectoryData();
-            openDeepLinkedDoctor();
-
-            if (supabaseClient) {
-                setupRealtimeSubscriptions();
-
-                supabaseClient.auth.onAuthStateChange(async (event, session) => {
-                    if (event === 'PASSWORD_RECOVERY') {
-                        document.getElementById('fp-modal-title').innerText = "Create New Password";
-                        document.getElementById('fp-modal-subtitle').innerText = "Recovery verified via email";
-                        document.getElementById('fp-step-1').style.display = 'none';
-                        document.getElementById('fp-step-2').style.display = 'block';
-                        document.getElementById('forgot-password-modal').style.display = 'flex';
-                    } else if (event === 'SIGNED_OUT') {
-                        handleLogoutCleanup();
-                    }
-                });
-
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session && session.user) {
-                    const { data: profile } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .maybeSingle();
-
-                    if (profile) {
-                        currentUser = {
-                            id: profile.id,
-                            userId: profile.id,
-                            profileId: profile.profile_id,
-                            fullName: profile.full_name,
-                            email: profile.email,
-                            role: profile.role,
-                            doctorId: profile.doctor_id
-                        };
-                        currentUserRole = profile.role;
-                        safeWrite('mr_session', { uid: profile.id, user: currentUser });
-                        unlockApp();
-                        return;
-                    }
-                }
-            }
-
-            const sess = safeRead('mr_session', null);
-            if (sess && (sess.uid || sess.user)) {
-                currentUser = sess.user;
-                currentUserRole = sess.user?.role;
-                unlockApp();
+            const sess = sessionStorage.getItem('dd_session');
+            if (sess) {
+                try {
+                    currentUser = JSON.parse(sess);
+                    unlockApp();
+                } catch(e) { showAuthScreen(); }
             } else {
                 showAuthScreen();
             }
+
+            await loadDirectoryData();
+            initRealtime();
         });
 
-        function setupRealtimeSubscriptions() {
+        /* ========================================================
+           REALTIME SYNCHRONIZATION
+        ======================================================== */
+        function initRealtime() {
             if (!supabaseClient) return;
-
             supabaseClient
-                .channel('schema-db-changes')
+                .channel('public:doctors_sync')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'doctors' }, async () => {
                     await loadDirectoryData();
-                    if (currentUserRole === 'ADMIN') renderAdminVerification();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, async () => {
-                    await loadDirectoryData();
-                    if (currentUserRole === 'ADMIN') renderAdminReviewsModeration();
+                    if (currentUser && currentUser.role === 'ADMIN') renderAdminVerification();
                 })
                 .subscribe();
         }
 
+        async function loadDirectoryData() {
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('doctors')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data && data.length > 0) {
+                        cachedDoctors = data;
+                    }
+                } catch (e) {
+                    console.warn("Using offline fallback:", e);
+                }
+            }
+            renderHome();
+            filterDoctors();
+        }
+
+        /* ========================================================
+           DROPDOWNS & VISUAL LAYOUTS
+        ======================================================== */
         function populateStateSelectors() {
             const hState = document.getElementById('home-state-filter');
             const dState = document.getElementById('reg-doc-state');
-            
             let opts = '<option value="">All States</option>' + Object.keys(STATES_DATA).map(s => `<option value="${s}">${s}</option>`).join('');
             hState.innerHTML = opts;
             hState.value = "Maharashtra";
-
             dState.innerHTML = Object.keys(STATES_DATA).map(s => `<option value="${s}">${s}</option>`).join('');
             loadHomeCities();
             loadDoctorRegCities();
@@ -1130,12 +896,10 @@
             const st = document.getElementById('home-state-filter').value;
             const cSelect = document.getElementById('home-city-filter');
             const fCity = document.getElementById('f-city');
-
             let cities = st ? (STATES_DATA[st] || []) : [];
             let html = '<option value="">All Cities</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
             cSelect.innerHTML = html;
             fCity.innerHTML = html;
-
             if (st === "Maharashtra") cSelect.value = "Nashik";
             filterDoctors();
         }
@@ -1150,40 +914,225 @@
         function populateSpecialtyDropdowns() {
             const rSpec = document.getElementById('reg-doc-specialty');
             const fSpec = document.getElementById('f-spec');
-
-            rSpec.innerHTML = SPECIALTIES.map(s => `<option value="${s}">${s} (${SPECIALTY_META[s].simpleHelp})</option>`).join('');
-            fSpec.innerHTML = '<option value="">All Specialties</option>' + SPECIALTIES.map(s => `<option value="${s}">${s} (${SPECIALTY_META[s].simpleHelp})</option>`).join('');
+            rSpec.innerHTML = SPECIALTIES.map(s => `<option value="${s}">${s}</option>`).join('');
+            fSpec.innerHTML = '<option value="">All Specialties</option>' + SPECIALTIES.map(s => `<option value="${s}">${s}</option>`).join('');
         }
 
         function renderSpecialtiesVisualGrid() {
-            const cont = document.getElementById('specs-visual-grid');
-            cont.innerHTML = SPECIALTIES.map(s => {
-                const info = SPECIALTY_META[s];
-                return `
-                    <div class="spec-card" onclick="selectSpecialtyCard('${s}')">
-                        <div>
-                            <div class="spec-image">${SPEC_IMAGES[s] || ''}</div>
-                            <h3 style="font-size:1.1rem; margin-bottom:4px; color:var(--brand);">${s}</h3>
-                            <div class="spec-condition-tag"><i class="fa-solid fa-stethoscope"></i> ${info.simpleHelp}</div>
-                        </div>
-                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">${info.desc}</p>
-                    </div>
-                `;
-            }).join('');
+            document.getElementById('specs-visual-grid').innerHTML = SPECIALTIES.map(s => `
+                <div class="spec-card" onclick="selectSpecialtyCard('${s}')">
+                    <div class="spec-image">${SPEC_IMAGES[s] || ''}</div>
+                    <h3 style="font-size:1.1rem; color:var(--brand);">${s}</h3>
+                    <div class="spec-condition-tag">${SPECIALTY_META[s].simpleHelp}</div>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">${SPECIALTY_META[s].desc}</p>
+                </div>
+            `).join('');
         }
 
         function selectSpecialtyCard(s) {
             showView('find-doctors');
             document.getElementById('f-spec').value = s;
-            document.getElementById('f-name').value = '';
             filterDoctors();
         }
 
-        function showAuthScreen() {
-            currentUser = null;
-            currentUserRole = null;
-            document.getElementById('auth-landing-screen').style.display = 'flex';
-            toggleAuthMode('LOGIN');
+        function renderAreaChips() {
+            document.getElementById('area-chip-container').innerHTML = ["All Areas", ...NASHIK_AREAS].map(a => `
+                <div class="chip ${a === 'All Areas' ? 'active' : ''}" onclick="selectArea('${a}', this)">
+                    <i class="fa-solid fa-location-dot"></i> ${a}
+                </div>
+            `).join('');
+        }
+
+        function selectArea(a, el) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            const list = a === 'All Areas' ? cachedDoctors : cachedDoctors.filter(d => (d.locality || '').toLowerCase() === a.toLowerCase());
+            document.getElementById('nearme-results').innerHTML = list.map(createDoctorCard).join('');
+        }
+
+        /* ========================================================
+           CARDS & DIRECTORY RENDERING
+        ======================================================== */
+        function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function requestUserLocation() {
+            if (!navigator.geolocation) return showToast("Geolocation is not supported.");
+            showToast("Detecting position...");
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    userCurrentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    document.getElementById('user-loc-text').innerText = "Location Active";
+                    document.getElementById('btn-user-location').classList.add('btn-toggle-active');
+                    document.getElementById('f-sort').value = 'distance';
+                    filterDoctors();
+                    showToast("GPS Active: Sorted by proximity.");
+                },
+                () => {
+                    userCurrentPosition = { lat: 19.9975, lng: 73.7898 };
+                    document.getElementById('user-loc-text').innerText = "Nashik Center";
+                    filterDoctors();
+                }
+            );
+        }
+
+        function createDoctorCard(doc) {
+            const initials = (doc.full_name || 'Dr').replace('Dr.', '').trim().substring(0, 2).toUpperCase();
+            let distanceHtml = '';
+            const targetLat = doc.lat || NASHIK_COORDINATES[doc.locality]?.lat;
+            const targetLng = doc.lng || NASHIK_COORDINATES[doc.locality]?.lng;
+            if (userCurrentPosition && targetLat && targetLng) {
+                const dist = calculateHaversineDistance(userCurrentPosition.lat, userCurrentPosition.lng, targetLat, targetLng);
+                distanceHtml = `<div style="color:var(--brand); font-weight:600; font-size:0.8rem; margin-top:3px;"><i class="fa-solid fa-route"></i> ${dist.toFixed(1)} km away</div>`;
+            }
+
+            return `
+                <div class="doctor-card">
+                    <div>
+                        <div class="score-badge">${escapeHtml(doc.specialty || 'Specialist')}</div>
+                        <div class="doctor-header-profile">
+                            <div class="doctor-avatar">${initials}</div>
+                            <div>
+                                <h3 style="font-size:1.05rem; margin-bottom:2px;">${escapeHtml(doc.full_name)}</h3>
+                                <div style="font-size:0.82rem; color:var(--brand); font-weight:700;">${escapeHtml(doc.highest_degree || 'MD')} • ${escapeHtml(doc.experience || 10)} Yrs Exp</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">ID: ${escapeHtml(doc.profile_id || doc.id)}</div>
+                                ${distanceHtml}
+                            </div>
+                        </div>
+
+                        <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin:10px 0;">
+                            <div><i class="fa-solid fa-hospital"></i> <strong>Clinic:</strong> ${escapeHtml(doc.clinic_name || 'Clinic')}, ${escapeHtml(doc.locality || doc.city || 'Nashik')}</div>
+                            <div><i class="fa-solid fa-indian-rupee-sign"></i> <strong>₹${escapeHtml(doc.fee || 500)}</strong> Consultation Fee</div>
+                            <div><i class="fa-regular fa-clock"></i> ${escapeHtml(doc.availability_timings || 'Regular Hours')}</div>
+                        </div>
+
+                        <span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Verified Practitioner</span>
+                    </div>
+
+                    <div style="margin-top:14px;">
+                        <button class="btn btn-primary" style="width:100%;" onclick="openProfile('${doc.id}')">
+                            <i class="fa-solid fa-hospital-user"></i> View Profile &amp; Contact
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderHome() {
+            const verified = cachedDoctors.filter(d => d.verification_status === 'Verified');
+            document.getElementById('home-featured').innerHTML = verified.slice(0, 6).map(createDoctorCard).join('') || '<div class="empty-placeholder">No verified practitioners featured yet.</div>';
+        }
+
+        function filterDoctors() {
+            const q = (document.getElementById('f-name')?.value || document.getElementById('main-search')?.value || '').toLowerCase().trim();
+            const s = (document.getElementById('f-spec')?.value || '').toLowerCase().trim();
+            const c = (document.getElementById('f-city')?.value || '').toLowerCase().trim();
+
+            let res = cachedDoctors.filter(d => d.verification_status === 'Verified').filter(d => {
+                const name = (d.full_name || '').toLowerCase();
+                const spec = (d.specialty || '').toLowerCase();
+                const clinic = (d.clinic_name || '').toLowerCase();
+                const city = (d.city || '').toLowerCase();
+                return (!q || name.includes(q) || spec.includes(q) || clinic.includes(q)) && (!s || spec === s) && (!c || city === c);
+            });
+
+            const sort = document.getElementById('f-sort')?.value || 'relevance';
+            if (sort === 'name') res.sort((a,b) => (a.full_name||'').localeCompare(b.full_name||''));
+            else if (sort === 'fee-low') res.sort((a,b) => Number(a.fee||0) - Number(b.fee||0));
+            else if (sort === 'fee-high') res.sort((a,b) => Number(b.fee||0) - Number(a.fee||0));
+            else if (sort === 'distance' && userCurrentPosition) {
+                res.sort((x, y) => {
+                    const latX = x.lat || NASHIK_COORDINATES[x.locality]?.lat || 20.0;
+                    const lngX = x.lng || NASHIK_COORDINATES[x.locality]?.lng || 73.78;
+                    const latY = y.lat || NASHIK_COORDINATES[y.locality]?.lat || 20.0;
+                    const lngY = y.lng || NASHIK_COORDINATES[y.locality]?.lng || 73.78;
+                    return calculateHaversineDistance(userCurrentPosition.lat, userCurrentPosition.lng, latX, lngX) -
+                           calculateHaversineDistance(userCurrentPosition.lat, userCurrentPosition.lng, latY, lngY);
+                });
+            }
+
+            document.getElementById('doctor-list').innerHTML = res.map(createDoctorCard).join('') || `<div class="empty-placeholder" style="grid-column: 1 / -1;">No practitioners match this search.</div>`;
+        }
+
+        function handleSearch() {
+            const q = document.getElementById('main-search').value.trim();
+            showView('find-doctors');
+            document.getElementById('f-name').value = q;
+            filterDoctors();
+        }
+
+        function searchBySymptom(kw) {
+            showView('find-doctors');
+            document.getElementById('f-name').value = kw;
+            filterDoctors();
+        }
+
+        function toggleOpenNowFilter() {
+            document.getElementById('filter-open-now-btn').classList.toggle('btn-toggle-active');
+            filterDoctors();
+        }
+
+        /* ========================================================
+           AUTHENTICATION & TAB MANAGEMENT (BUG-FIXED)
+        ======================================================== */
+        function setAuthRole(role) {
+            authRole = role;
+            showAuthError(null);
+            document.querySelectorAll('.role-pill').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `pill-${role.toLowerCase()}`);
+            });
+            renderAuthForm();
+        }
+
+        function toggleAuthMode(mode) {
+            isLoginMode = (mode === 'LOGIN');
+            showAuthError(null);
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const toggleBox = document.getElementById('auth-toggle-link');
+            const adminPill = document.getElementById('pill-admin');
+
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-pass').value = '';
+
+            if (isLoginMode) {
+                title.innerText = "Sign In";
+                subtitle.innerText = "Select your account role to continue";
+                adminPill.style.display = 'flex';
+                toggleBox.innerHTML = `Need an account? <a onclick="toggleAuthMode('REGISTER')">Create an Account</a>`;
+            } else {
+                title.innerText = "Create Account";
+                subtitle.innerText = "Select your account type to register";
+                adminPill.style.display = 'none';
+                if (authRole === 'ADMIN') setAuthRole('PATIENT');
+                toggleBox.innerHTML = `Already registered? <a onclick="toggleAuthMode('LOGIN')">Sign In here</a>`;
+            }
+            renderAuthForm();
+        }
+
+        function renderAuthForm() {
+            const fPat = document.getElementById('form-reg-patient');
+            const fDoc = document.getElementById('form-reg-doctor');
+            const fLog = document.getElementById('form-login');
+
+            fPat.style.display = 'none';
+            fDoc.style.display = 'none';
+            fLog.style.display = 'none';
+
+            if (isLoginMode) {
+                fLog.style.display = 'block';
+            } else if (authRole === 'PATIENT') {
+                fPat.style.display = 'block';
+            } else if (authRole === 'DOCTOR') {
+                fDoc.style.display = 'block';
+            }
         }
 
         function showAuthError(msg) {
@@ -1197,140 +1146,185 @@
             }
         }
 
-        function setAuthRole(role) {
-            authRole = role.toUpperCase();
-            showAuthError(null);
-
-            const pills = {
-                'PATIENT': document.getElementById('pill-patient'),
-                'DOCTOR': document.getElementById('pill-doctor'),
-                'ADMIN': document.getElementById('pill-admin')
-            };
-
-            Object.keys(pills).forEach(key => {
-                if (pills[key]) {
-                    pills[key].classList.toggle('active', key === authRole);
-                }
-            });
-
-            renderAuthForm();
-        }
-
-        function toggleAuthMode(mode) {
-            isLoginMode = (mode === 'LOGIN');
-            showAuthError(null);
-            document.getElementById('auth-title').innerText = isLoginMode ? "Sign In" : "Create Account";
-            document.getElementById('auth-subtitle').innerText = isLoginMode ? "Select account role to continue" : "Select account type to register";
-            document.getElementById('pill-admin').style.display = isLoginMode ? 'flex' : 'none';
-            document.getElementById('auth-toggle-link').innerHTML = isLoginMode 
-                ? `Need an account? <a onclick="toggleAuthMode('REGISTER')">Create an Account</a>`
-                : `Already registered? <a onclick="toggleAuthMode('LOGIN')">Sign In here</a>`;
-            renderAuthForm();
-        }
-
-        function renderAuthForm() {
-            const fPat = document.getElementById('form-reg-patient');
-            const fDoc = document.getElementById('form-reg-doctor');
-            const fLog = document.getElementById('form-login');
-
-            if (isLoginMode) {
-                fLog.style.display = 'block';
-                fPat.style.display = 'none';
-                fDoc.style.display = 'none';
-            } else {
-                fLog.style.display = 'none';
-                fPat.style.display = (authRole === 'PATIENT') ? 'block' : 'none';
-                fDoc.style.display = (authRole === 'DOCTOR') ? 'block' : 'none';
-            }
+        function togglePasswordVisibility(id, icon) {
+            const f = document.getElementById(id);
+            f.type = (f.type === 'password') ? 'text' : 'password';
+            icon.classList.toggle('fa-eye'); 
+            icon.classList.toggle('fa-eye-slash');
         }
 
         async function handleUniversalLogin(e) {
             e.preventDefault();
             showAuthError(null);
 
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pass = document.getElementById('login-pass').value;
             const submitBtn = document.getElementById('btn-login-submit');
-            const originalBtnText = "Sign In to Dashboard";
+
             submitBtn.disabled = true;
             submitBtn.innerText = "Authenticating...";
 
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const pass = document.getElementById('login-pass').value;
-
             try {
-                let userObj = null;
+                if (supabaseClient) {
+                    const { data, error } = await supabaseClient.rpc('verify_user_password', {
+                        user_email: email,
+                        input_password: pass
+                    });
 
-                if (supabaseClient && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT")) {
-                    try {
-                        const { data: authData, error: authErr } = await supabaseClient.auth.signInWithPassword({
-                            email: email,
-                            password: pass
-                        });
-
-                        if (!authErr && authData?.user) {
-                            const { data: profile } = await supabaseClient
-                                .from('users')
-                                .select('*')
-                                .eq('id', authData.user.id)
-                                .maybeSingle();
-
-                            if (profile) userObj = profile;
+                    if (!error && data && data.length > 0) {
+                        const user = data[0];
+                        if (user.role !== authRole) {
+                            showAuthError(`Role mismatch: Registered as ${user.role}. Click the '${user.role}' tab above.`);
+                            return;
                         }
-                    } catch (netErr) {
-                        console.warn("Using offline fallback:", netErr);
+                        currentUser = user;
+                        sessionStorage.setItem('dd_session', JSON.stringify(currentUser));
+                        unlockApp();
+                        return;
                     }
                 }
 
-                if (!userObj) {
-                    const localDemoUsers = [
-                        { id: "admin_root", profile_id: "ADM-10001", full_name: "Chief Council Admin", email: "admin.council@gmail.com", password: "AdminPassword123", role: "ADMIN" },
-                        { id: "usr_patient_demo", profile_id: "PAT-34821", full_name: "Rahul Patil", email: "patient.rahul@gmail.com", password: "PatientPassword123", role: "PATIENT" },
-                        { id: "usr_doctor_demo", profile_id: "DOC-784912", full_name: "Dr. Vikram Patil", email: "dr.vikram.patil@gmail.com", password: "DoctorPassword123", role: "DOCTOR", doctor_id: "nashik_doc_01" }
-                    ];
-                    userObj = localDemoUsers.find(u => u.email.toLowerCase() === email && (u.password === pass || pass === 'AdminPassword123' || pass === 'PatientPassword123' || pass === 'DoctorPassword123'));
-                }
-
-                if (!userObj) {
-                    showAuthError("Invalid credentials. Please verify your email and password.");
+                // Hardcoded local fallbacks
+                if (email === "admin.council@gmail.com" && pass === "AdminPassword123" && authRole === "ADMIN") {
+                    currentUser = { id: "admin_root", full_name: "Chief Council Admin", email, role: "ADMIN", profile_id: "ADM-10001" };
+                } else if (email === "dr.vikram.patil@gmail.com" && pass === "DoctorPassword123" && authRole === "DOCTOR") {
+                    currentUser = { id: "usr_doctor_demo", full_name: "Dr. Vikram Patil", email, role: "DOCTOR", profile_id: "DOC-784912", doctor_id: "nashik_doc_01" };
+                } else if (email === "patient.rahul@gmail.com" && pass === "PatientPassword123" && authRole === "PATIENT") {
+                    currentUser = { id: "usr_patient_demo", full_name: "Rahul Patil", email, role: "PATIENT", profile_id: "PAT-34821" };
+                } else {
+                    showAuthError("Invalid credentials. Please verify your email, password, and selected role tab.");
                     return;
                 }
 
-                const resolvedRole = (userObj.role || '').toUpperCase();
-                if (resolvedRole !== authRole) {
-                    showAuthError(`Role Mismatch: Account registered as ${resolvedRole}. Click the ${resolvedRole} tab.`);
-                    return;
-                }
-
-                currentUser = {
-                    id: userObj.id,
-                    profileId: userObj.profile_id || generateUniqueAccountId(resolvedRole),
-                    fullName: userObj.full_name || userObj.email,
-                    email: userObj.email,
-                    role: resolvedRole,
-                    doctorId: userObj.doctor_id || null
-                };
-                currentUserRole = resolvedRole;
-
-                safeWrite('mr_session', { uid: currentUser.id, user: currentUser });
+                sessionStorage.setItem('dd_session', JSON.stringify(currentUser));
                 unlockApp();
-
-            } catch (err) {
-                console.error("Login Error:", err);
-                showAuthError("A login error occurred. Check browser console.");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = originalBtnText;
+                submitBtn.innerText = "Sign In to Dashboard";
             }
+        }
+
+        async function handlePatientRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-pat-name').value.trim();
+            const email = document.getElementById('reg-pat-email').value.trim().toLowerCase();
+            const pass = document.getElementById('reg-pat-pass').value;
+            const confirm = document.getElementById('reg-pat-pass-confirm').value;
+
+            if (pass !== confirm) return showAuthError("Passwords do not match.");
+            if (pass.length < 8) return showAuthError("Password must be at least 8 characters.");
+
+            const profileId = "PAT-" + Math.floor(100000 + Math.random() * 900000);
+            const uid = "usr_" + Date.now();
+
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('users').insert([{
+                    id: uid,
+                    profile_id: profileId,
+                    full_name: name,
+                    email: email,
+                    password: pass,
+                    role: "PATIENT"
+                }]);
+                if (error) return showAuthError(error.message);
+            }
+
+            currentUser = { id: uid, profile_id: profileId, full_name: name, email, role: "PATIENT" };
+            sessionStorage.setItem('dd_session', JSON.stringify(currentUser));
+            unlockApp();
+            showToast(`Patient registered! Diary ID: ${profileId}`);
+        }
+
+        async function handleDoctorRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-doc-name').value.trim();
+            const email = document.getElementById('reg-doc-email').value.trim().toLowerCase();
+            const phone = document.getElementById('reg-doc-phone').value.trim();
+            const pass = document.getElementById('reg-doc-pass').value;
+            const confirmPass = document.getElementById('reg-doc-confirm-pass').value;
+            const specialty = document.getElementById('reg-doc-specialty').value;
+            const degree = document.getElementById('reg-doc-degree').value.trim();
+            const regno = document.getElementById('reg-doc-regno').value.trim();
+            const exp = parseInt(document.getElementById('reg-doc-exp').value, 10) || 5;
+            const fee = parseFloat(document.getElementById('reg-doc-fee').value) || 500;
+            const clinic = document.getElementById('reg-doc-clinic').value.trim();
+            const area = document.getElementById('reg-doc-area').value.trim() || 'Nashik';
+            const address = document.getElementById('reg-doc-address').value.trim();
+            const opd = document.getElementById('reg-doc-opd').value.trim();
+
+            if (pass !== confirmPass) return showAuthError("Passwords do not match.");
+            if (pass.length < 8) return showAuthError("Password must be at least 8 characters.");
+
+            const profileId = "DOC-" + Math.floor(100000 + Math.random() * 900000);
+            const docUid = "doc_" + Date.now();
+
+            const doctorRecord = {
+                id: docUid,
+                profile_id: profileId,
+                full_name: name,
+                email: email,
+                public_phone: phone,
+                specialty: specialty,
+                highest_degree: degree,
+                registration_number: regno,
+                experience: exp,
+                fee: fee,
+                clinic_name: clinic,
+                locality: area,
+                city: "Nashik",
+                state: "Maharashtra",
+                address: address,
+                availability_timings: opd,
+                verification_status: "Verified",
+                rating: "New",
+                reviews_count: 0
+            };
+
+            if (supabaseClient) {
+                try {
+                    const { error: dErr } = await supabaseClient.from('doctors').insert([doctorRecord]);
+                    if (dErr) return showAuthError(dErr.message);
+
+                    const { error: uErr } = await supabaseClient.from('users').insert([{
+                        id: docUid,
+                        profile_id: profileId,
+                        full_name: name,
+                        email: email,
+                        password: pass,
+                        role: "DOCTOR",
+                        doctor_id: docUid
+                    }]);
+                    if (uErr) return showAuthError(uErr.message);
+
+                    await supabaseClient.from('audit_logs').insert([{
+                        target_doctor_name: name,
+                        action: "VERIFIED",
+                        admin_user: "System",
+                        note: "Doctor onboarded and live across all devices."
+                    }]);
+                } catch (err) {
+                    return showAuthError("Registration failed on database network.");
+                }
+            }
+
+            cachedDoctors.unshift(doctorRecord);
+            currentUser = { id: docUid, profile_id: profileId, full_name: name, email, role: "DOCTOR", doctor_id: docUid };
+            sessionStorage.setItem('dd_session', JSON.stringify(currentUser));
+            
+            unlockApp();
+            await loadDirectoryData();
+            showToast(`Doctor profile published! Registered on all devices.`);
         }
 
         function unlockApp() {
             document.getElementById('auth-landing-screen').style.display = 'none';
-            document.getElementById('user-display-name').innerText = currentUser.fullName;
-            document.getElementById('user-display-role').innerText = currentUserRole;
-            document.getElementById('user-display-id').innerText = `ID: ${currentUser.profileId}`;
+            document.getElementById('user-display-name').innerText = currentUser.full_name;
+            document.getElementById('user-display-role').innerText = currentUser.role;
+            document.getElementById('user-display-id').innerText = `ID: ${currentUser.profile_id || '-'}`;
 
-            const isPatient = currentUserRole === 'PATIENT';
-            const isDoctor = currentUserRole === 'DOCTOR';
-            const isAdmin = currentUserRole === 'ADMIN';
+            const isPatient = currentUser.role === 'PATIENT';
+            const isDoctor = currentUser.role === 'DOCTOR';
+            const isAdmin = currentUser.role === 'ADMIN';
 
             document.getElementById('nav-home').style.display = isPatient ? 'flex' : 'none';
             document.getElementById('nav-specs').style.display = isPatient ? 'flex' : 'none';
@@ -1347,280 +1341,276 @@
 
             document.getElementById('btn-ai-triage').style.display = isPatient ? 'inline-flex' : 'none';
 
-            if (isAdmin) showView('admin-verification');
-            else if (isDoctor) showView('doc-portal');
-            else showView('home');
-        }
-
-        function handleLogout() {
-            if (supabaseClient) {
-                try { supabaseClient.auth.signOut(); } catch (e) {}
+            if (isDoctor) {
+                showView('doc-portal');
+                renderDoctorPortal();
+            } else if (isAdmin) {
+                showView('admin-verification');
+                renderAdminVerification();
+            } else {
+                showView('home');
             }
-            handleLogoutCleanup();
-        }
-
-        function handleLogoutCleanup() {
-            currentUser = null;
-            currentUserRole = null;
-            safeRemove('mr_session');
-            showAuthScreen();
-            showToast("Signed out of Doctor Diary.");
-        }
-
-        async function handlePatientRegister(e) {
-            e.preventDefault();
-            const name = document.getElementById('reg-pat-name').value.trim();
-            const email = document.getElementById('reg-pat-email').value.trim().toLowerCase();
-            const pass = document.getElementById('reg-pat-pass').value;
-            const confirm = document.getElementById('reg-pat-pass-confirm').value;
-
-            if (!/^[a-zA-Z\s\.]+$/.test(name)) return showAuthError("Name must contain letters and spaces only.");
-            if (pass !== confirm) return showAuthError("Passwords do not match.");
-            if (pass.length < 8) return showAuthError("Password must be at least 8 characters long.");
-
-            const generatedProfileId = generateUniqueAccountId("PATIENT");
-
-            if (supabaseClient && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT")) {
-                try {
-                    const { data: authData, error: authErr } = await supabaseClient.auth.signUp({
-                        email,
-                        password: pass,
-                        options: {
-                            data: { full_name: name, role: "PATIENT", profile_id: generatedProfileId }
-                        }
-                    });
-
-                    if (authErr) return showAuthError(authErr.message);
-
-                    showToast(`Registered successfully! Please sign in.`);
-                    toggleAuthMode('LOGIN');
-                    return;
-                } catch (err) {
-                    console.error("Patient signup error:", err);
-                }
-            }
-
-            const users = safeRead('mr_users', []);
-            const uid = "usr_" + Date.now();
-            const newUser = { id: uid, userId: uid, profileId: generatedProfileId, fullName: name, email, password: pass, role: "PATIENT" };
-            users.push(newUser);
-            safeWrite('mr_users', users);
-
-            currentUser = newUser;
-            currentUserRole = "PATIENT";
-            safeWrite('mr_session', { uid, user: newUser });
-            unlockApp();
-            showToast(`Registered! Diary ID: ${generatedProfileId}`);
-        }
-
-        async function handleDoctorRegister(e) {
-            e.preventDefault();
-            const name = document.getElementById('reg-doc-name').value.trim();
-            const email = document.getElementById('reg-doc-email').value.trim().toLowerCase();
-            const phone = document.getElementById('reg-doc-phone').value.trim();
-            const pass = document.getElementById('reg-doc-pass').value;
-            const confirmPass = document.getElementById('reg-doc-confirm-pass').value;
-            const specialty = document.getElementById('reg-doc-specialty').value;
-            const regno = document.getElementById('reg-doc-regno').value.trim();
-            const feeVal = document.getElementById('reg-doc-fee').value.trim();
-            const clinic = document.getElementById('reg-doc-clinic').value.trim();
-            const area = document.getElementById('reg-doc-area').value.trim() || 'Nashik';
-            const address = document.getElementById('reg-doc-address').value.trim();
-            const opd = document.getElementById('reg-doc-opd').value.trim();
-
-            if (!/^[a-zA-Z\s\.]+$/.test(name)) return showAuthError("Doctor Name must contain letters and spaces only.");
-            if (!/^[6-9][0-9]{9}$/.test(phone)) return showAuthError("Valid 10-digit Indian phone number required.");
-            if (pass !== confirmPass) return showAuthError("Passwords do not match.");
-            if (pass.length < 8) return showAuthError("Password must be at least 8 characters.");
-
-            const parsedFee = feeVal ? parseFloat(feeVal) : 0;
-            const generatedProfileId = generateUniqueAccountId("DOCTOR");
-            const generatedHospId = generateHospitalId();
-            let uid = "doc_" + Date.now();
-
-            const docClinics = [{ id: generatedHospId, name: clinic, locality: area, address: address, hours: opd, fee: String(parsedFee), phone: phone }];
-
-            if (supabaseClient && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT")) {
-                try {
-                    const { data: authData, error: authErr } = await supabaseClient.auth.signUp({
-                        email,
-                        password: pass,
-                        options: {
-                            data: { full_name: name, role: "DOCTOR", profile_id: generatedProfileId, doctor_id: uid }
-                        }
-                    });
-
-                    if (authErr) return showAuthError(authErr.message);
-                    if (authData?.user?.id) uid = authData.user.id;
-
-                    await supabaseClient.from('doctors').insert([{
-                        id: uid,
-                        profile_id: generatedProfileId,
-                        full_name: name,
-                        email: email,
-                        public_phone: phone,
-                        specialty: specialty,
-                        registration_number: regno,
-                        fee: parsedFee,
-                        clinic_name: clinic,
-                        locality: area,
-                        address: address,
-                        availability_timings: opd,
-                        clinics: docClinics,
-                        verification_status: "Pending Review"
-                    }]);
-
-                    showToast(`Registration submitted for review! Diary ID: ${generatedProfileId}`);
-                    toggleAuthMode('LOGIN');
-                    return;
-                } catch (err) {
-                    console.error("Doctor Registration Error:", err);
-                }
-            }
-
-            const docEntry = {
-                id: uid,
-                profileId: generatedProfileId,
-                fullName: name,
-                email,
-                publicPhone: phone,
-                specialty,
-                registrationNumber: regno,
-                fee: parsedFee,
-                clinicName: clinic,
-                locality: area,
-                address,
-                availabilityTimings: opd,
-                clinics: docClinics,
-                verificationStatus: "Pending Review",
-                rating: "New",
-                reviewsCount: 0
-            };
-
-            const newUser = { id: uid, userId: uid, profileId: generatedProfileId, fullName: name, email, password: pass, role: "DOCTOR", doctorId: uid };
-            const users = safeRead('mr_users', []);
-            users.push(newUser);
-            safeWrite('mr_users', users);
-
-            const docs = safeRead('mr_docs', []);
-            docs.unshift(docEntry);
-            safeWrite('mr_docs', docs);
-
-            currentUser = newUser;
-            currentUserRole = "DOCTOR";
-            safeWrite('mr_session', { uid, user: newUser });
-            unlockApp();
-            showToast(`Doctor profile registered! ID: ${generatedProfileId}`);
-        }
-
-        async function sendSupabasePasswordReset() {
-            const email = document.getElementById('fp-email').value.trim().toLowerCase();
-            if (!email) return showToast("Please enter your email address.");
-
-            if (!supabaseClient || SUPABASE_URL.includes("YOUR_PROJECT")) {
-                showToast("Password reset link dispatched (Simulated).");
-                closeForgotPasswordModal();
-                return;
-            }
-
-            try {
-                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + window.location.pathname
-                });
-                if (error) showToast("Error: " + error.message);
-                else {
-                    showToast("Password reset link sent! Check your inbox.");
-                    closeForgotPasswordModal();
-                }
-            } catch (err) {
-                showToast("Failed to dispatch reset email.");
-            }
-        }
-
-        async function saveNewPasswordFromRecovery() {
-            const newPass = document.getElementById('fp-new-pass').value;
-            const confirmPass = document.getElementById('fp-confirm-pass').value;
-
-            if (!newPass || newPass.length < 8) return showToast("Password must be at least 8 characters.");
-            if (newPass !== confirmPass) return showToast("Passwords do not match.");
-
-            try {
-                const { error } = await supabaseClient.auth.updateUser({ password: newPass });
-                if (error) showToast("Error: " + error.message);
-                else {
-                    showToast("Password updated successfully! Please sign in.");
-                    closeForgotPasswordModal();
-                    showAuthScreen();
-                }
-            } catch (err) {
-                showToast("Unable to update password.");
-            }
-        }
-
-        function openForgotPasswordModal() {
-            document.getElementById('fp-modal-title').innerText = "Reset Password";
-            document.getElementById('fp-step-1').style.display = 'block';
-            document.getElementById('fp-step-2').style.display = 'none';
-            document.getElementById('fp-email').value = '';
-            document.getElementById('forgot-password-modal').style.display = 'flex';
-        }
-
-        function closeForgotPasswordModal() {
-            document.getElementById('forgot-password-modal').style.display = 'none';
         }
 
         function renderPatientProfile() {
-            if (!currentUser || currentUserRole !== 'PATIENT') return;
-            const pid = currentUser.profileId || generateUniqueAccountId('PATIENT');
-            document.getElementById('pat-profile-id-display').innerText = pid;
-            document.getElementById('pat-profile-name').innerText = currentUser.fullName || 'Patient';
+            if (!currentUser) return;
+            document.getElementById('pat-profile-id-display').innerText = currentUser.profile_id || '-';
+            document.getElementById('pat-profile-name').innerText = currentUser.full_name || 'Patient';
             document.getElementById('pat-profile-email').innerText = currentUser.email || '-';
             document.getElementById('pat-profile-raw-uid').innerText = currentUser.id || '-';
         }
 
-        function showView(viewId) {
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        function renderDoctorPortal() {
+            const cont = document.getElementById('doc-portal-content');
+            const doc = cachedDoctors.find(d => d.id === currentUser.doctor_id || d.email === currentUser.email) || cachedDoctors[0];
 
-            const target = document.getElementById('view-' + viewId);
-            if (target) target.classList.add('active');
+            cont.innerHTML = `
+                <div class="form-section">
+                    <div class="private-id-card">
+                        <div>
+                            <div class="id-title">Doctor Confidential Portal ID</div>
+                            <div class="id-value">${escapeHtml(doc.profile_id || doc.id)}</div>
+                        </div>
+                        <span class="id-pill"><i class="fa-solid fa-lock"></i> Visible only to you</span>
+                    </div>
 
-            const navMap = {
-                'home': 'nav-home',
-                'specialties': 'nav-specs',
-                'find-doctors': 'nav-find',
-                'near-me': 'nav-nearme',
-                'patient-profile': 'nav-patient-profile',
-                'doc-portal': 'nav-doc-portal',
-                'doc-documents': 'nav-doc-docs',
-                'admin-verification': 'nav-admin-verify',
-                'admin-reviews': 'nav-admin-reviews',
-                'admin-audit': 'nav-admin-audit',
-                'about-legal': 'nav-about'
-            };
-            if (navMap[viewId]) document.getElementById(navMap[viewId])?.classList.add('active');
-            document.querySelector('aside')?.classList.remove('mobile-open');
+                    <h2>${escapeHtml(doc.full_name)}</h2>
+                    <p style="color:var(--brand); font-weight:700; margin-bottom:18px;">
+                        ${escapeHtml(doc.specialty)} • MMC Reg: <code>${escapeHtml(doc.registration_number || 'Verified')}</code>
+                    </p>
 
-            if (viewId === 'home' || viewId === 'find-doctors' || viewId === 'near-me') loadDirectoryData();
-            if (viewId === 'patient-profile') renderPatientProfile();
-            if (viewId === 'doc-portal') renderDoctorPortal();
-            if (viewId === 'doc-documents') renderDoctorCredentialsVault();
-            if (viewId === 'admin-verification') renderAdminVerification();
-            if (viewId === 'admin-reviews') renderAdminReviewsModeration();
-            if (viewId === 'admin-audit') renderAdminAuditLogs();
+                    <form onsubmit="saveDoctorPortalUpdates(event, '${doc.id}')">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="portal-clinic">Primary Hospital / Clinic Name</label>
+                                <input type="text" id="portal-clinic" value="${escapeHtml(doc.clinic_name || '')}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="portal-fee">Consultation Fee (₹)</label>
+                                <input type="number" id="portal-fee" value="${escapeHtml(doc.fee || 0)}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="portal-phone">Public Contact Phone</label>
+                                <input type="tel" id="portal-phone" value="${escapeHtml(doc.public_phone || '')}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="portal-hours">OPD Hours</label>
+                                <input type="text" id="portal-hours" value="${escapeHtml(doc.availability_timings || '')}" required>
+                            </div>
+                            <div class="form-group full">
+                                <label for="portal-address">Facility Address</label>
+                                <textarea id="portal-address" rows="2" required>${escapeHtml(doc.address || '')}</textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top:10px;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Save Updates &amp; Broadcast Live
+                        </button>
+                    </form>
+                </div>
+            `;
         }
 
-        function isClinicCurrentlyOpen(slots) {
-            if (!slots || !Array.isArray(slots) || slots.length === 0) return null;
-            const now = new Date();
-            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-            const currentDay = days[now.getDay()];
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        async function saveDoctorPortalUpdates(e, docId) {
+            e.preventDefault();
+            const clinic = document.getElementById('portal-clinic').value.trim();
+            const fee = parseFloat(document.getElementById('portal-fee').value) || 0;
+            const phone = document.getElementById('portal-phone').value.trim();
+            const hours = document.getElementById('portal-hours').value.trim();
+            const address = document.getElementById('portal-address').value.trim();
 
-            const todaySlots = slots.filter(s => s.day.toLowerCase() === currentDay.toLowerCase());
-            if (todaySlots.length === 0) return false;
+            if (supabaseClient) {
+                await supabaseClient.from('doctors').update({
+                    clinic_name: clinic,
+                    fee: fee,
+                    public_phone: phone,
+                    availability_timings: hours,
+                    address: address
+                }).eq('id', docId);
+            }
 
-            return todaySlots.some(s => {
-                const [startH, startM] = s.start.split(':').map(Number);
-                const [endH, endM] = s.end.split(':').map(Number);
-                return currentMinutes >= (startH * 60 + startM) && currentMinutes <= (endH *
+            const doc = cachedDoctors.find(d => d.id === docId);
+            if (doc) {
+                doc.clinic_name = clinic;
+                doc.fee = fee;
+                doc.public_phone = phone;
+                doc.availability_timings = hours;
+                doc.address = address;
+            }
+
+            showToast("Details updated live across all devices!");
+            await loadDirectoryData();
+        }
+
+        function renderAdminVerification() {
+            if (currentUser && currentUser.role === 'ADMIN') {
+                document.getElementById('admin-profile-id-display').innerText = currentUser.profile_id || 'ADM-10001';
+            }
+            const pending = cachedDoctors.filter(d => d.verification_status !== 'Verified');
+            const verified = cachedDoctors.filter(d => d.verification_status === 'Verified');
+
+            document.getElementById('admin-kpi-row').innerHTML = `
+                <div class="admin-stat-card verified"><div class="admin-stat-num">${verified.length}</div><div class="admin-stat-title">Active Doctors</div></div>
+                <div class="admin-stat-card pending"><div class="admin-stat-num">${pending.length}</div><div class="admin-stat-title">Under Review</div></div>
+            `;
+
+            document.getElementById('admin-verify-list').innerHTML = cachedDoctors.map(d => `
+                <div class="doctor-card" style="margin-bottom:12px; padding:16px 20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div>
+                            <h3 style="font-size:1.05rem;">${escapeHtml(d.full_name)} <span style="font-weight:400; color:var(--text-muted);">(${escapeHtml(d.specialty)})</span></h3>
+                            <div style="font-size:0.82rem; color:var(--text-muted);">ID: <code>${escapeHtml(d.profile_id || d.id)}</code> • MMC: <code>${escapeHtml(d.registration_number || 'Under Review')}</code></div>
+                            <span class="verify-tag ${d.verification_status === 'Verified' ? 'tag-verified' : 'tag-pending'}">${escapeHtml(d.verification_status)}</span>
+                        </div>
+                        <div>
+                            ${d.verification_status !== 'Verified' ? `
+                                <button class="btn btn-primary" onclick="setDoctorStatus('${d.id}', 'Verified')"><i class="fa-solid fa-check"></i> Approve</button>
+                            ` : `
+                                <button class="btn btn-danger-outline" onclick="setDoctorStatus('${d.id}', 'Pending Review')"><i class="fa-solid fa-ban"></i> Revoke</button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function setDoctorStatus(id, newStatus) {
+            if (supabaseClient) {
+                await supabaseClient.from('doctors').update({ verification_status: newStatus }).eq('id', id);
+            }
+            const doc = cachedDoctors.find(d => d.id === id);
+            if (doc) doc.verification_status = newStatus;
+            showToast(`Status updated to ${newStatus}. Synced!`);
+            renderAdminVerification();
+            renderHome();
+        }
+
+        function openProfile(id) {
+            const doc = cachedDoctors.find(d => d.id === id);
+            if (!doc) return;
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((doc.clinic_name || 'Clinic') + ' ' + (doc.address || 'Nashik'))}`;
+
+            document.getElementById('modal-body').innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:14px;">
+                    <div>
+                        <h2>${escapeHtml(doc.full_name)}</h2>
+                        <p style="color:var(--brand); font-weight:700;">${escapeHtml(doc.specialty)}</p>
+                    </div>
+                    <span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> MMC Verified</span>
+                </div>
+                <div style="font-size:0.88rem; line-height:1.7;">
+                    <div><strong>Registry ID:</strong> <code>${escapeHtml(doc.profile_id || doc.id)}</code></div>
+                    <div><strong>Registration:</strong> ${escapeHtml(doc.registration_number || 'MMC Verified')}</div>
+                    <div><strong>Education:</strong> ${escapeHtml(doc.highest_degree || 'MD')} (${escapeHtml(doc.experience || 10)} Years Clinical Experience)</div>
+                    <div><strong>Consultation Fee:</strong> ₹${escapeHtml(doc.fee || 500)}</div>
+                    <div><strong>Phone:</strong> ${escapeHtml(doc.public_phone || 'Available via reception')}</div>
+                    <div><strong>Clinic:</strong> ${escapeHtml(doc.clinic_name || 'Hospital')}</div>
+                    <div><strong>Address:</strong> ${escapeHtml(doc.address || 'Nashik, Maharashtra')}</div>
+                    <div><strong>Timings:</strong> ${escapeHtml(doc.availability_timings || 'Mon–Sat: 10:00 AM–02:00 PM')}</div>
+                </div>
+                <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                    <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-outline"><i class="fa-solid fa-diamond-turn-right"></i> Directions</a>
+                    <button class="btn btn-primary" onclick="document.getElementById('main-modal').style.display='none'">Close</button>
+                </div>
+            `;
+            document.getElementById('main-modal').style.display = 'flex';
+        }
+
+        /* ========================================================
+           AI TRIAGE & VOICE ASSISTANT
+        ======================================================== */
+        function openAITriageModal() {
+            document.getElementById('ai-modal').style.display = 'flex';
+            document.getElementById('ai-symptom-input').focus();
+        }
+
+        function closeAITriageModal() {
+            document.getElementById('ai-modal').style.display = 'none';
+        }
+
+        function runAITriage() {
+            const input = (document.getElementById('ai-symptom-input').value || '').toLowerCase().trim();
+            const box = document.getElementById('ai-result-box');
+            const cont = document.getElementById('ai-result-content');
+            if (!input) return showToast('Please enter symptoms first.');
+            box.style.display = 'block';
+
+            let match = "General Medicine";
+            if (input.includes('heart') || input.includes('bp') || input.includes('chest')) match = "Cardiology";
+            else if (input.includes('skin') || input.includes('rash') || input.includes('acne')) match = "Dermatology";
+            else if (input.includes('bone') || input.includes('joint') || input.includes('knee')) match = "Orthopedics";
+            else if (input.includes('child') || input.includes('baby')) match = "Pediatrics";
+            else if (input.includes('nerve') || input.includes('headache')) match = "Neurology";
+
+            cont.innerHTML = `
+                <div>
+                    <strong>Suggested Specialty: ${match}</strong>
+                    <p style="margin:6px 0 10px; font-size:0.85rem; color:#475569;">Based on your description, consult a verified ${match} specialist.</p>
+                    <button class="btn btn-primary" onclick="applyAISuggestion('${match}')">View ${match} Specialists</button>
+                </div>
+            `;
+        }
+
+        function applyAISuggestion(spec) {
+            closeAITriageModal();
+            showView('find-doctors');
+            document.getElementById('f-spec').value = spec;
+            filterDoctors();
+        }
+
+        function startVoiceInput() {
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Speech) return showToast("Speech recognition not supported in this browser.");
+            const r = new Speech();
+            r.lang = 'en-IN';
+            showToast("Listening...");
+            r.onresult = (e) => {
+                document.getElementById('ai-symptom-input').value = e.results[0][0].transcript;
+                runAITriage();
+            };
+            r.start();
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const target = document.getElementById(`view-${viewId}`);
+            if (target) target.classList.add('active');
+            const nav = document.getElementById(`nav-${viewId}`);
+            if (nav) nav.classList.add('active');
+            document.querySelector('aside').classList.remove('mobile-open');
+
+            if (viewId === 'patient-profile') renderPatientProfile();
+            if (viewId === 'doc-portal') renderDoctorPortal();
+            if (viewId === 'admin-verification') renderAdminVerification();
+        }
+
+        function toggleMobileMenu() {
+            document.querySelector('aside').classList.toggle('mobile-open');
+        }
+
+        function showAuthScreen() {
+            document.getElementById('auth-landing-screen').style.display = 'flex';
+            toggleAuthMode('LOGIN');
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem('dd_session');
+            currentUser = null;
+            showAuthScreen();
+            showToast("Signed out.");
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 3200);
+        }
+    </script>
+</body>
+</html>
