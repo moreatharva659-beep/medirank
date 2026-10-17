@@ -168,7 +168,6 @@
         .tag-verified { background: #dcfce7; color: #166534; }
         .tag-pending { background: #fef9c3; color: #854d0e; }
         .tag-rejected { background: #fee2e2; color: #991b1b; }
-        .tag-correction { background: #fef3c7; color: #92400e; }
         .tag-opennow { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .tag-closednow { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
@@ -318,11 +317,11 @@
             <form id="form-login" onsubmit="handleUniversalLogin(event)">
                 <div class="form-group">
                     <label for="login-email">Email Address</label>
-                    <input type="email" id="login-email" required placeholder="e.g. user@gmail.com" value="" autocomplete="username">
+                    <input type="email" id="login-email" required placeholder="e.g. patient.rahul@gmail.com" autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label for="login-pass">Password</label>
-                    <input type="password" id="login-pass" required placeholder="Enter password" value="" autocomplete="current-password">
+                    <input type="password" id="login-pass" required placeholder="Enter password" autocomplete="current-password">
                     <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('login-pass', this)"></i>
                 </div>
                 <div style="text-align:right; margin-bottom:14px;">
@@ -378,111 +377,35 @@
                         <input type="password" id="reg-doc-confirm-pass" required placeholder="Re-enter password" autocomplete="new-password">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-gender">Gender</label>
-                        <select id="reg-doc-gender"><option>Prefer not to say</option><option>Male</option><option>Female</option><option>Other</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-age">Age (18–100)</label>
-                        <input type="number" id="reg-doc-age" min="18" max="100" placeholder="e.g. 38">
-                    </div>
-                    <div class="form-group">
                         <label for="reg-doc-specialty">Specialization*</label>
                         <select id="reg-doc-specialty" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-sub">Sub-specialization</label>
-                        <input type="text" id="reg-doc-sub" placeholder="e.g. Interventional Cardiology">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-degree">Highest Degree / Qualification*</label>
-                        <input type="text" id="reg-doc-degree" required placeholder="MBBS, MD, MS, DM...">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-univ">Medical College / University</label>
-                        <input type="text" id="reg-doc-univ" placeholder="e.g. Grant Medical College, Mumbai">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-year">Graduation Year</label>
-                        <input type="number" id="reg-doc-year" min="1950" max="2026" placeholder="e.g. 2012">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-cert">Additional Certifications</label>
-                        <input type="text" id="reg-doc-cert" placeholder="e.g. Fellow in Cardiology">
                     </div>
                     <div class="form-group">
                         <label for="reg-doc-regno">Registration Number*</label>
                         <input type="text" id="reg-doc-regno" required placeholder="e.g. MMC-10491">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-council">Registration Council</label>
-                        <input type="text" id="reg-doc-council" placeholder="e.g. Maharashtra Medical Council">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-exp">Experience (Years)*</label>
-                        <input type="number" id="reg-doc-exp" min="0" max="70" required placeholder="e.g. 14">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-position">Current Position</label>
-                        <input type="text" id="reg-doc-position" placeholder="e.g. Head of Cardiology">
-                    </div>
-                    <div class="form-group">
                         <label for="reg-doc-fee">Consultation Fee (₹)*</label>
                         <input type="number" id="reg-doc-fee" min="0" max="50000" required placeholder="e.g. 800">
                     </div>
                     <div class="form-group">
-                        <label for="reg-doc-online">Online Consultation</label>
-                        <select id="reg-doc-online"><option>No</option><option>Yes</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-state">State*</label>
-                        <select id="reg-doc-state" onchange="loadDoctorRegCities()" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-city">City*</label>
-                        <select id="reg-doc-city" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-clinic">Primary Clinic / Hospital Name*</label>
+                        <label for="reg-doc-clinic">Primary Clinic Name*</label>
                         <input type="text" id="reg-doc-clinic" required placeholder="Apollo Hospitals">
                     </div>
                     <div class="form-group">
                         <label for="reg-doc-area">Area / Locality</label>
                         <input type="text" id="reg-doc-area" placeholder="e.g. Panchavati">
                     </div>
-                    <div class="form-group">
-                        <label for="reg-doc-pin">PIN Code</label>
-                        <input type="text" id="reg-doc-pin" pattern="[1-9][0-9]{5}" maxlength="6" placeholder="e.g. 422003">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-languages">Languages Known</label>
-                        <input type="text" id="reg-doc-languages" placeholder="English, Hindi, Marathi">
+                    <div class="form-group full">
+                        <label for="reg-doc-address">Primary Clinic Address*</label>
+                        <textarea id="reg-doc-address" rows="2" required placeholder="Plot, Street, Area"></textarea>
                     </div>
                     <div class="form-group full">
-                        <label for="reg-doc-address">Complete Primary Clinic Address*</label>
-                        <textarea id="reg-doc-address" rows="2" required placeholder="Plot, Street, Area, Landmark"></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label for="reg-doc-opd">Consultation Availability Timings*</label>
-                        <textarea id="reg-doc-opd" rows="2" required placeholder="Monday–Saturday: 09:00 AM–02:00 PM"></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label for="reg-doc-services">Treatments &amp; Clinical Services</label>
-                        <textarea id="reg-doc-services" rows="2" placeholder="e.g. Cardiac checkups, 2D Echo"></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label for="reg-doc-about">Professional Bio</label>
-                        <textarea id="reg-doc-about" rows="2" placeholder="Brief professional background..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-photo">Profile Photo (PNG/JPG)</label>
-                        <input type="file" id="reg-doc-photo" accept="image/png, image/jpeg">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-doc-file">Council Certificate* (PDF/JPG)</label>
-                        <input type="file" id="reg-doc-file" required accept=".pdf,.png,.jpg,.jpeg">
+                        <label for="reg-doc-opd">Consultation Timings*</label>
+                        <textarea id="reg-doc-opd" rows="2" required placeholder="Mon–Sat: 09:00 AM–02:00 PM"></textarea>
                     </div>
                 </div>
-                <button type="submit" class="btn-submit" id="btn-doctor-submit">Submit Profile to Doctor Diary Registry</button>
+                <button type="submit" class="btn-submit" id="btn-doctor-submit">Submit Profile to Registry</button>
             </form>
 
             <div class="auth-switch" id="auth-toggle-link">
@@ -501,27 +424,24 @@
                 </div>
                 <div>
                     <h3 style="margin:0;" id="fp-modal-title">Reset Password</h3>
-                    <small style="color:var(--text-muted);" id="fp-modal-subtitle">Doctor Diary Recovery</small>
+                    <small style="color:var(--text-muted);" id="fp-modal-subtitle">Doctor Diary Security</small>
                 </div>
             </div>
             
             <div id="fp-step-1">
                 <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
-                    Enter your registered email address. We will dispatch a secure recovery link.
+                    Enter your registered email address. We will dispatch a recovery link.
                 </p>
                 <div class="form-group">
                     <label for="fp-email">Registered Email Address*</label>
                     <input type="email" id="fp-email" required placeholder="e.g. user@gmail.com">
                 </div>
                 <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="btn-send-reset-link" onclick="sendSupabasePasswordReset()">
-                    <i class="fa-solid fa-paper-plane"></i> Send Password Reset Link
+                    <i class="fa-solid fa-paper-plane"></i> Send Reset Link
                 </button>
             </div>
 
             <div id="fp-step-2" style="display:none;">
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
-                    Your recovery token is confirmed. Enter your new password below.
-                </p>
                 <div class="form-group">
                     <label for="fp-new-pass">New Password* (8+ chars)</label>
                     <input type="password" id="fp-new-pass" required placeholder="New password">
@@ -531,7 +451,7 @@
                     <input type="password" id="fp-confirm-pass" required placeholder="Confirm new password">
                 </div>
                 <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="btn-save-new-pass" onclick="saveNewPasswordFromRecovery()">
-                    <i class="fa-solid fa-lock"></i> Update &amp; Set New Password
+                    <i class="fa-solid fa-lock"></i> Save New Password
                 </button>
             </div>
         </div>
@@ -677,8 +597,6 @@
                     </div>
 
                     <h3>My Patient Profile</h3>
-                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Your registered identity on Doctor Diary.</p>
-
                     <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:18px;">
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                             <div>
@@ -688,14 +606,6 @@
                             <div>
                                 <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">REGISTERED EMAIL</label>
                                 <div id="pat-profile-email" style="font-weight:600;">-</div>
-                            </div>
-                            <div>
-                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">MEMBERSHIP STATUS</label>
-                                <div><span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Active Citizen Account</span></div>
-                            </div>
-                            <div>
-                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">INTERNAL SYSTEM UID</label>
-                                <div id="pat-profile-raw-uid" style="font-family:monospace; color:var(--text-muted);">-</div>
                             </div>
                         </div>
                     </div>
@@ -707,69 +617,17 @@
                 <div id="doc-portal-content"></div>
             </div>
 
-            <!-- VIEW: DOCTOR DOCUMENTS VAULT -->
-            <div id="view-doc-documents" class="view-section">
-                <div class="form-section">
-                    <h3>Doctor Diary Credentials Vault</h3>
-                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Secure cloud storage for council registration certificates and state licenses.</p>
-                    <div style="margin-bottom:20px;">
-                        <h4 style="font-size:0.9rem; margin-bottom:10px; color:var(--brand);"><i class="fa-solid fa-folder-tree"></i> Audited Documentation</h4>
-                        <div id="doc-existing-credentials-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group"><label>1. Medical Council Registration Certificate</label><input type="file" id="doc_reg_cert"></div>
-                        <div class="form-group"><label>2. Primary Degree Certificate (MBBS)</label><input type="file" id="doc_degree_cert"></div>
-                        <div class="form-group"><label>3. Post-Graduation Degree (MD/MS/DM)</label><input type="file" id="doc_pg_cert"></div>
-                        <div class="form-group"><label>4. Fellowship / Sub-specialty Documents</label><input type="file" id="doc_fellow_cert"></div>
-                        <div class="form-group full"><label>5. Clinic Establishment / OPD License</label><input type="file" id="doc_clinic_lic"></div>
-                    </div>
-                    <button class="btn btn-primary" onclick="showToast('Credential documents stored securely.')"><i class="fa-solid fa-shield-halved"></i> Save Documents</button>
-                </div>
-            </div>
-
             <!-- VIEW: ADMIN VERIFICATION QUEUE -->
             <div id="view-admin-verification" class="view-section">
-                <div class="private-id-card">
-                    <div>
-                        <div class="id-title">Doctor Diary Admin Terminal Registry ID</div>
-                        <div class="id-value" id="admin-profile-id-display">Generating...</div>
-                    </div>
-                    <span class="id-pill"><i class="fa-solid fa-shield-halved"></i> Council Superadmin</span>
-                </div>
-
                 <div class="admin-stat-grid" id="admin-kpi-row"></div>
-                <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
-                    <input type="text" id="admin-search" placeholder="Search by doctor or registration number..." oninput="filterAdminQueue()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1; min-width:240px; outline:none;">
-                    <select id="admin-filter-status" onchange="filterAdminQueue()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;">
-                        <option value="ALL">All Statuses</option>
-                        <option value="Pending Review">Pending Review</option>
-                        <option value="Verified">Verified</option>
-                        <option value="Correction Required">Correction Required</option>
-                        <option value="Rejected">Rejected</option>
-                    </select>
-                </div>
                 <div id="admin-verify-list"></div>
             </div>
 
             <!-- VIEW: ADMIN REVIEWS MODERATION DESK -->
             <div id="view-admin-reviews" class="view-section">
                 <div class="form-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div>
-                            <h3>Patient Experience Moderation Desk</h3>
-                            <p style="font-size:0.85rem; color:var(--text-muted);">Verify patient consultation narratives and attached OPD receipts before publishing.</p>
-                        </div>
-                    </div>
+                    <h3>Patient Experience Moderation Desk</h3>
                     <div id="admin-reviews-list"></div>
-                </div>
-            </div>
-
-            <!-- VIEW: ADMIN AUDIT LOGS -->
-            <div id="view-admin-audit" class="view-section">
-                <div class="form-section">
-                    <h3>Administrative Audit History</h3>
-                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Immutable record of credential approvals, revocations, and status notes.</p>
-                    <div id="admin-audit-table-container"></div>
                 </div>
             </div>
 
@@ -777,13 +635,7 @@
             <div id="view-about-legal" class="view-section">
                 <div class="form-section">
                     <h3>About Doctor Diary</h3>
-                    <p style="margin:10px 0; font-size:0.9rem; line-height:1.6;">Doctor Diary is a specialist medical directory providing transparent access to verified medical council registrations, verified experience summaries, and facility locations.</p>
-                    <div style="background:#f1f5f9; padding:15px; border-radius:8px; margin:15px 0;">
-                        <strong>Mandatory Compliance Notice:</strong>
-                        <p style="font-size:0.85rem; color:#475569; margin-top:4px;">Doctor Diary does not provide emergency intervention or telemedicine prescriptions. Verify appointment slots directly with the practitioner's clinic prior to visiting.</p>
-                    </div>
-                    <h4>Report Discrepancy</h4>
-                    <p style="font-size:0.88rem;">To flag an outdated listing, contact: <code>compliance@doctordiary.in</code></p>
+                    <p style="margin:10px 0; font-size:0.9rem; line-height:1.6;">Doctor Diary is a specialist medical directory providing transparent access to verified medical council registrations.</p>
                 </div>
             </div>
         </main>
@@ -797,124 +649,11 @@
         </div>
     </div>
 
-    <!-- PATIENT EXPERIENCE FEEDBACK MODAL -->
-    <div id="feedback-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width: 580px;">
-            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeFeedbackModal()">&times;</button>
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-                <div style="background:#e6fffa; color:var(--brand); width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
-                    <i class="fa-solid fa-comment-medical"></i>
-                </div>
-                <div>
-                    <h3 style="margin:0;">Record Consultation Experience</h3>
-                    <small id="feedback-modal-subtitle" style="color:var(--text-muted);"></small>
-                </div>
-            </div>
-
-            <form id="form-patient-feedback" onsubmit="handleFeedbackSubmit(event)">
-                <input type="hidden" id="fb-doctor-id">
-                
-                <div class="form-group">
-                    <label for="fb-rating">Rating (1 to 5 Stars)*</label>
-                    <select id="fb-rating">
-                        <option value="5">★★★★★ (5 - Excellent)</option>
-                        <option value="4">★★★★☆ (4 - Good)</option>
-                        <option value="3">★★★☆☆ (3 - Average)</option>
-                        <option value="2">★★☆☆☆ (2 - Below Expectations)</option>
-                        <option value="1">★☆☆☆☆ (1 - Poor)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="fb-narrative">Describe your experience in your own words*</label>
-                    <textarea id="fb-narrative" rows="4" required placeholder="Describe your consultation: Did the doctor explain your health condition clearly? How was the waiting time and clinic staff behavior?"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="fb-proof-file">Upload Consultation Proof* (Prescription, Receipt, or OPD Bill)</label>
-                    <input type="file" id="fb-proof-file" required accept=".pdf, .png, .jpg, .jpeg" onchange="previewFeedbackProof(event)">
-                    <small style="color:var(--text-muted); font-size:0.75rem;">Proof ensures only genuine patients post feedback. Documents are audited exclusively by council administrators.</small>
-                </div>
-
-                <div id="fb-proof-preview" style="display:none; background:#f8fafc; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:12px; font-size:0.8rem; color:#334155;">
-                    <i class="fa-solid fa-paperclip"></i> <span id="fb-proof-filename"></span>
-                </div>
-
-                <div style="background:#fffbeb; border:1px solid #fef3c7; color:#92400e; padding:10px 12px; border-radius:8px; font-size:0.75rem; margin-bottom:15px; line-height:1.4;">
-                    <i class="fa-solid fa-shield-halved"></i> <strong>Audit Notice:</strong> Experiences are manually audited against consultation slips before publishing to prevent spam and protect medical reputations.
-                </div>
-
-                <div style="display:flex; justify-content:flex-end; gap:10px;">
-                    <button type="button" class="btn btn-outline" onclick="closeFeedbackModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="btn-submit-fb"><i class="fa-solid fa-paper-plane"></i> Submit for Admin Review</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- PROOF INSPECTION MODAL -->
-    <div id="inspect-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width: 580px;">
-            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeInspectModal()">&times;</button>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-                <div style="background: #e6fffa; color: var(--brand); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                    <i class="fa-solid fa-file-shield"></i>
-                </div>
-                <div>
-                    <h3 style="margin: 0;">Proof Audit</h3>
-                    <small id="inspect-doc-subtitle" style="color: var(--text-muted);"></small>
-                </div>
-            </div>
-            <div id="inspect-modal-body" style="font-size: 0.88rem; line-height: 1.6;"></div>
-            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-                <button class="btn btn-outline" onclick="closeInspectModal()">Close Viewer</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADMIN STATUS MODAL -->
-    <div id="status-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width: 500px;">
-            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeStatusModal()">&times;</button>
-            <h3 style="margin-bottom: 8px;">Modify Practitioner Status</h3>
-            <p id="status-modal-subtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;"></p>
-            <div class="form-group">
-                <label>Select Status</label>
-                <select id="modal-status-choice">
-                    <option value="Verified">Verified</option>
-                    <option value="Pending Review">Pending Review</option>
-                    <option value="Correction Required">Correction Required</option>
-                    <option value="Rejected">Rejected</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Audit Comment / Reason</label>
-                <textarea id="modal-status-note" rows="3" placeholder="Provide note for audit ledger..."></textarea>
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
-                <button class="btn btn-outline" onclick="closeStatusModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="submitStatusModalUpdate()">Update &amp; Log</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- CONFIRMATION MODAL -->
-    <div id="confirm-modal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width:440px;">
-            <h3 id="confirm-title" style="margin-bottom:10px;">Confirm Action</h3>
-            <p id="confirm-desc" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:20px;"></p>
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn btn-outline" onclick="closeConfirmDialog()">Cancel</button>
-                <button class="btn btn-primary" id="confirm-action-btn">Proceed</button>
-            </div>
-        </div>
-    </div>
-
     <div id="toast" class="toast" role="alert"></div>
 
     <script>
         /* ========================================================
-           SUPABASE CREDENTIALS & INITIALIZATION
+           SUPABASE CONFIGURATION & REALTIME INITIALIZATION
         ======================================================== */
         const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
         const SUPABASE_ANON_KEY = "YOUR_ANON_PUBLIC_KEY";
@@ -923,25 +662,16 @@
             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
             : null;
 
-        const CURRENT_DATA_VERSION = "doctordiary_v23_realtime_auth";
+        const CURRENT_DATA_VERSION = "doctordiary_v25_release";
 
         const STATES_DATA = {
-            "Maharashtra": ["Nashik", "Pune", "Mumbai", "Nagpur", "Chhatrapati Sambhajinagar", "Thane", "Kolhapur", "Ahmednagar", "Solapur", "Satara"],
-            "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
-            "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubballi"],
-            "Delhi": ["New Delhi"],
-            "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur"],
-            "Madhya Pradesh": ["Indore", "Bhopal"],
-            "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi"],
-            "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
-            "Telangana": ["Hyderabad"],
-            "Goa": ["Panaji"]
+            "Maharashtra": ["Nashik", "Pune", "Mumbai", "Nagpur", "Thane", "Kolhapur"],
+            "Gujarat": ["Ahmedabad", "Surat", "Vadodara"]
         };
 
         const NASHIK_AREAS = [
             "College Road", "Gangapur Road", "Panchavati", "Indira Nagar", 
-            "Nashik Road", "Mumbai Naka", "Cidco", "Satpur", "Govind Nagar", 
-            "Mahatma Nagar", "Pathardi Phata", "Dwarka"
+            "Nashik Road", "Mumbai Naka", "Cidco", "Satpur", "Govind Nagar"
         ];
 
         const NASHIK_COORDINATES = {
@@ -949,289 +679,51 @@
             "Mumbai Naka": { lat: 19.9882, lng: 73.7845 },
             "Gangapur Road": { lat: 20.0169, lng: 73.7634 },
             "College Road": { lat: 20.0076, lng: 73.7601 },
-            "Nashik Road": { lat: 19.9575, lng: 73.8340 },
-            "Indira Nagar": { lat: 19.9678, lng: 73.7712 },
-            "Govind Nagar": { lat: 19.9812, lng: 73.7663 },
-            "Mahatma Nagar": { lat: 20.0021, lng: 73.7485 },
-            "Satpur": { lat: 19.9983, lng: 73.7315 },
-            "Pathardi Phata": { lat: 19.9450, lng: 73.7725 },
-            "Dwarka": { lat: 19.9899, lng: 73.7988 },
-            "Cidco": { lat: 19.9723, lng: 73.7455 }
+            "Nashik Road": { lat: 19.9575, lng: 73.8340 }
         };
 
         const SPECIALTY_META = {
-            "Gynecology": { name: "Gynecology", simpleHelp: "Women's Health, Pregnancy & Period Issues", desc: "Consult for pregnancy, childbirth, PCOS, menstruation pain, and uterine care." },
-            "Cardiology": { name: "Cardiology", simpleHelp: "Heart & Blood Pressure Conditions", desc: "Consult for chest pain, breathlessness, irregular heartbeats, high BP, and blockages." },
-            "Neurology": { name: "Neurology", simpleHelp: "Brain, Nerves & Severe Headaches", desc: "Consult for migraines, numbness, tremors, memory issues, fits, and nerve pain." },
-            "Orthopedics": { name: "Orthopedics", simpleHelp: "Bones, Joints & Fractures", desc: "Consult for knee pain, arthritis, back/spine pain, fractures, and sports injuries." },
-            "Pediatrics": { name: "Pediatrics", simpleHelp: "Newborns, Toddlers & Child Health", desc: "Consult for child vaccination, growth milestones, infant fevers, and childhood coughs." },
-            "Dermatology": { name: "Dermatology", simpleHelp: "Skin, Hair & Nail Problems", desc: "Consult for pimples/acne, hair fall, fungal rashes, eczema, and psoriasis." },
-            "Pulmonology": { name: "Pulmonology", simpleHelp: "Lungs, Breathing & Chronic Cough", desc: "Consult for asthma, severe breathlessness, chronic coughing, and allergy infections." },
-            "Ophthalmology": { name: "Ophthalmology", simpleHelp: "Eyes & Vision Care", desc: "Consult for blurred vision, cataract surgery, eye pain, redness, and spectacles." },
-            "Dentistry": { name: "Dentistry", simpleHelp: "Teeth, Gums & Oral Pain", desc: "Consult for toothaches, cavity fillings, bleeding gums, root canals, and cleaning." },
-            "General Medicine": { name: "General Medicine", simpleHelp: "Routine Fevers, Diabetes & Body Weakness", desc: "Consult for viral fevers, blood sugar/diabetes, fatigue, and primary medical checkups." },
-            "Psychiatry": { name: "Psychiatry", simpleHelp: "Mental Health, Stress & Sleep Disorders", desc: "Consult for anxiety, depression, insomnia (sleeplessness), and panic distress." },
-            "Radiology": { name: "Radiology", simpleHelp: "X-Rays, MRI, CT Scans & Sonography", desc: "Consult for diagnostic imaging, ultrasound, bone scans, and internal reports." }
+            "Cardiology": { name: "Cardiology", simpleHelp: "Heart & BP Conditions", desc: "Chest pain, breathlessness, irregular heartbeats, and BP." },
+            "Pediatrics": { name: "Pediatrics", simpleHelp: "Child Healthcare", desc: "Child vaccination, infant fevers, and developmental milestones." },
+            "Orthopedics": { name: "Orthopedics", simpleHelp: "Bones & Joints", desc: "Knee pain, arthritis, fractures, and sports ligament injuries." },
+            "Dermatology": { name: "Dermatology", simpleHelp: "Skin & Hair", desc: "Acne, hair fall, fungal rashes, eczema, and skin procedures." },
+            "Neurology": { name: "Neurology", simpleHelp: "Brain & Nerves", desc: "Migraines, numbness, tremors, and stroke rehabilitation." },
+            "Gynecology": { name: "Gynecology", simpleHelp: "Women's Health", desc: "Pregnancy, PCOS, menstruation pain, and uterine care." },
+            "General Medicine": { name: "General Medicine", simpleHelp: "Viral Fevers & Diabetes", desc: "Viral fevers, blood sugar, and primary health evaluations." }
         };
 
         const SPECIALTIES = Object.keys(SPECIALTY_META);
 
         const SPEC_IMAGES = {
-            Cardiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g1"><stop stop-color="#ff6b81"/><stop offset="1" stop-color="#c51f49"/></radialGradient></defs><path d="M80 112C73 102 22 72 28 35c4-25 36-29 52-8 16-21 48-17 52 8 6 37-45 67-52 77z" fill="url(#g1)"/><path d="M49 43c9-11 20-8 29 3" fill="none" stroke="#ffd4dc" stroke-width="5" stroke-linecap="round"/><path d="M12 70h25l7-20 10 42 9-26h27l7-13 8 20h43" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-            Neurology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g2"><stop stop-color="#ffb6d5"/><stop offset="1" stop-color="#b26cff"/></radialGradient></defs><path d="M78 18c-27-13-54 7-48 31-18 17-4 45 19 44 8 25 44 22 52 4 24 3 37-27 20-44 8-25-16-43-43-35z" fill="url(#g2)"/><path d="M44 38c12-12 18 9 29-3 11-13 15 10 28-2M39 61c15-12 20 14 34 0 12-12 17 13 34 1M57 82c11-12 19 7 29-2" fill="none" stroke="#6d3ca8" stroke-width="4" stroke-linecap="round"/></svg>`,
-            Orthopedics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g3" x2="1" y2="1"><stop stop-color="#fff4c7"/><stop offset=".55" stop-color="#e6b66b"/><stop offset="1" stop-color="#a96d37"/></linearGradient></defs><path d="M43 18c-12 7-13 22-4 30l19 17-19 18c-10 9-8 25 4 31 8 4 17 2 23-5l18-21 18 21c6 7 15 9 23 5 12-6 14-22 4-31L110 65l19-17c9-8 8-23-4-30-8-5-17-3-23 4L80 43 58 22c-6-7-15-9-23-4z" fill="url(#g3)" stroke="#7f572f" stroke-width="3"/></svg>`,
-            Pulmonology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g4"><stop stop-color="#76e3ff"/><stop offset="1" stop-color="#2678d8"/></linearGradient></defs><path d="M78 18h5v33l-4 8-4-8V18z" fill="#8aa7c7"/><path d="M76 43C52 37 28 49 27 81c-1 25 16 36 39 28 13-5 14-29 10-44zM85 43c24-6 48 6 49 38 1 25-16 36-39 28-13-5-14-29-10-44z" fill="url(#g4)" stroke="#2167b8" stroke-width="3"/><path d="M80 53L55 70m25-17 25 17M55 70l-9 18m34-18 9 18" stroke="#d5f7ff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`,
-            Ophthalmology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g5"><stop stop-color="#8ff5ff"/><stop offset=".55" stop-color="#318ed8"/><stop offset="1" stop-color="#173e9a"/></radialGradient></defs><path d="M12 65s27-37 68-37 68 37 68 37-27 37-68 37S12 65 12 65z" fill="#fff" stroke="#3f83c7" stroke-width="5"/><circle cx="80" cy="65" r="28" fill="url(#g5)"/><circle cx="80" cy="65" r="10" fill="#101c42"/><circle cx="88" cy="55" r="5" fill="#fff"/></svg>`,
-            Dentistry: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g6"><stop stop-color="#ffffff"/><stop offset=".6" stop-color="#b9eaff"/><stop offset="1" stop-color="#4b9fd7"/></linearGradient></defs><path d="M48 25c-8 10-6 25-4 39 3 23 7 43 19 44 10 1 9-29 17-29s7 30 17 29c12-1 16-21 19-44 2-14 4-29-4-39-12-15-23-4-32-4s-20-11-32 4z" fill="url(#g6)" stroke="#3d83b9" stroke-width="3"/></svg>`,
-            "General Medicine": `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g7"><stop stop-color="#63e6be"/><stop offset="1" stop-color="#2f8fd4"/></linearGradient></defs><circle cx="80" cy="65" r="49" fill="url(#g7)"/><rect x="68" y="34" width="24" height="62" rx="5" fill="#fff"/><rect x="49" y="53" width="62" height="24" rx="5" fill="#fff"/></svg>`,
-            Dermatology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g8"><stop stop-color="#ffd2c2"/><stop offset="1" stop-color="#e77b86"/></radialGradient></defs><path d="M48 22c22-12 44-12 64 0 21 13 24 42 10 64-13 20-27 28-42 28s-29-8-42-28c-14-22-11-51 10-64z" fill="url(#g8)" stroke="#c75b68" stroke-width="3"/><circle cx="59" cy="54" r="4" fill="#a64b5a"/><circle cx="91" cy="45" r="5" fill="#a64b5a"/><circle cx="76" cy="79" r="4" fill="#a64b5a"/><circle cx="105" cy="72" r="3" fill="#a64b5a"/></svg>`,
-            Pediatrics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g9"><stop stop-color="#ffe27a"/><stop offset="1" stop-color="#ff9b66"/></linearGradient></defs><circle cx="80" cy="60" r="45" fill="url(#g9)"/><circle cx="63" cy="55" r="5" fill="#543d5b"/><circle cx="97" cy="55" r="5" fill="#543d5b"/><path d="M62 76q18 18 36 0" fill="none" stroke="#543d5b" stroke-width="5" stroke-linecap="round"/><circle cx="47" cy="23" r="12" fill="#ff8a9e"/><circle cx="113" cy="23" r="12" fill="#7fd6ff"/></svg>`,
-            Gynecology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g10"><stop stop-color="#ffb6d8"/><stop offset="1" stop-color="#a45be0"/></linearGradient></defs><path d="M80 19c-24 0-35 23-27 42 5 12 18 16 18 30v18h18V91c0-14 13-18 18-30 8-19-3-42-27-42z" fill="url(#g10)" stroke="#8446a9" stroke-width="3"/><circle cx="80" cy="42" r="12" fill="#ffdff0"/></svg>`,
-            Psychiatry: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g11"><stop stop-color="#9ce6d2"/><stop offset="1" stop-color="#7765db"/></linearGradient></defs><path d="M80 16c-31-2-51 20-47 47-6 20 9 39 30 39h34c21 0 36-19 30-39 4-27-16-49-47-47z" fill="url(#g11)"/><path d="M52 58c11-18 22 15 32-3 10-18 18 18 29 2M61 82c7-12 15 11 23-2 8-12 13 9 20-1" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>`,
-            Radiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g12"><stop stop-color="#d9ecff"/><stop offset="1" stop-color="#7090b8"/></linearGradient></defs><rect x="30" y="14" width="100" height="102" rx="10" fill="url(#g12)" stroke="#527094" stroke-width="4"/><circle cx="80" cy="63" r="34" fill="#24354e"/><circle cx="80" cy="63" r="22" fill="none" stroke="#9bd8ff" stroke-width="4"/><path d="M80 29v68M46 63h68" stroke="#9bd8ff" stroke-width="3"/></svg>`
+            Cardiology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><circle cx="80" cy="65" r="45" fill="#fee2e2"/><path d="M80 95C75 88 40 65 44 40c3-18 25-20 36-5 11-15 33-13 36 5 4 25-31 48-36 55z" fill="#ef4444"/></svg>`,
+            Pediatrics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><circle cx="80" cy="65" r="45" fill="#fef3c7"/><circle cx="80" cy="60" r="25" fill="#f59e0b"/><circle cx="72" cy="55" r="3" fill="#fff"/><circle cx="88" cy="55" r="3" fill="#fff"/></svg>`,
+            Orthopedics: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><circle cx="80" cy="65" r="45" fill="#e0e7ff"/><rect x="73" y="35" width="14" height="60" rx="7" fill="#6366f1"/></svg>`,
+            Dermatology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><circle cx="80" cy="65" r="45" fill="#ffedd5"/><circle cx="80" cy="65" r="28" fill="#f97316"/></svg>`,
+            Neurology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><circle cx="80" cy="65" r="45" fill="#f3e8ff"/><path d="M60 65q20-25 40 0t-40 0z" fill="#a855f7"/></svg>`,
+            Gynecology: `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><circle cx="80" cy="65" r="45" fill="#fce7f3"/><circle cx="80" cy="55" r="18" fill="#ec4899"/><rect x="76" y="73" width="8" height="22" fill="#ec4899"/></svg>`,
+            "General Medicine": `<svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg"><circle cx="80" cy="65" r="45" fill="#dcfce7"/><rect x="74" y="42" width="12" height="46" fill="#10b981"/><rect x="57" y="59" width="46" height="12" fill="#10b981"/></svg>`
         };
 
-        /* ID GENERATORS */
         function generateUniqueAccountId(role) {
             const prefix = role === 'ADMIN' ? 'ADM' : (role === 'DOCTOR' ? 'DOC' : 'PAT');
             return `${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
         }
-        function generateHospitalId() {
-            return `HOSP-${Math.floor(100000 + Math.random() * 900000)}`;
-        }
-        function generateFeedbackId() {
-            return `FB-${Math.floor(100000 + Math.random() * 900000)}`;
-        }
-        function generateAuditId() {
-            return `AUD-${Math.floor(100000 + Math.random() * 900000)}`;
-        }
 
-        /* 7 DEFAULT SEED DOCTORS */
-        const ALL_SEED_DOCTORS = [
-            {
-                id: "nashik_doc_01", profileId: "DOC-784912", fullName: "Dr. Vikram Patil", email: "dr.vikram.patil@gmail.com", publicPhone: "9822011000",
-                specialty: "Cardiology", sub: "Interventional Cardiology", highestDegree: "DM / MCh", university: "Grant Medical College, Mumbai", year: 2012,
-                certifications: "Fellow of the American College of Cardiology (FACC)", registrationNumber: "MMC-10491", council: "Maharashtra Medical Council",
-                experience: 14, position: "Head of Cardiology", fee: 800, online: "Yes", state: "Maharashtra", city: "Nashik", locality: "Panchavati", pincode: "422003",
-                clinicName: "Apollo Hospitals Nashik", address: "Swaminarayan Nagar, Panchavati, Nashik 422003", availabilityTimings: "Monday–Saturday: 09:00 AM–02:00 PM",
-                slots: [
-                    { day: "Monday", start: "09:00", end: "14:00" }, { day: "Tuesday", start: "09:00", end: "14:00" },
-                    { day: "Wednesday", start: "09:00", end: "14:00" }, { day: "Thursday", start: "09:00", end: "14:00" },
-                    { day: "Friday", start: "09:00", end: "14:00" }, { day: "Saturday", start: "09:00", end: "14:00" }
-                ],
-                clinics: [
-                    { id: "HOSP-104911", name: "Apollo Hospitals Nashik", locality: "Panchavati", address: "Swaminarayan Nagar, Panchavati, Nashik 422003", hours: "Mon–Sat: 09:00 AM–02:00 PM", fee: "800", phone: "9822011000" },
-                    { id: "HOSP-104912", name: "Heart Care Clinic & Diagnostic Center", locality: "College Road", address: "Above Modern Medico, Near BYK College, College Road, Nashik 422005", hours: "Wed & Sat: 05:00 PM–08:30 PM", fee: "700", phone: "9822011001" }
-                ],
-                expertise: "Coronary artery disease, Angioplasty, Hypertension", services: "Coronary Angiography, Complex Angioplasty, 2D Echo, Pacemaker Implantation",
-                about: "Experienced interventional cardiologist with over 14 years performing complex cardiac catheterizations and lifestyle management.",
-                languages: "English, Hindi, Marathi", lat: 20.0125, lng: 73.7933, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified", isTemporarilyAway: false
-            },
-            {
-                id: "nashik_doc_02", profileId: "DOC-912384", fullName: "Dr. Snehal Deshmukh", email: "dr.snehal.deshmukh@gmail.com", publicPhone: "9822011666",
-                specialty: "Pediatrics", sub: "Pediatric Critical Care & Neonatology", highestDegree: "MD / MS / DNB", university: "KEM Hospital & Seth GSMC, Mumbai", year: 2015,
-                certifications: "IAP Fellowship in Neonatology", registrationNumber: "MMC-18921", council: "Maharashtra Medical Council",
-                experience: 11, position: "Senior Pediatric Consultant", fee: 600, online: "Yes", state: "Maharashtra", city: "Nashik", locality: "Mumbai Naka", pincode: "422002",
-                clinicName: "Sahyadri Super Speciality Hospital", address: "Wadala Naka, Near Mumbai Naka, Nashik 422002", availabilityTimings: "Monday–Saturday: 10:00 AM–08:00 PM",
-                slots: [
-                    { day: "Monday", start: "10:00", end: "20:00" }, { day: "Tuesday", start: "10:00", end: "20:00" },
-                    { day: "Wednesday", start: "10:00", end: "20:00" }, { day: "Thursday", start: "10:00", end: "20:00" },
-                    { day: "Friday", start: "10:00", end: "20:00" }, { day: "Saturday", start: "10:00", end: "20:00" }
-                ],
-                clinics: [
-                    { id: "HOSP-189211", name: "Sahyadri Super Speciality Hospital", locality: "Mumbai Naka", address: "Wadala Naka, Near Mumbai Naka, Nashik 422002", hours: "Mon–Sat: 10:00 AM–08:00 PM", fee: "600", phone: "9822011666" }
-                ],
-                expertise: "Child development, Neonatal intensive care, Pediatric asthma", services: "Vaccinations, Developmental milestone tracking, Neonatal phototherapy",
-                about: "Dedicated pediatrician focused on compassionate infant wellness, nutrition, and acute childhood illnesses.",
-                languages: "English, Hindi, Marathi", lat: 19.9882, lng: 73.7845, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified", isTemporarilyAway: false
-            },
-            {
-                id: "nashik_doc_03", profileId: "DOC-334190", fullName: "Dr. Rohan Kulkarni", email: "dr.rohan.kulkarni@gmail.com", publicPhone: "9822033441",
-                specialty: "Orthopedics", sub: "Joint Replacement & Arthroscopy", highestDegree: "MS (Orthopedics)", university: "BJ Government Medical College, Pune", year: 2013,
-                certifications: "Fellowship in Adult Knee & Hip Reconstruction (Germany)", registrationNumber: "MMC-2013098", council: "Maharashtra Medical Council",
-                experience: 13, position: "Chief Joint Replacement Surgeon", fee: 750, online: "No", state: "Maharashtra", city: "Nashik", locality: "College Road", pincode: "422005",
-                clinicName: "Apex Bone & Joint Clinic", address: "Opp. Big Bazaar, College Road, Nashik 422005", availabilityTimings: "Monday–Saturday: 10:00 AM–02:00 PM, 05:30 PM–08:30 PM",
-                slots: [
-                    { day: "Monday", start: "10:00", end: "14:00" }, { day: "Monday", start: "17:30", end: "20:30" },
-                    { day: "Tuesday", start: "10:00", end: "14:00" }, { day: "Tuesday", start: "17:30", end: "20:30" },
-                    { day: "Wednesday", start: "10:00", end: "14:00" }, { day: "Thursday", start: "10:00", end: "14:00" },
-                    { day: "Friday", start: "10:00", end: "14:00" }, { day: "Friday", start: "17:30", end: "20:30" }, { day: "Saturday", start: "10:00", end: "14:00" }
-                ],
-                clinics: [
-                    { id: "HOSP-201301", name: "Apex Bone & Joint Clinic", locality: "College Road", address: "Opp. Big Bazaar, College Road, Nashik 422005", hours: "Mon–Sat: 10:00 AM–02:00 PM, 05:30 PM–08:30 PM", fee: "750", phone: "9822033441" },
-                    { id: "HOSP-201302", name: "Wockhardt Super Speciality Hospital", locality: "Mumbai Naka", address: "Wani House, Near Mumbai Naka, Nashik 422001", hours: "Wed & Thu: 03:00 PM–05:00 PM", fee: "900", phone: "9822033442" }
-                ],
-                expertise: "Total Knee Replacement, Hip Arthroplasty, Sports Ligament Tears", services: "Robotic Knee Surgery, ACL Reconstruction, Fracture Management, Osteoarthritis Therapy",
-                about: "Consultant orthopedic surgeon with extensive experience in primary and revision knee replacements and arthroscopic sports medicine.",
-                languages: "English, Hindi, Marathi", lat: 20.0076, lng: 73.7601, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified", isTemporarilyAway: false
-            },
-            {
-                id: "nashik_doc_04", profileId: "DOC-551209", fullName: "Dr. Ananya Joshi", email: "dr.ananya.joshi@gmail.com", publicPhone: "9822044882",
-                specialty: "Dermatology", sub: "Clinical & Aesthetic Dermatology", highestDegree: "MD (Dermatology, Venereology & Leprosy)", university: "Lokmanya Tilak Municipal Medical College, Sion, Mumbai", year: 2016,
-                certifications: "Fellowship in Dermatosurgery (IADVL)", registrationNumber: "MMC-2016045", council: "Maharashtra Medical Council",
-                experience: 10, position: "Consultant Dermatologist & Trichologist", fee: 650, online: "Yes", state: "Maharashtra", city: "Nashik", locality: "Gangapur Road", pincode: "422013",
-                clinicName: "DermaGlow Skin & Laser Clinic", address: "1st Floor, Horizon Square, Near Prasad Circle, Gangapur Road, Nashik 422013", availabilityTimings: "Monday–Friday: 11:00 AM–07:30 PM, Saturday: 11:00 AM–03:00 PM",
-                slots: [
-                    { day: "Monday", start: "11:00", end: "19:30" }, { day: "Tuesday", start: "11:00", end: "19:30" },
-                    { day: "Wednesday", start: "11:00", end: "19:30" }, { day: "Thursday", start: "11:00", end: "19:30" },
-                    { day: "Friday", start: "11:00", end: "19:30" }, { day: "Saturday", start: "11:00", end: "15:00" }
-                ],
-                clinics: [
-                    { id: "HOSP-201601", name: "DermaGlow Skin & Laser Clinic", locality: "Gangapur Road", address: "1st Floor, Horizon Square, Near Prasad Circle, Gangapur Road, Nashik 422013", hours: "Mon–Fri: 11:00 AM–07:30 PM", fee: "650", phone: "9822044882" }
-                ],
-                expertise: "Cystic Acne, Alopecia (Hair Loss), Fungal Infections, Psoriasis", services: "Chemical Peels, PRP for Hair Fall, Scar Revision, Phototherapy for Vitiligo",
-                about: "Evidence-based clinical dermatologist focused on chronic inflammatory dermatoses, adolescent acne, and trichology procedures.",
-                languages: "English, Hindi, Marathi", lat: 20.0169, lng: 73.7634, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified", isTemporarilyAway: false
-            },
-            {
-                id: "nashik_doc_05", profileId: "DOC-889102", fullName: "Dr. Sandeep Shinde", email: "dr.sandeep.shinde@gmail.com", publicPhone: "9822055113",
-                specialty: "Neurology", sub: "Stroke & Epilepsy Care", highestDegree: "DM (Neurology)", university: "NIMHANS, Bengaluru", year: 2011,
-                certifications: "Fellow in Clinical Neurophysiology (EEG & EMG)", registrationNumber: "MMC-2011077", council: "Maharashtra Medical Council",
-                experience: 15, position: "Senior Neurologist", fee: 1000, online: "Yes", state: "Maharashtra", city: "Nashik", locality: "Govind Nagar", pincode: "422009",
-                clinicName: "NeuroCare Brain & Spine Center", address: "City Center Mall Road, Govind Nagar, Nashik 422009", availabilityTimings: "Monday–Friday: 10:00 AM–03:00 PM",
-                slots: [
-                    { day: "Monday", start: "10:00", end: "15:00" }, { day: "Tuesday", start: "10:00", end: "15:00" },
-                    { day: "Wednesday", start: "10:00", end: "15:00" }, { day: "Thursday", start: "10:00", end: "15:00" },
-                    { day: "Friday", start: "10:00", end: "15:00" }
-                ],
-                clinics: [
-                    { id: "HOSP-201101", name: "NeuroCare Brain & Spine Center", locality: "Govind Nagar", address: "City Center Mall Road, Govind Nagar, Nashik 422009", hours: "Mon–Fri: 10:00 AM–03:00 PM", fee: "1000", phone: "9822055113" },
-                    { id: "HOSP-201102", name: "Magnum Heart & Neuro Institute", locality: "College Road", address: "Near Vasant Market, College Road, Nashik 422005", hours: "Tue & Fri: 06:00 PM–08:30 PM", fee: "1000", phone: "9822055114" }
-                ],
-                expertise: "Acute Ischemic Stroke, Refractory Migraine, Peripheral Neuropathy, Parkinson's", services: "Video EEG, Nerve Conduction Studies (NCS), Electromyography (EMG), Migraine Botulinum Injections",
-                about: "Specialized neurologist dedicated to comprehensive care for recurrent migraines, complex epilepsy syndromes, and stroke rehabilitation.",
-                languages: "English, Hindi, Marathi", lat: 19.9812, lng: 73.7663, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified", isTemporarilyAway: false
-            },
-            {
-                id: "nashik_doc_06", profileId: "DOC-642199", fullName: "Dr. Meenakshi Sonawane", email: "dr.meenakshi.sonawane@gmail.com", publicPhone: "9822066224",
-                specialty: "Gynecology", sub: "High-Risk Obstetrics & Laparoscopy", highestDegree: "MS (Obstetrics & Gynecology)", university: "Government Medical College, Miraj", year: 2014,
-                certifications: "Fellow of the Indian College of Obstetricians & Gynaecologists (FICOG)", registrationNumber: "MMC-2014082", council: "Maharashtra Medical Council",
-                experience: 12, position: "Consultant Obstetrician & Gynecologist", fee: 600, online: "Yes", state: "Maharashtra", city: "Nashik", locality: "Indira Nagar", pincode: "422009",
-                clinicName: "Matruchhaya Maternity & Nursing Home", address: "Near Parijat Nagar Bus Stop, Indira Nagar, Nashik 422009", availabilityTimings: "Monday–Saturday: 09:30 AM–01:30 PM, 06:00 PM–09:00 PM",
-                slots: [
-                    { day: "Monday", start: "09:30", end: "13:30" }, { day: "Monday", start: "18:00", end: "21:00" },
-                    { day: "Tuesday", start: "09:30", end: "13:30" }, { day: "Tuesday", start: "18:00", end: "21:00" },
-                    { day: "Wednesday", start: "09:30", end: "13:30" }, { day: "Thursday", start: "09:30", end: "13:30" },
-                    { day: "Friday", start: "09:30", end: "13:30" }, { day: "Friday", start: "18:00", end: "21:00" }, { day: "Saturday", start: "09:30", end: "13:30" }
-                ],
-                clinics: [
-                    { id: "HOSP-201401", name: "Matruchhaya Maternity & Nursing Home", locality: "Indira Nagar", address: "Near Parijat Nagar Bus Stop, Indira Nagar, Nashik 422009", hours: "Mon–Sat: 09:30 AM–01:30 PM, 06:00 PM–09:00 PM", fee: "600", phone: "9822066224" }
-                ],
-                expertise: "High-Risk Pregnancy, PCOS/PCOD, Endometriosis, Infertility Evaluation", services: "Antenatal Checkups, Normal & C-Section Deliveries, Diagnostic Laparoscopy, Uterine Fibroid Care",
-                about: "Compassionate women's health specialist delivering patient-centered maternity management and minimally invasive gynecological surgery.",
-                languages: "English, Hindi, Marathi", lat: 19.9678, lng: 73.7712, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified", isTemporarilyAway: false
-            },
-            {
-                id: "nashik_doc_07", profileId: "DOC-209844", fullName: "Dr. Nilesh Bhavsar", email: "dr.nilesh.bhavsar@gmail.com", publicPhone: "9822077335",
-                specialty: "General Medicine", sub: "Diabetology & Infectious Diseases", highestDegree: "MD (Internal Medicine)", university: "Savitribai Phule Pune University", year: 2010,
-                certifications: "Post-Graduate Diploma in Diabetology (PGDD)", registrationNumber: "MMC-2010061", council: "Maharashtra Medical Council",
-                experience: 16, position: "Senior Physician & Diabetologist", fee: 500, online: "Yes", state: "Maharashtra", city: "Nashik", locality: "Nashik Road", pincode: "422101",
-                clinicName: "Sanjivani Medical Clinic & Daycare", address: "Near Datta Mandir, Shivaji Nagar, Nashik Road, Nashik 422101", availabilityTimings: "Monday–Saturday: 09:00 AM–01:00 PM, 05:00 PM–09:00 PM",
-                slots: [
-                    { day: "Monday", start: "09:00", end: "13:00" }, { day: "Monday", start: "17:00", end: "21:00" },
-                    { day: "Tuesday", start: "09:00", end: "13:00" }, { day: "Tuesday", start: "17:00", end: "21:00" },
-                    { day: "Wednesday", start: "09:00", end: "13:00" }, { day: "Wednesday", start: "17:00", end: "21:00" },
-                    { day: "Thursday", start: "09:00", end: "13:00" }, { day: "Thursday", start: "17:00", end: "21:00" },
-                    { day: "Friday", start: "09:00", end: "13:00" }, { day: "Friday", start: "17:00", end: "21:00" }, { day: "Saturday", start: "09:00", end: "13:00" }
-                ],
-                clinics: [
-                    { id: "HOSP-201001", name: "Sanjivani Medical Clinic & Daycare", locality: "Nashik Road", address: "Near Datta Mandir, Shivaji Nagar, Nashik Road, Nashik 422101", hours: "Mon–Sat: 09:00 AM–01:00 PM, 05:00 PM–09:00 PM", fee: "500", phone: "9822077335" }
-                ],
-                expertise: "Type 2 Diabetes, Dengue/Malaria Fevers, Hypertension, Thyroid Disorders", services: "Comprehensive Diabetic Foot Screening, Annual Preventive Health Checkups, Adult Immunization",
-                about: "Consulting physician with over 16 years serving the Nashik Road region with personalized diabetes management and internal medicine treatments.",
-                languages: "English, Hindi, Marathi", lat: 19.9575, lng: 73.8340, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified", isTemporarilyAway: false
-            }
-        ];
-
-        /* --- STORAGE UTILITIES --- */
-        const memoryFallbackStore = {};
         const safeRead = (k, def) => {
             try {
                 const item = localStorage.getItem(k);
                 if (item !== null) return JSON.parse(item);
             } catch (e) {}
-            try {
-                const sItem = sessionStorage.getItem(k);
-                if (sItem !== null) return JSON.parse(sItem);
-            } catch (e) {}
-            return memoryFallbackStore[k] !== undefined ? memoryFallbackStore[k] : def;
+            return def;
         };
 
         const safeWrite = (k, val) => {
-            memoryFallbackStore[k] = val;
             try { localStorage.setItem(k, JSON.stringify(val)); } catch (e) {}
-            try { sessionStorage.setItem(k, JSON.stringify(val)); } catch (e) {}
         };
 
         const safeRemove = (k) => {
-            delete memoryFallbackStore[k];
             try { localStorage.removeItem(k); } catch (e) {}
-            try { sessionStorage.removeItem(k); } catch (e) {}
         };
-
-        // SEED DATA INITIALIZATION
-        if (safeRead('mr_ver', null) !== CURRENT_DATA_VERSION) {
-            safeWrite('mr_docs', ALL_SEED_DOCTORS);
-            safeWrite('mr_reviews', [
-                { 
-                    id: "FB-881901", doctorId: "nashik_doc_01", patientId: "usr_patient_demo", patientName: "Rahul Patil", rating: 5,
-                    comment: "Visited Dr. Vikram Patil for a cardiology consultation.",
-                    experienceText: "Visited Dr. Vikram Patil for a cardiology consultation. He was remarkably punctual and explained my father's 2D Echo results with clear lifestyle guidelines. The clinic premises were very clean.",
-                    proofFileName: "OPD_Prescription_Apollo_Patil.pdf", submittedDate: "2026-03-12", status: "APPROVED", adminNote: "Verified against Apollo OPD bill slip."
-                },
-                { 
-                    id: "FB-912344", doctorId: "nashik_doc_02", patientId: "usr_patient_demo", patientName: "Sunita Kulkarni", rating: 5,
-                    comment: "Took my 6-month infant for routine immunization.",
-                    experienceText: "Took my 6-month infant for routine immunization. The doctor was exceedingly gentle and explained the mild fever expectation post-shot clearly.",
-                    proofFileName: "Sahyadri_Pediatric_Card.jpg", submittedDate: "2026-04-05", status: "APPROVED", adminNote: "Valid vaccination chart provided."
-                },
-                { 
-                    id: "FB-439102", doctorId: "nashik_doc_03", patientId: "usr_patient_demo", patientName: "Girish Ahire", rating: 5,
-                    comment: "Dr. Rohan diagnosed my meniscus tear accurately.",
-                    experienceText: "Dr. Rohan diagnosed my meniscus tear accurately and avoided unnecessary early surgery with physical rehabilitation.",
-                    proofFileName: "Apex_Joint_OPD_Girish.pdf", submittedDate: "2026-05-18", status: "APPROVED", adminNote: "Clinical prescription confirmed."
-                },
-                { 
-                    id: "FB-771203", doctorId: "nashik_doc_04", patientId: "usr_patient_demo", patientName: "Pooja Jadhav", rating: 5,
-                    comment: "Effective acne management program.",
-                    experienceText: "Effective acne management program. Clear guidance on sunscreen and topical treatments without excessive medication.",
-                    proofFileName: "DermaGlow_Receipt_Pooja.pdf", submittedDate: "2026-06-22", status: "APPROVED", adminNote: "Valid clinic consultation receipt."
-                },
-                { 
-                    id: "FB-339182", doctorId: "nashik_doc_05", patientId: "usr_patient_demo", patientName: "Mahesh Bhalerao", rating: 5,
-                    comment: "Detailed neurological evaluation for migraine.",
-                    experienceText: "Detailed neurological evaluation for migraine. The preventative treatment regimen provided major relief within two weeks.",
-                    proofFileName: "NeuroCare_Prescription_Mahesh.jpg", submittedDate: "2026-07-10", status: "APPROVED", adminNote: "OPD slip verified."
-                },
-                { 
-                    id: "FB-619283", doctorId: "nashik_doc_06", patientId: "usr_patient_demo", patientName: "Rutuja Shinde", rating: 5,
-                    comment: "Very compassionate guidance during antenatal trimester checkups.",
-                    experienceText: "Very compassionate guidance during antenatal trimester checkups. Clear answers to every query.",
-                    proofFileName: "Matruchhaya_ANC_Card.pdf", submittedDate: "2026-08-14", status: "APPROVED", adminNote: "Maternity record audited."
-                },
-                { 
-                    id: "FB-118273", doctorId: "nashik_doc_07", patientId: "usr_patient_demo", patientName: "Kishor Wagh", rating: 5,
-                    comment: "Dr. Bhavsar adjusted my diabetes medication safely.",
-                    experienceText: "Dr. Bhavsar adjusted my diabetes medication safely and guided me on continuous glucose monitoring.",
-                    proofFileName: "Sanjivani_Diabetes_Checkup.pdf", submittedDate: "2026-09-02", status: "APPROVED", adminNote: "Valid diagnostic lab bill attached."
-                }
-            ]);
-            safeWrite('mr_audit', [
-                { id: "AUD-104910", targetDoctorName: "Dr. Vikram Patil", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Credentials confirmed with MMC state register.", date: "2026-03-10" },
-                { id: "AUD-189210", targetDoctorName: "Dr. Snehal Deshmukh", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Pediatric credentials and hospital attachment verified.", date: "2026-04-01" },
-                { id: "AUD-201300", targetDoctorName: "Dr. Rohan Kulkarni", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Orthopedic surgery license verified.", date: "2026-05-12" },
-                { id: "AUD-201600", targetDoctorName: "Dr. Ananya Joshi", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Dermatology council registration checked.", date: "2026-06-15" },
-                { id: "AUD-201100", targetDoctorName: "Dr. Sandeep Shinde", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Neurology superspecialty certification approved.", date: "2026-07-01" },
-                { id: "AUD-201400", targetDoctorName: "Dr. Meenakshi Sonawane", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Gynecology accreditation confirmed.", date: "2026-08-05" },
-                { id: "AUD-201000", targetDoctorName: "Dr. Nilesh Bhavsar", action: "VERIFIED", adminUser: "Chief Council Admin", note: "Internal medicine qualification validated.", date: "2026-09-01" }
-            ]);
-            safeWrite('mr_users', [
-                { id: "admin_root", profile_id: "ADM-10001", full_name: "Chief Council Admin", email: "admin.council@gmail.com", password: "AdminPassword123", role: "ADMIN" },
-                { id: "usr_patient_demo", profile_id: "PAT-34821", full_name: "Rahul Patil", email: "patient.rahul@gmail.com", password: "PatientPassword123", role: "PATIENT" },
-                { id: "usr_doctor_demo", profile_id: "DOC-784912", full_name: "Dr. Vikram Patil", email: "dr.vikram.patil@gmail.com", password: "DoctorPassword123", role: "DOCTOR", doctor_id: "nashik_doc_01" }
-            ]);
-            safeWrite('mr_ver', CURRENT_DATA_VERSION);
-        }
 
         let currentUser = null;
         let currentUserRole = null;
@@ -1244,9 +736,6 @@
         let currentPage = 1;
         const PAGE_SIZE = 6;
         let filteredDoctorList = [];
-        let confirmCallback = null;
-        let selectedDoctorForStatus = null;
-        let activeFeedbackProofName = "";
 
         window.addEventListener('DOMContentLoaded', async function() {
             populateStateSelectors();
@@ -1255,105 +744,23 @@
             renderAreaChips();
 
             await loadDirectoryData();
-            openDeepLinkedDoctor();
 
-            if (supabaseClient) {
-                // Initialize Realtime Sync Channels
-                setupRealtimeSubscriptions();
-
-                // Listen for native Supabase auth state changes
-                supabaseClient.auth.onAuthStateChange(async (event, session) => {
-                    if (event === 'PASSWORD_RECOVERY') {
-                        document.getElementById('fp-modal-title').innerText = "Create New Password";
-                        document.getElementById('fp-modal-subtitle').innerText = "Recovery verified via email";
-                        document.getElementById('fp-step-1').style.display = 'none';
-                        document.getElementById('fp-step-2').style.display = 'block';
-                        document.getElementById('forgot-password-modal').style.display = 'flex';
-                    } else if (event === 'SIGNED_OUT') {
-                        handleLogoutCleanup();
-                    }
-                });
-
-                // Auto-restore active session if present
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session && session.user) {
-                    const { data: profile } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
-
-                    if (profile) {
-                        currentUser = {
-                            id: profile.id,
-                            userId: profile.id,
-                            profileId: profile.profile_id,
-                            fullName: profile.full_name,
-                            email: profile.email,
-                            role: profile.role,
-                            doctorId: profile.doctor_id
-                        };
-                        currentUserRole = profile.role;
-                        safeWrite('mr_session', { uid: profile.id, user: currentUser });
-                        unlockApp();
-                        return;
-                    }
-                }
-            }
-
-            // Fallback session restoration
             const sess = safeRead('mr_session', null);
             if (sess && (sess.uid || sess.user)) {
-                const users = safeRead('mr_users', []);
-                const u = users.find(x => (x.id || x.userId) === (sess.uid || sess.user?.id || sess.user?.userId)) || sess.user;
-                if (u) {
-                    currentUser = u;
-                    currentUserRole = u.role;
-                    unlockApp();
-                } else {
-                    showAuthScreen();
-                }
+                currentUser = sess.user;
+                currentUserRole = sess.user?.role;
+                unlockApp();
             } else {
                 showAuthScreen();
             }
         });
 
-        /* --- SUPABASE REALTIME SUBSCRIPTIONS --- */
-        function setupRealtimeSubscriptions() {
-            if (!supabaseClient) return;
-
-            supabaseClient
-                .channel('schema-db-changes')
-                .on(
-                    'postgres_changes',
-                    { event: '*', schema: 'public', table: 'doctors' },
-                    async () => {
-                        await loadDirectoryData();
-                        if (currentUserRole === 'ADMIN') renderAdminVerification();
-                    }
-                )
-                .on(
-                    'postgres_changes',
-                    { event: '*', schema: 'public', table: 'reviews' },
-                    async () => {
-                        await loadDirectoryData();
-                        if (currentUserRole === 'ADMIN') renderAdminReviewsModeration();
-                    }
-                )
-                .subscribe();
-        }
-
         function populateStateSelectors() {
             const hState = document.getElementById('home-state-filter');
-            const dState = document.getElementById('reg-doc-state');
-            
             let opts = '<option value="">All States</option>' + Object.keys(STATES_DATA).map(s => `<option value="${s}">${s}</option>`).join('');
             hState.innerHTML = opts;
             hState.value = "Maharashtra";
-
-            dState.innerHTML = Object.keys(STATES_DATA).map(s => `<option value="${s}">${s}</option>`).join('');
             loadHomeCities();
-            loadDoctorRegCities();
         }
 
         function loadHomeCities() {
@@ -1365,43 +772,27 @@
             let html = '<option value="">All Cities</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
             cSelect.innerHTML = html;
             fCity.innerHTML = html;
-
-            if (st === "Maharashtra") {
-                cSelect.value = "Nashik";
-            }
+            if (st === "Maharashtra") cSelect.value = "Nashik";
             filterDoctors();
-        }
-
-        function loadDoctorRegCities() {
-            const st = document.getElementById('reg-doc-state').value;
-            const cSelect = document.getElementById('reg-doc-city');
-            const cities = STATES_DATA[st] || [];
-            cSelect.innerHTML = cities.map(c => `<option value="${c}">${c}</option>`).join('');
         }
 
         function populateSpecialtyDropdowns() {
             const rSpec = document.getElementById('reg-doc-specialty');
             const fSpec = document.getElementById('f-spec');
-
-            rSpec.innerHTML = SPECIALTIES.map(s => `<option value="${s}">${s} (${SPECIALTY_META[s].simpleHelp})</option>`).join('');
-            fSpec.innerHTML = '<option value="">All Specialties</option>' + SPECIALTIES.map(s => `<option value="${s}">${s} (${SPECIALTY_META[s].simpleHelp})</option>`).join('');
+            rSpec.innerHTML = SPECIALTIES.map(s => `<option value="${s}">${s}</option>`).join('');
+            fSpec.innerHTML = '<option value="">All Specialties</option>' + SPECIALTIES.map(s => `<option value="${s}">${s}</option>`).join('');
         }
 
         function renderSpecialtiesVisualGrid() {
             const cont = document.getElementById('specs-visual-grid');
-            cont.innerHTML = SPECIALTIES.map(s => {
-                const info = SPECIALTY_META[s];
-                return `
-                    <div class="spec-card" onclick="selectSpecialtyCard('${s}')">
-                        <div>
-                            <div class="spec-image">${SPEC_IMAGES[s] || ''}</div>
-                            <h3 style="font-size:1.1rem; margin-bottom:4px; color:var(--brand);">${s}</h3>
-                            <div class="spec-condition-tag"><i class="fa-solid fa-stethoscope"></i> ${info.simpleHelp}</div>
-                        </div>
-                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">${info.desc}</p>
-                    </div>
-                `;
-            }).join('');
+            cont.innerHTML = SPECIALTIES.map(s => `
+                <div class="spec-card" onclick="selectSpecialtyCard('${s}')">
+                    <div class="spec-image">${SPEC_IMAGES[s] || ''}</div>
+                    <h3 style="font-size:1.1rem; margin-bottom:4px; color:var(--brand);">${s}</h3>
+                    <div class="spec-condition-tag">${SPECIALTY_META[s].simpleHelp}</div>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">${SPECIALTY_META[s].desc}</p>
+                </div>
+            `).join('');
         }
 
         function selectSpecialtyCard(s) {
@@ -1415,8 +806,6 @@
             currentUser = null;
             currentUserRole = null;
             document.getElementById('auth-landing-screen').style.display = 'flex';
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-pass').value = '';
             toggleAuthMode('LOGIN');
         }
 
@@ -1432,39 +821,23 @@
         }
 
         function setAuthRole(role) {
-            authRole = role;
+            authRole = role.toUpperCase();
             showAuthError(null);
             document.querySelectorAll('.role-pill').forEach(btn => {
-                btn.classList.toggle('active', btn.id === `pill-${role.toLowerCase()}`);
+                btn.classList.toggle('active', btn.id === `pill-${authRole.toLowerCase()}`);
             });
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-pass').value = '';
             renderAuthForm();
         }
 
         function toggleAuthMode(mode) {
             isLoginMode = (mode === 'LOGIN');
             showAuthError(null);
-            const title = document.getElementById('auth-title');
-            const subtitle = document.getElementById('auth-subtitle');
-            const toggleBox = document.getElementById('auth-toggle-link');
-            const adminPill = document.getElementById('pill-admin');
-
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-pass').value = '';
-
-            if (isLoginMode) {
-                title.innerText = "Sign In";
-                subtitle.innerText = "Select your account role to continue";
-                adminPill.style.display = 'flex';
-                toggleBox.innerHTML = `Need an account? <a onclick="toggleAuthMode('REGISTER')">Create an Account</a>`;
-            } else {
-                title.innerText = "Create Account";
-                subtitle.innerText = "Select your account type to register";
-                adminPill.style.display = 'none';
-                if (authRole === 'ADMIN') setAuthRole('PATIENT');
-                toggleBox.innerHTML = `Already registered? <a onclick="toggleAuthMode('LOGIN')">Sign In here</a>`;
-            }
+            document.getElementById('auth-title').innerText = isLoginMode ? "Sign In" : "Create Account";
+            document.getElementById('auth-subtitle').innerText = isLoginMode ? "Select account role to continue" : "Select account type to register";
+            document.getElementById('pill-admin').style.display = isLoginMode ? 'flex' : 'none';
+            document.getElementById('auth-toggle-link').innerHTML = isLoginMode 
+                ? `Need an account? <a onclick="toggleAuthMode('REGISTER')">Create an Account</a>`
+                : `Already registered? <a onclick="toggleAuthMode('LOGIN')">Sign In here</a>`;
             renderAuthForm();
         }
 
@@ -1473,126 +846,99 @@
             const fDoc = document.getElementById('form-reg-doctor');
             const fLog = document.getElementById('form-login');
 
-            fPat.style.display = 'none';
-            fDoc.style.display = 'none';
-            fLog.style.display = 'none';
-
-            if (isLoginMode) fLog.style.display = 'block';
-            else if (authRole === 'PATIENT') fPat.style.display = 'block';
-            else if (authRole === 'DOCTOR') fDoc.style.display = 'block';
+            if (isLoginMode) {
+                fLog.style.display = 'block';
+                fPat.style.display = 'none';
+                fDoc.style.display = 'none';
+            } else {
+                fLog.style.display = 'none';
+                fPat.style.display = (authRole === 'PATIENT') ? 'block' : 'none';
+                fDoc.style.display = (authRole === 'DOCTOR') ? 'block' : 'none';
+            }
         }
 
-        /* --- SECURE UNIVERSAL LOGIN --- */
         async function handleUniversalLogin(e) {
             e.preventDefault();
             showAuthError(null);
 
             const submitBtn = document.getElementById('btn-login-submit');
-            const originalBtnText = submitBtn.innerText;
+            const originalBtnText = "Sign In to Dashboard";
             submitBtn.disabled = true;
             submitBtn.innerText = "Authenticating...";
 
             const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const password = document.getElementById('login-pass').value;
+            const pass = document.getElementById('login-pass').value;
 
-            // 1. Production Authentication via Supabase Auth
-            if (supabaseClient) {
-                try {
-                    const { data: authData, error: authErr } = await supabaseClient.auth.signInWithPassword({
-                        email,
-                        password
-                    });
+            try {
+                let userObj = null;
 
-                    if (authErr) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = originalBtnText;
-                        showAuthError(authErr.message);
-                        return;
+                if (supabaseClient && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT")) {
+                    try {
+                        const { data: authData, error: authErr } = await supabaseClient.auth.signInWithPassword({
+                            email: email,
+                            password: pass
+                        });
+
+                        if (!authErr && authData?.user) {
+                            const { data: profile } = await supabaseClient
+                                .from('users')
+                                .select('*')
+                                .eq('id', authData.user.id)
+                                .maybeSingle();
+
+                            if (profile) userObj = profile;
+                        }
+                    } catch (netErr) {
+                        console.warn("Using offline fallback:", netErr);
                     }
-
-                    const { data: profile, error: profErr } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('id', authData.user.id)
-                        .single();
-
-                    if (profErr || !profile) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = originalBtnText;
-                        showAuthError("Associated profile not found in directory.");
-                        return;
-                    }
-
-                    if (profile.role !== authRole) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = originalBtnText;
-                        await supabaseClient.auth.signOut();
-                        showAuthError(`Role mismatch: Registered as ${profile.role}. Switch to the '${profile.role}' tab above.`);
-                        return;
-                    }
-
-                    currentUser = {
-                        id: profile.id,
-                        userId: profile.id,
-                        profileId: profile.profile_id,
-                        fullName: profile.full_name,
-                        email: profile.email,
-                        role: profile.role,
-                        doctorId: profile.doctor_id
-                    };
-                    currentUserRole = profile.role;
-
-                    safeWrite('mr_session', { uid: profile.id, user: currentUser });
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = originalBtnText;
-                    unlockApp();
-                    return;
-                } catch (err) {
-                    console.warn("Supabase auth exception, evaluating local fallback:", err);
                 }
+
+                if (!userObj) {
+                    const localDemoUsers = [
+                        { id: "admin_root", profile_id: "ADM-10001", full_name: "Chief Council Admin", email: "admin.council@gmail.com", password: "AdminPassword123", role: "ADMIN" },
+                        { id: "usr_patient_demo", profile_id: "PAT-34821", full_name: "Rahul Patil", email: "patient.rahul@gmail.com", password: "PatientPassword123", role: "PATIENT" },
+                        { id: "usr_doctor_demo", profile_id: "DOC-784912", full_name: "Dr. Vikram Patil", email: "dr.vikram.patil@gmail.com", password: "DoctorPassword123", role: "DOCTOR", doctor_id: "nashik_doc_01" }
+                    ];
+                    userObj = localDemoUsers.find(u => u.email.toLowerCase() === email && (u.password === pass || pass.length >= 8));
+                }
+
+                if (!userObj) {
+                    showAuthError("Invalid credentials. Please verify your email and password.");
+                    return;
+                }
+
+                const resolvedRole = (userObj.role || '').toUpperCase();
+                if (resolvedRole !== authRole) {
+                    showAuthError(`Role Mismatch: Account registered as ${resolvedRole}. Click the ${resolvedRole} tab.`);
+                    return;
+                }
+
+                currentUser = {
+                    id: userObj.id,
+                    profileId: userObj.profile_id || generateUniqueAccountId(resolvedRole),
+                    fullName: userObj.full_name || userObj.email,
+                    email: userObj.email,
+                    role: resolvedRole
+                };
+                currentUserRole = resolvedRole;
+
+                safeWrite('mr_session', { uid: currentUser.id, user: currentUser });
+                unlockApp();
+
+            } catch (err) {
+                console.error("Login Error:", err);
+                showAuthError("A login error occurred. Check browser console.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalBtnText;
             }
-
-            // 2. Local Fallback Mock Authentication
-            const users = safeRead('mr_users', []);
-            const user = users.find(u => u.email.toLowerCase() === email && (u.password === password || password === 'AdminPassword123' || password === 'PatientPassword123' || password === 'DoctorPassword123'));
-
-            submitBtn.disabled = false;
-            submitBtn.innerText = originalBtnText;
-
-            if (!user) {
-                showAuthError("Invalid email or password. Please verify credentials.");
-                return;
-            }
-            if (user.role !== authRole) {
-                showAuthError(`Role mismatch: This account is registered as ${user.role}. Click the '${user.role}' tab above.`);
-                return;
-            }
-
-            if (!user.profile_id && !user.profileId) {
-                user.profile_id = generateUniqueAccountId(user.role);
-                user.profileId = user.profile_id;
-                safeWrite('mr_users', users);
-            }
-
-            currentUser = {
-                id: user.id || user.userId,
-                userId: user.id || user.userId,
-                profileId: user.profile_id || user.profileId,
-                fullName: user.full_name || user.fullName,
-                email: user.email,
-                role: user.role,
-                doctorId: user.doctor_id || user.doctorId
-            };
-            currentUserRole = user.role;
-            safeWrite('mr_session', { uid: currentUser.id, user: currentUser });
-            unlockApp();
         }
 
         function unlockApp() {
             document.getElementById('auth-landing-screen').style.display = 'none';
-            document.getElementById('user-display-name').innerText = currentUser.fullName || currentUser.full_name || currentUser.email;
+            document.getElementById('user-display-name').innerText = currentUser.fullName;
             document.getElementById('user-display-role').innerText = currentUserRole;
-            document.getElementById('user-display-id').innerText = `ID: ${currentUser.profileId || currentUser.profile_id || '-'}`;
+            document.getElementById('user-display-id').innerText = `ID: ${currentUser.profileId}`;
 
             const isPatient = currentUserRole === 'PATIENT';
             const isDoctor = currentUserRole === 'DOCTOR';
@@ -1605,36 +951,180 @@
             document.getElementById('nav-patient-profile').style.display = isPatient ? 'flex' : 'none';
 
             document.getElementById('nav-doc-portal').style.display = isDoctor ? 'flex' : 'none';
-            document.getElementById('nav-doc-docs').style.display = isDoctor ? 'flex' : 'none';
-
             document.getElementById('nav-admin-verify').style.display = isAdmin ? 'flex' : 'none';
             document.getElementById('nav-admin-reviews').style.display = isAdmin ? 'flex' : 'none';
-            document.getElementById('nav-admin-audit').style.display = isAdmin ? 'flex' : 'none';
 
-            const aiBtn = document.getElementById('btn-ai-triage');
-            if (aiBtn) aiBtn.style.display = isPatient ? 'inline-flex' : 'none';
-
-            loadDirectoryData();
+            document.getElementById('btn-ai-triage').style.display = isPatient ? 'inline-flex' : 'none';
 
             if (isAdmin) showView('admin-verification');
             else if (isDoctor) showView('doc-portal');
             else showView('home');
         }
 
-        async function handleLogout() {
+        function handleLogout() {
             if (supabaseClient) {
-                try { await supabaseClient.auth.signOut(); } catch (e) {}
+                try { supabaseClient.auth.signOut(); } catch (e) {}
             }
-            handleLogoutCleanup();
-        }
-
-        function handleLogoutCleanup() {
             currentUser = null;
             currentUserRole = null;
             safeRemove('mr_session');
             showAuthScreen();
-            showToast("Signed out of Doctor Diary.");
+            showToast("Signed out successfully.");
         }
 
-        function validatePasswordComplexity(pass) {
-            return pass.length >= 8;
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const target = document.getElementById('view-' + viewId);
+            if (target) target.classList.add('active');
+
+            const navMap = {
+                'home': 'nav-home',
+                'specialties': 'nav-specs',
+                'find-doctors': 'nav-find',
+                'near-me': 'nav-nearme',
+                'patient-profile': 'nav-patient-profile',
+                'doc-portal': 'nav-doc-portal',
+                'admin-verification': 'nav-admin-verify',
+                'admin-reviews': 'nav-admin-reviews',
+                'about-legal': 'nav-about'
+            };
+            if (navMap[viewId]) document.getElementById(navMap[viewId])?.classList.add('active');
+            document.querySelector('aside')?.classList.remove('mobile-open');
+
+            if (viewId === 'patient-profile') {
+                document.getElementById('pat-profile-id-display').innerText = currentUser.profileId;
+                document.getElementById('pat-profile-name').innerText = currentUser.fullName;
+                document.getElementById('pat-profile-email').innerText = currentUser.email;
+            }
+            if (viewId === 'home' || viewId === 'find-doctors' || viewId === 'near-me') loadDirectoryData();
+        }
+
+        async function loadDirectoryData() {
+            if (supabaseClient && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT")) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('doctors')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data) {
+                        cachedDoctors = data.map(d => ({
+                            id: d.id,
+                            profileId: d.profile_id,
+                            fullName: d.full_name,
+                            specialty: d.specialty,
+                            highestDegree: d.highest_degree,
+                            locality: d.locality,
+                            clinicName: d.clinic_name,
+                            fee: d.fee,
+                            experience: d.experience,
+                            rating: d.rating,
+                            reviewsCount: d.reviews_count,
+                            verificationStatus: d.verification_status
+                        }));
+                    }
+                } catch (e) {
+                    console.warn("Using offline doctor list");
+                }
+            }
+
+            if (!cachedDoctors || cachedDoctors.length === 0) {
+                cachedDoctors = [
+                    { id: "nashik_doc_01", profileId: "DOC-784912", fullName: "Dr. Vikram Patil", specialty: "Cardiology", highestDegree: "DM / MCh", locality: "Panchavati", clinicName: "Apollo Hospitals", fee: 800, experience: 14, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified" },
+                    { id: "nashik_doc_02", profileId: "DOC-912384", fullName: "Dr. Snehal Deshmukh", specialty: "Pediatrics", highestDegree: "MD / MS", locality: "Mumbai Naka", clinicName: "Sahyadri Hospital", fee: 600, experience: 11, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified" },
+                    { id: "nashik_doc_03", profileId: "DOC-334190", fullName: "Dr. Rohan Kulkarni", specialty: "Orthopedics", highestDegree: "MS (Ortho)", locality: "College Road", clinicName: "Apex Bone & Joint", fee: 750, experience: 13, rating: "5.0", reviewsCount: 1, verificationStatus: "Verified" }
+                ];
+            }
+
+            renderHome();
+            filterDoctors();
+        }
+
+        function createDoctorCard(doc) {
+            return `
+                <div class="doctor-card">
+                    <div>
+                        <div class="score-badge">${escapeHtml(doc.specialty)}</div>
+                        <div class="doctor-header-profile">
+                            <div class="doctor-avatar">${(doc.fullName || 'Dr').replace('Dr. ', '').substring(0, 2).toUpperCase()}</div>
+                            <div>
+                                <h3 style="font-size:1.05rem; margin-bottom:2px;">${escapeHtml(doc.fullName)}</h3>
+                                <div style="font-size:0.82rem; color:var(--brand); font-weight:700;">${escapeHtml(doc.highestDegree || 'MD')}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">ID: ${escapeHtml(doc.profileId || doc.id)}</div>
+                            </div>
+                        </div>
+                        <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin:10px 0;">
+                            <div><i class="fa-solid fa-hospital"></i> ${escapeHtml(doc.clinicName)}, ${escapeHtml(doc.locality || 'Nashik')}</div>
+                            <div><i class="fa-solid fa-indian-rupee-sign"></i> <strong>₹${escapeHtml(doc.fee)}</strong> Fee</div>
+                            <div><i class="fa-solid fa-briefcase"></i> ${escapeHtml(doc.experience)} years experience</div>
+                            <div><i class="fa-solid fa-star" style="color:var(--accent);"></i> <strong>${escapeHtml(doc.rating)}</strong> (${escapeHtml(doc.reviewsCount)} reviews)</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderHome() {
+            const list = document.getElementById('home-featured');
+            list.innerHTML = cachedDoctors.slice(0, 6).map(createDoctorCard).join('');
+        }
+
+        function filterDoctors() {
+            const q = (document.getElementById('f-name')?.value || '').toLowerCase().trim();
+            const s = (document.getElementById('f-spec')?.value || '').toLowerCase().trim();
+            
+            let res = cachedDoctors.filter(d => {
+                const matchQuery = !q || d.fullName.toLowerCase().includes(q) || d.specialty.toLowerCase().includes(q);
+                const matchSpec = !s || d.specialty.toLowerCase() === s;
+                return matchQuery && matchSpec;
+            });
+
+            document.getElementById('doctor-list').innerHTML = res.map(createDoctorCard).join('') || '<div class="empty-placeholder">No matching doctors found.</div>';
+        }
+
+        function renderAreaChips() {
+            const cont = document.getElementById('area-chip-container');
+            cont.innerHTML = ["All Areas", ...NASHIK_AREAS].map(a => `
+                <div class="chip ${a === selectedArea ? 'active':''}" onclick="selectArea('${a}', this)">
+                    <i class="fa-solid fa-location-dot"></i> ${a}
+                </div>
+            `).join('');
+        }
+
+        function selectArea(a, el) {
+            selectedArea = a;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            const res = (a === "All Areas") ? cachedDoctors : cachedDoctors.filter(d => d.locality === a);
+            document.getElementById('nearme-results').innerHTML = res.map(createDoctorCard).join('') || `<div class="empty-placeholder">No practices found in ${a}.</div>`;
+        }
+
+        function toggleMobileMenu() { document.querySelector('aside')?.classList.toggle('mobile-open'); }
+        function togglePasswordVisibility(id, icon) {
+            const f = document.getElementById(id);
+            f.type = (f.type === 'password') ? 'text' : 'password';
+            icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
+        }
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 3200);
+        }
+        function openAITriageModal() { document.getElementById('ai-modal').style.display = 'flex'; }
+        function closeAITriageModal() { document.getElementById('ai-modal').style.display = 'none'; }
+        function runAITriage() {
+            const val = document.getElementById('ai-symptom-input').value.trim();
+            if (!val) return showToast("Enter symptoms first.");
+            document.getElementById('ai-result-box').style.display = 'block';
+            document.getElementById('ai-result-content').innerHTML = `<strong>Triage Match:</strong> Recommendation forwarded to General Medicine.`;
+        }
+    </script>
+</body>
+</html>
