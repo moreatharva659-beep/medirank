@@ -944,7 +944,7 @@
             SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes("YOUR_ANON_PUBLIC_KEY")
         ) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-        const CURRENT_DATA_VERSION = "doctordiary_v23_strict_auth";
+        const CURRENT_DATA_VERSION = "doctordiary_v24_auth_guard";
 
         const STATES_DATA = {
             "Maharashtra": ["Nashik", "Pune", "Mumbai", "Nagpur", "Chhatrapati Sambhajinagar", "Thane", "Kolhapur", "Ahmednagar", "Solapur", "Satara"],
@@ -1289,20 +1289,11 @@
                 });
             }
 
-            const sess = safeRead('mr_session', null);
-            if (sess && (sess.uid || sess.user)) {
-                const users = safeRead('mr_users', []);
-                const u = users.find(x => (x.id || x.userId) === (sess.uid || sess.user?.id || sess.user?.userId)) || sess.user;
-                if (u) {
-                    currentUser = u;
-                    currentUserRole = u.role;
-                    unlockApp();
-                } else {
-                    showAuthScreen();
-                }
-            } else {
-                showAuthScreen();
-            }
+            // SECURITY FIX: this prototype stores a custom, client-controlled session.
+            // Never trust it to unlock a protected screen on page load. Require a fresh
+            // sign-in each page load until this app is migrated to Supabase Auth.
+            safeRemove('mr_session');
+            showAuthScreen();
         });
 
         function populateStateSelectors() {
@@ -1933,11 +1924,22 @@
             document.getElementById('pat-profile-raw-uid').innerText = currentUser.id || currentUser.userId || '-';
         }
 
+        let lastViewChangeAt = 0;
         function showView(viewId) {
+            // Fail closed: navigation cannot unlock the app or change protected views
+            // when no current user is set. Legal/about page remains available if present.
+            if (!currentUser || !currentUserRole) {
+                showAuthScreen();
+                return;
+            }
             const patientViews = ['home', 'specialties', 'find-doctors', 'near-me', 'patient-profile'];
             const doctorViews = ['doc-portal', 'doc-documents'];
             const adminViews = ['admin-verification', 'admin-reviews', 'admin-audit'];
 
+            if (!['PATIENT', 'DOCTOR', 'ADMIN'].includes(currentUserRole)) {
+                handleLogout();
+                return;
+            }
             if (patientViews.includes(viewId) && currentUserRole !== 'PATIENT') {
                 showToast("Access restricted: Patient portal feature only.");
                 return;
@@ -3266,9 +3268,10 @@
             const doctorName = doc ? (doc.fullName || doc.full_name || 'Demo Doctor') : 'Demo Doctor';
             const fileName = review.proofFileName || review.proof_file_name || 'Demo_Consultation_Receipt.html';
             const storagePath = review.proofStoragePath || review.proof_storage_path || '';
-            const isDemo = String(review.id).startsWith('FB-') || !storagePath;
+            const isSeedDemo = String(review.id).startsWith('FB-');
+            const hasUploadedFile = !!storagePath;
             document.getElementById('inspect-doc-subtitle').innerText = `Consultation proof for ${review.patientName || review.patient_name || 'Demo Patient'}`;
-            if (!isDemo && supabaseClient) {
+            if (hasUploadedFile && supabaseClient) {
                 document.getElementById('inspect-modal-body').innerHTML = '<p>Opening securely stored proof…</p>';
                 document.getElementById('inspect-modal').style.display = 'flex';
                 const { data, error } = await supabaseClient.storage.from('doctor-documents').createSignedUrl(storagePath, 300);
@@ -3282,6 +3285,11 @@
                 document.getElementById('inspect-modal-body').innerHTML = `<div style="margin-bottom:12px"><strong>${escapeHtml(fileName)}</strong></div>${isImage ? `<img src="${url}" alt="Uploaded consultation proof" style="display:block;max-width:100%;max-height:60vh;margin:auto;border:1px solid #cbd5e1;border-radius:8px">` : `<p>PDF proof is stored securely. Use the button below to open or download it.</p>`}<p style="margin-top:12px"><a class="btn btn-primary" href="${url}" target="_blank" rel="noopener">Open / Download Proof</a></p>`;
                 return;
             }
+            if (!isSeedDemo || !hasUploadedFile) {
+                document.getElementById('inspect-modal-body').innerHTML = `<div style="padding:18px;border:1px solid #f59e0b;background:#fffbeb;border-radius:10px;color:#92400e"><strong>No actual proof file is attached.</strong><p style="margin-top:8px">This record does not have a stored uploaded document. Do not treat a sample receipt as evidence.</p><p style="margin-top:8px"><strong>Recorded filename:</strong> ${escapeHtml(fileName)}</p></div>`;
+                document.getElementById('inspect-modal').style.display = 'flex';
+                return;
+            }
             document.getElementById('inspect-modal-body').innerHTML = `
                 <div style="border:1px solid #cbd5e1;border-radius:12px;overflow:hidden;background:#fff;color:#1e293b;">
                     <div style="background:#0b6e69;color:white;padding:16px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center;">
@@ -3289,7 +3297,7 @@
                         <i class="fa-solid fa-file-invoice" style="font-size:1.8rem;"></i>
                     </div>
                     <div style="padding:18px;position:relative;">
-                        <div style="border:2px dashed #d97706;color:#92400e;background:#fffbeb;text-align:center;padding:8px;border-radius:8px;font-weight:800;letter-spacing:.08em;margin-bottom:16px;">${isDemo ? 'DEMO SAMPLE — NOT A REAL RECEIPT' : 'UPLOADED PROOF RECORD'}</div>
+                        <div style="border:2px dashed #d97706;color:#92400e;background:#fffbeb;text-align:center;padding:8px;border-radius:8px;font-weight:800;letter-spacing:.08em;margin-bottom:16px;">DEMO SAMPLE — NOT A REAL RECEIPT</div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.88rem;">
                             <div><div style="color:#64748b;font-size:.74rem;">RECEIPT / REVIEW ID</div><strong>${escapeHtml(review.id)}</strong></div>
                             <div><div style="color:#64748b;font-size:.74rem;">CONSULTATION DATE</div><strong>${escapeHtml(review.submittedDate || review.submitted_date || 'Demo date')}</strong></div>
