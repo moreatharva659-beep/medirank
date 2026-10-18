@@ -2494,6 +2494,10 @@
 
         async function handleFeedbackSubmit(e) {
             e.preventDefault();
+            const submitButton = e.submitter || document.querySelector('#form-patient-feedback button[type="submit"]');
+            if (submitButton && submitButton.dataset.busy === '1') return;
+            if (submitButton) { submitButton.dataset.busy = '1'; submitButton.disabled = true; submitButton.dataset.oldLabel = submitButton.innerHTML; submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading proof…'; }
+            try {
             const doctorId = document.getElementById('fb-doctor-id').value;
             const text = document.getElementById('fb-narrative').value.trim();
             const ratingVal = parseInt(document.getElementById('fb-rating').value, 10) || 5;
@@ -2550,75 +2554,71 @@
             safeWrite('mr_reviews', reviews);
             closeFeedbackModal();
             showToast(supabaseClient ? 'Review and proof uploaded successfully. Awaiting admin approval.' : 'Demo review saved in this browser only; configure Supabase Storage for cross-device access.');
+            } finally {
+                if (submitButton) { submitButton.disabled = false; submitButton.dataset.busy = '0'; if (submitButton.dataset.oldLabel) submitButton.innerHTML = submitButton.dataset.oldLabel; }
+            }
         }
 
-        function renderAdminReviewsModeration() {
+        async function renderAdminReviewsModeration() {
             const cont = document.getElementById('admin-reviews-list');
-            const reviews = safeRead('mr_reviews', []);
-            const docs = safeRead('mr_docs', []);
+            if (!cont) return;
+            cont.innerHTML = '<div class="empty-placeholder"><i class="fa-solid fa-spinner fa-spin"></i> Loading review submissions…</div>';
 
-            if (reviews.length === 0) {
-                cont.innerHTML = `<div class="empty-placeholder">No feedback submissions found.</div>`;
-                return;
+            // Always refresh real submissions from Supabase when an admin opens this view.
+            // Local demo records are retained and merged by ID; real cloud records take priority.
+            let reviews = safeRead('mr_reviews', []);
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
+                    if (error) throw error;
+                    const remote = (data || []).map(r => ({
+                        id: r.id,
+                        doctorId: r.doctor_id,
+                        patientId: r.patient_id,
+                        patientName: r.patient_name || 'Patient',
+                        rating: r.rating || 5,
+                        comment: r.comment || '',
+                        experienceText: r.experience_text || r.comment || '',
+                        proofFileName: r.proof_file_name || '',
+                        proofStoragePath: r.proof_storage_path || '',
+                        submittedDate: r.submitted_date || (r.created_at ? String(r.created_at).slice(0,10) : ''),
+                        status: r.status || 'PENDING_APPROVAL',
+                        adminNote: r.admin_note || ''
+                    }));
+                    const byId = new Map(reviews.map(r => [String(r.id), r]));
+                    remote.forEach(r => byId.set(String(r.id), { ...(byId.get(String(r.id)) || {}), ...r }));
+                    reviews = Array.from(byId.values());
+                    safeWrite('mr_reviews', reviews);
+                } catch (err) {
+                    console.error('Admin review refresh failed:', err);
+                    cont.innerHTML = '<div class="empty-placeholder">Could not load cloud submissions. Check Supabase reviews-table SELECT permissions and Storage policies. Local demo records, if any, are shown below.</div>';
+                }
             }
 
+            const docs = safeRead('mr_docs', []);
+            if (!reviews.length) {
+                cont.innerHTML = '<div class="empty-placeholder">No feedback submissions found.</div>';
+                return;
+            }
             cont.innerHTML = reviews.map(r => {
-                const doc = docs.find(d => d.id === r.doctorId);
-                const isPending = r.status === 'PENDING_APPROVAL';
-                const isApproved = r.status === 'APPROVED';
-
+                const doc = docs.find(d => String(d.id) === String(r.doctorId || r.doctor_id));
+                const isPending = String(r.status || '').toUpperCase() === 'PENDING_APPROVAL';
+                const isApproved = String(r.status || '').toUpperCase() === 'APPROVED';
+                const hasRealFile = !!(r.proofStoragePath || r.proof_storage_path);
                 return `
-                    <div style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
-                            <div>
-                                <h4 style="margin:0; font-size:1rem; color:var(--text-dark);">
-                                    Patient: <strong>${escapeHtml(r.patientName)}</strong> 
-                                    <span style="font-weight:400; color:var(--text-muted);">for</span> 
-                                    ${escapeHtml(doc ? (doc.fullName || doc.full_name) : 'Doctor')}
-                                    (${escapeHtml(r.rating || 5)} Stars)
-                                </h4>
-                                <small style="color:var(--text-muted);">Submitted: ${escapeHtml(r.submittedDate)} • ID: <code>${escapeHtml(r.id)}</code></small>
-                            </div>
-                            <span class="verify-tag ${isApproved ? 'tag-verified' : (isPending ? 'tag-pending' : 'tag-rejected')}">
-                                ${escapeHtml(r.status)}
-                            </span>
+                    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+                            <div><h4 style="margin:0;font-size:1rem;color:var(--text-dark);">Patient: <strong>${escapeHtml(r.patientName || r.patient_name || 'Patient')}</strong> <span style="font-weight:400;color:var(--text-muted);">for</span> ${escapeHtml(doc ? (doc.fullName || doc.full_name) : (r.doctorName || 'Doctor'))} (${escapeHtml(r.rating || 5)} Stars)</h4>
+                            <small style="color:var(--text-muted);">Submitted: ${escapeHtml(r.submittedDate || r.submitted_date || '')} • ID: <code>${escapeHtml(r.id)}</code></small></div>
+                            <span class="verify-tag ${isApproved ? 'tag-verified' : (isPending ? 'tag-pending' : 'tag-rejected')}">${escapeHtml(r.status || 'PENDING_APPROVAL')}</span>
                         </div>
-
-                        <div style="background:#f8fafc; border-left:4px solid var(--brand); padding:10px 14px; border-radius:6px; margin-bottom:12px;">
-                            <strong style="font-size:0.8rem; color:var(--brand); display:block; margin-bottom:4px;">Patient's Written Experience:</strong>
-                            <p style="font-size:0.88rem; color:#334155; margin:0; line-height:1.5;">"${escapeHtml(r.experienceText || r.comment)}"</p>
+                        <div style="background:#f8fafc;border-left:4px solid var(--brand);padding:10px 14px;border-radius:6px;margin-bottom:12px;"><strong style="font-size:.8rem;color:var(--brand);display:block;margin-bottom:4px;">Patient's Written Experience:</strong><p style="font-size:.88rem;color:#334155;margin:0;line-height:1.5;">"${escapeHtml(r.experienceText || r.experience_text || r.comment || '')}"</p></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px dashed var(--border);padding-top:10px;">
+                            <div style="font-size:.82rem;color:var(--text-dark);"><i class="fa-solid fa-file-invoice" style="color:var(--brand);"></i> Consultation Proof: <strong>${escapeHtml(r.proofFileName || r.proof_file_name || 'No file name saved')}</strong><div style="font-size:.75rem;color:${hasRealFile ? '#047857' : '#b45309'};">${hasRealFile ? 'Uploaded file linked in cloud storage' : 'No real cloud file linked (demo/local record)'}</div></div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-outline" style="padding:6px 12px;font-size:.8rem;" onclick="openReviewProofModal('${String(r.id).replace(/'/g, '&#39;')}')"><i class="fa-solid fa-eye"></i> View Proof</button>
+                            ${isPending ? `<button class="btn btn-primary" style="padding:6px 14px;font-size:.8rem;" onclick="adminApproveFeedback('${String(r.id).replace(/'/g, '&#39;')}')"><i class="fa-solid fa-check"></i> Approve &amp; Publish</button><button class="btn btn-danger-outline" style="padding:6px 12px;font-size:.8rem;" onclick="adminRejectFeedback('${String(r.id).replace(/'/g, '&#39;')}')"><i class="fa-solid fa-xmark"></i> Reject</button>` : (isApproved ? `<button class="btn btn-danger-outline" style="padding:6px 12px;font-size:.8rem;" onclick="adminRejectFeedback('${String(r.id).replace(/'/g, '&#39;')}')"><i class="fa-solid fa-ban"></i> Revoke Publication</button>` : `<button class="btn btn-primary" style="padding:6px 12px;font-size:.8rem;" onclick="adminApproveFeedback('${String(r.id).replace(/'/g, '&#39;')}')"><i class="fa-solid fa-rotate-left"></i> Re-Approve</button>`)}</div>
                         </div>
-
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px dashed var(--border); padding-top:10px;">
-                            <div style="font-size:0.82rem; color:var(--text-dark);">
-                                <i class="fa-solid fa-file-invoice" style="color:var(--brand);"></i> 
-                                Attached Consultation Proof: <strong>${escapeHtml(r.proofFileName || 'Receipt.pdf')}</strong>
-                            </div>
-
-                            <div style="display:flex; gap:8px;">
-                                <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="openReviewProofModal('${r.id}')">
-                                    <i class="fa-solid fa-eye"></i> View Proof
-                                </button>
-                                ${isPending ? `
-                                    <button class="btn btn-primary" style="padding:6px 14px; font-size:0.8rem;" onclick="adminApproveFeedback('${r.id}')">
-                                        <i class="fa-solid fa-check"></i> Approve &amp; Publish
-                                    </button>
-                                    <button class="btn btn-danger-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="adminRejectFeedback('${r.id}')">
-                                        <i class="fa-solid fa-xmark"></i> Reject
-                                    </button>
-                                ` : (isApproved ? `
-                                    <button class="btn btn-danger-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="adminRejectFeedback('${r.id}')">
-                                        <i class="fa-solid fa-ban"></i> Revoke Publication
-                                    </button>
-                                ` : `
-                                    <button class="btn btn-primary" style="padding:6px 12px; font-size:0.8rem;" onclick="adminApproveFeedback('${r.id}')">
-                                        <i class="fa-solid fa-rotate-left"></i> Re-Approve
-                                    </button>
-                                `)}
-                            </div>
-                        </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
         }
 
@@ -3242,12 +3242,25 @@
         // Demo-only receipt viewer for seeded feedback records. These are illustrative
         // sample receipts, not genuine medical or payment documents.
         async function openReviewProofModal(reviewId) {
-            const reviews = safeRead('mr_reviews', []);
-            const review = reviews.find(r => String(r.id) === String(reviewId));
-            if (!review) {
-                showToast('Review proof was not found.');
-                return;
+            let reviews = safeRead('mr_reviews', []);
+            let review = reviews.find(r => String(r.id) === String(reviewId));
+            // The admin may be on another device/browser, where localStorage has no patient submission.
+            if ((!review || !(review.proofStoragePath || review.proof_storage_path)) && supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('reviews').select('*').eq('id', reviewId).maybeSingle();
+                    if (!error && data) {
+                        review = { ...(review || {}), id: data.id, doctorId: data.doctor_id, patientId: data.patient_id,
+                            patientName: data.patient_name || 'Patient', rating: data.rating || 5, comment: data.comment || '',
+                            experienceText: data.experience_text || data.comment || '', proofFileName: data.proof_file_name || '',
+                            proofStoragePath: data.proof_storage_path || '', submittedDate: data.submitted_date || '',
+                            status: data.status || 'PENDING_APPROVAL', adminNote: data.admin_note || '' };
+                        const merged = new Map(reviews.map(r => [String(r.id), r]));
+                        merged.set(String(review.id), { ...(merged.get(String(review.id)) || {}), ...review });
+                        safeWrite('mr_reviews', Array.from(merged.values()));
+                    }
+                } catch (err) { console.error('Could not fetch review proof metadata:', err); }
             }
+            if (!review) { showToast('Review proof was not found in the cloud database.'); return; }
             const docs = safeRead('mr_docs', []);
             const doc = docs.find(d => String(d.id) === String(review.doctorId));
             const doctorName = doc ? (doc.fullName || doc.full_name || 'Demo Doctor') : 'Demo Doctor';
