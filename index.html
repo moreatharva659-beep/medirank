@@ -727,7 +727,7 @@
                         <div class="form-group"><label>4. Fellowship / Sub-specialty Documents</label><input type="file" id="doc_fellow_cert"></div>
                         <div class="form-group full"><label>5. Clinic Establishment / OPD License</label><input type="file" id="doc_clinic_lic"></div>
                     </div>
-                    <button class="btn btn-primary" onclick="showToast('Credential documents stored securely.')"><i class="fa-solid fa-shield-halved"></i> Save Documents</button>
+                    <button class="btn btn-primary" onclick="saveDoctorCredentialDocuments()"><i class="fa-solid fa-shield-halved"></i> Save Documents</button>
                 </div>
             </div>
 
@@ -1598,6 +1598,7 @@
                     if (error) return showAuthError(error.message);
                 } catch (err) {
                     console.error("Supabase patient signup error:", err);
+                    return showAuthError("Registration could not be completed. Please check your connection and try again.");
                 }
             }
 
@@ -2310,6 +2311,7 @@
                             comment: r.comment,
                             experienceText: r.experience_text || r.comment,
                             proofFileName: r.proof_file_name,
+                            proofStoragePath: r.proof_storage_path,
                             submittedDate: r.submitted_date,
                             status: r.status,
                             adminNote: r.admin_note
@@ -2483,55 +2485,58 @@
             const text = document.getElementById('fb-narrative').value.trim();
             const ratingVal = parseInt(document.getElementById('fb-rating').value, 10) || 5;
             const fileInput = document.getElementById('fb-proof-file');
-
             if (!fileInput.files || fileInput.files.length === 0) {
-                showToast("Please attach prescription slip or receipt as visit proof.");
-                return;
+                showToast("Please attach prescription slip or receipt as visit proof."); return;
             }
-
-            const fileName = fileInput.files[0].name;
+            const file = fileInput.files[0];
+            const allowed = ['application/pdf','image/png','image/jpeg'];
+            if (!allowed.includes(file.type) || file.size > 8 * 1024 * 1024) {
+                showToast('Please choose a PDF, PNG, or JPG file up to 8 MB.'); return;
+            }
+            const fileName = file.name;
             const generatedFeedbackId = generateFeedbackId();
             const todayStr = new Date().toISOString().split('T')[0];
+            let proofStoragePath = '';
 
+            // Upload the actual file first. The bucket is private; the admin viewer
+            // creates a short-lived signed URL when opening the proof.
             if (supabaseClient) {
-                try {
-                    await supabaseClient.from('reviews').insert([{
-                        id: generatedFeedbackId,
-                        doctor_id: doctorId,
-                        patient_id: currentUser.id || currentUser.userId,
-                        patient_name: currentUser.fullName || currentUser.full_name || "Patient",
-                        rating: ratingVal,
-                        comment: text.substring(0, 100),
-                        experience_text: text,
-                        proof_file_name: fileName,
-                        status: "PENDING_APPROVAL",
-                        submitted_date: todayStr
-                    }]);
-                } catch (err) {
-                    console.error("Supabase feedback insert error:", err);
+                const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+                proofStoragePath = `feedback/${generatedFeedbackId}/${Date.now()}_${safeName}`;
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('doctor-documents').upload(proofStoragePath, file, { upsert: false, contentType: file.type });
+                if (uploadError) {
+                    console.error('Proof upload error:', uploadError);
+                    showToast('Proof upload failed. Check Supabase Storage permissions and try again.'); return;
                 }
+                const { error: insertError } = await supabaseClient.from('reviews').insert([{
+                    id: generatedFeedbackId, doctor_id: doctorId,
+                    patient_id: currentUser.id || currentUser.userId,
+                    patient_name: currentUser.fullName || currentUser.full_name || 'Patient',
+                    rating: ratingVal, comment: text.substring(0, 100), experience_text: text,
+                    proof_file_name: fileName, proof_storage_path: proofStoragePath,
+                    status: 'PENDING_APPROVAL', submitted_date: todayStr
+                }]);
+                if (insertError) {
+                    console.error('Supabase feedback insert error:', insertError);
+                    await supabaseClient.storage.from('doctor-documents').remove([proofStoragePath]);
+                    showToast('The review could not be saved to the database. Your review was not submitted.'); return;
+                }
+            } else {
+                // Offline/local demo mode can retain a proof only in this browser session.
+                proofStoragePath = '';
             }
-
             const reviews = safeRead('mr_reviews', []);
-            const newFeedback = {
-                id: generatedFeedbackId,
-                doctorId: doctorId,
-                patientId: currentUser.id || currentUser.userId,
-                patientName: currentUser.fullName || currentUser.full_name || "Patient",
-                rating: ratingVal,
-                comment: text.substring(0, 100),
-                experienceText: text,
-                proofFileName: fileName,
-                submittedDate: todayStr,
-                status: "PENDING_APPROVAL",
-                adminNote: ""
-            };
-
-            reviews.unshift(newFeedback);
+            reviews.unshift({
+                id: generatedFeedbackId, doctorId, patientId: currentUser.id || currentUser.userId,
+                patientName: currentUser.fullName || currentUser.full_name || 'Patient',
+                rating: ratingVal, comment: text.substring(0, 100), experienceText: text,
+                proofFileName: fileName, proofStoragePath, submittedDate: todayStr,
+                status: 'PENDING_APPROVAL', adminNote: ''
+            });
             safeWrite('mr_reviews', reviews);
-
             closeFeedbackModal();
-            showToast(`Feedback submitted! Reference ID: ${generatedFeedbackId}`);
+            showToast(supabaseClient ? 'Review and proof uploaded successfully. Awaiting admin approval.' : 'Demo review saved in this browser only; configure Supabase Storage for cross-device access.');
         }
 
         function renderAdminReviewsModeration() {
@@ -2578,7 +2583,7 @@
                             </div>
 
                             <div style="display:flex; gap:8px;">
-                                <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="showToast('Viewing receipt proof: ' + '${escapeHtml(r.proofFileName)}')">
+                                <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="openReviewProofModal('${r.id}')">
                                     <i class="fa-solid fa-eye"></i> View Proof
                                 </button>
                                 ${isPending ? `
@@ -2606,10 +2611,11 @@
 
         async function adminApproveFeedback(reviewId) {
             if (supabaseClient) {
-                await supabaseClient.from('reviews').update({
+                const { error } = await supabaseClient.from('reviews').update({
                     status: "APPROVED",
                     admin_note: "Proof verified and cleared by council desk."
                 }).eq('id', reviewId);
+                if (error) { console.error('Review approval failed:', error); showToast('Could not approve review in the database. Check permissions and try again.'); return; }
             }
 
             let reviews = safeRead('mr_reviews', []);
@@ -2627,10 +2633,11 @@
 
         async function adminRejectFeedback(reviewId) {
             if (supabaseClient) {
-                await supabaseClient.from('reviews').update({
+                const { error } = await supabaseClient.from('reviews').update({
                     status: "REJECTED",
                     admin_note: "Rejected during administrative compliance audit."
                 }).eq('id', reviewId);
+                if (error) { console.error('Review rejection failed:', error); showToast('Could not reject review in the database. Check permissions and try again.'); return; }
             }
 
             let reviews = safeRead('mr_reviews', []);
@@ -2728,14 +2735,64 @@
             r.start();
         }
 
-        function renderDoctorCredentialsVault() {
+        async function renderDoctorCredentialsVault() {
             const list = document.getElementById('doc-existing-credentials-list');
-            list.innerHTML = `
-                <div style="background:#f8fafc; border:1px solid var(--border); padding:10px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <div><i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> <strong>Medical_Council_Registration.pdf</strong></div>
-                    <span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
-                </div>
-            `;
+            const doc = cachedDoctors.find(d => d.email === currentUser?.email) || cachedDoctors.find(d => String(d.id) === String(currentUser?.doctorId || currentUser?.doctor_id));
+            let entries = [];
+            try {
+                const raw = doc?.documentStoragePath || doc?.document_storage_path || '';
+                if (raw.startsWith('[')) entries = JSON.parse(raw);
+                else if (raw && !raw.startsWith('local://')) entries = [{ name: raw.split('/').pop(), path: raw }];
+            } catch (_) {}
+            if (!entries.length) {
+                list.innerHTML = '<div style="color:var(--text-muted);font-size:.85rem;">No uploaded documents yet. Select your files below and choose Save Documents.</div>';
+                return;
+            }
+            list.innerHTML = entries.map((item, i) => `<div style="background:#f8fafc;border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;"><div><i class="fa-solid fa-file-lines" style="color:var(--brand);"></i> <strong>${escapeHtml(item.name || ('Document ' + (i+1)))}</strong></div><button class="btn btn-outline" style="padding:5px 10px" onclick="openDoctorCredentialFile(${i})">View</button></div>`).join('');
+        }
+
+        async function saveDoctorCredentialDocuments() {
+            if (!supabaseClient) { showToast('Cloud storage is unavailable. Please check the Supabase configuration.'); return; }
+            const doctor = cachedDoctors.find(d => d.email === currentUser?.email) || cachedDoctors.find(d => String(d.id) === String(currentUser?.doctorId || currentUser?.doctor_id));
+            if (!doctor) { showToast('Doctor profile not found. Please sign in with the doctor account.'); return; }
+            const fields = [
+                ['doc_reg_cert','Medical Council Registration Certificate'],['doc_degree_cert','Primary Degree Certificate'],
+                ['doc_pg_cert','Post-Graduation Degree'],['doc_fellow_cert','Fellowship / Sub-specialty Document'],['doc_clinic_lic','Clinic Establishment / OPD License']
+            ];
+            let existing = [];
+            try { const raw = doctor.documentStoragePath || doctor.document_storage_path || ''; if (raw.startsWith('[')) existing = JSON.parse(raw); else if (raw && !raw.startsWith('local://')) existing = [{name:raw.split('/').pop(),path:raw}]; } catch (_) {}
+            const selected = fields.map(([id,label]) => ({id,label,file:document.getElementById(id)?.files?.[0]})).filter(x=>x.file);
+            if (!selected.length) { showToast('Please select at least one document to upload.'); return; }
+            const uploaded = [];
+            for (const item of selected) {
+                const f = item.file;
+                if (f.size > 8*1024*1024 || !(['application/pdf','image/png','image/jpeg'].includes(f.type))) { showToast(`${item.label}: choose PDF, PNG, or JPG up to 8 MB.`); return; }
+            }
+            for (const item of selected) {
+                const safeName = item.file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+                const path = `doctor-credentials/${String(doctor.id).replace(/[^a-zA-Z0-9_-]/g,'_')}/${Date.now()}_${safeName}`;
+                const {error: upErr} = await supabaseClient.storage.from('doctor-documents').upload(path,item.file,{upsert:false,contentType:item.file.type});
+                if (upErr) { console.error('Credential upload failed',upErr); showToast('A document upload failed. Check Storage permissions and try again.'); return; }
+                uploaded.push({name:item.file.name,path,label:item.label});
+            }
+            const all = existing.concat(uploaded);
+            const pathJson = JSON.stringify(all);
+            const {error: updateErr} = await supabaseClient.from('doctors').update({document_storage_path:pathJson}).eq('id',doctor.id);
+            if (updateErr) { console.error('Could not save document references',updateErr); showToast('Files uploaded, but their references could not be saved. Contact the project admin.'); return; }
+            doctor.documentStoragePath = pathJson; doctor.document_storage_path = pathJson;
+            safeWrite('mr_docs',cachedDoctors);
+            fields.forEach(([id])=>{ const el=document.getElementById(id); if(el) el.value=''; });
+            await renderDoctorCredentialsVault();
+            showToast('Selected credential documents uploaded and saved.');
+        }
+
+        async function openDoctorCredentialFile(index) {
+            const doctor = cachedDoctors.find(d => d.email === currentUser?.email) || cachedDoctors.find(d => String(d.id) === String(currentUser?.doctorId || currentUser?.doctor_id));
+            let entries=[]; try { const raw=doctor?.documentStoragePath || doctor?.document_storage_path || ''; entries=raw.startsWith('[')?JSON.parse(raw):[]; } catch (_) {}
+            const item=entries[index]; if(!item?.path || !supabaseClient) { showToast('Stored document could not be found.'); return; }
+            const {data,error}=await supabaseClient.storage.from('doctor-documents').createSignedUrl(item.path,300);
+            if(error || !data?.signedUrl) { console.error(error); showToast('Could not open document. Check Storage permissions.'); return; }
+            window.open(data.signedUrl,'_blank','noopener');
         }
 
         let doctorPortalClinicsDraft = [];
@@ -3114,42 +3171,111 @@
             }).join('');
         }
 
-        function openInspectProofModal(id) {
-            const doc = cachedDoctors.find(d => d.id === id);
-            if (!doc) return;
+        async function openInspectProofModal(id) {
+            const doc = cachedDoctors.find(d => String(d.id) === String(id)) || safeRead('mr_docs', []).find(d => String(d.id) === String(id));
+            if (!doc) { showToast('Doctor profile was not found.'); return; }
 
-            document.getElementById('inspect-doc-subtitle').innerText = `${doc.fullName || doc.full_name} (${doc.specialty})`;
-            document.getElementById('inspect-modal-body').innerHTML = `
-                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <strong>Doctor Confidential ID:</strong>
-                        <code>${escapeHtml(doc.profileId || doc.profile_id || doc.id)}</code>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <strong>Medical Registration Number:</strong>
-                        <code>${escapeHtml(doc.registrationNumber || doc.registration_number)}</code>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <strong>State Council:</strong>
-                        <span>${escapeHtml(doc.council || 'Maharashtra Medical Council')}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <strong>Highest Qualification:</strong>
-                        <span>${escapeHtml(doc.highestDegree || doc.highest_degree)} (${escapeHtml(doc.year || '2014')})</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>College / University:</strong>
-                        <span>${escapeHtml(doc.university || 'Grant Medical College, Mumbai')}</span>
-                    </div>
+            const modal = document.getElementById('inspect-modal');
+            const body = document.getElementById('inspect-modal-body');
+            document.getElementById('inspect-doc-subtitle').innerText = `${doc.fullName || doc.full_name || 'Doctor'} (${doc.specialty || doc.specialization || 'Specialty not listed'})`;
+            let entries = [];
+            try {
+                const raw = doc.documentStoragePath || doc.document_storage_path || '';
+                if (raw.startsWith('[')) entries = JSON.parse(raw);
+                else if (raw && !raw.startsWith('local://')) entries = [{ name: raw.split('/').pop(), path: raw, label: 'Uploaded credential' }];
+            } catch (e) { console.warn('Could not parse doctor document references', e); }
+
+            body.innerHTML = `
+                <div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;">
+                    <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;"><strong>Doctor ID:</strong><code>${escapeHtml(doc.profileId || doc.profile_id || doc.id)}</code></div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;"><strong>Medical Registration Number:</strong><code>${escapeHtml(doc.registrationNumber || doc.registration_number || 'Not provided')}</code></div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;"><strong>State Council:</strong><span>${escapeHtml(doc.council || doc.registrationCouncil || doc.registration_council || 'Not provided')}</span></div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;"><strong>Qualification:</strong><span>${escapeHtml(doc.highestDegree || doc.highest_degree || 'Not provided')}</span></div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;"><strong>College / University:</strong><span>${escapeHtml(doc.university || doc.medicalCollege || doc.medical_college || 'Not provided')}</span></div>
                 </div>
+                <h4 style="margin:0 0 10px;color:var(--brand);">Uploaded verification documents</h4>
+                <div id="admin-doctor-file-list" style="display:flex;flex-direction:column;gap:10px;"></div>`;
+            modal.style.display = 'flex';
+            const fileList = document.getElementById('admin-doctor-file-list');
+            if (!entries.length) {
+                fileList.innerHTML = '<div style="padding:14px;border:1px dashed #cbd5e1;border-radius:8px;color:#64748b;">No real uploaded credential files are linked to this profile yet. Demo profiles may show sample metadata only.</div>';
+                return;
+            }
+            if (!supabaseClient) {
+                fileList.innerHTML = '<div style="color:#b91c1c;">Cloud storage is not configured, so uploaded files cannot be opened.</div>';
+                return;
+            }
+            fileList.innerHTML = '<p style="color:#64748b;">Loading secure document links…</p>';
+            const rendered = [];
+            for (const item of entries) {
+                if (!item || !item.path || item.path.startsWith('local://')) {
+                    rendered.push(`<div style="padding:12px;border:1px solid var(--border);border-radius:8px;"><strong>${escapeHtml(item?.name || 'Sample document')}</strong><p style="margin:4px 0 0;color:#64748b;font-size:.85rem;">This is a demo reference, not a file stored in Supabase.</p></div>`);
+                    continue;
+                }
+                const { data, error } = await supabaseClient.storage.from('doctor-documents').createSignedUrl(item.path, 300);
+                if (error || !data?.signedUrl) {
+                    console.error('Admin document viewer error:', error);
+                    rendered.push(`<div style="padding:12px;border:1px solid #fecaca;border-radius:8px;"><strong>${escapeHtml(item.name || item.path.split('/').pop())}</strong><p style="margin:4px 0 0;color:#b91c1c;font-size:.85rem;">Could not open this file. Check Storage policies and confirm the file exists.</p></div>`);
+                    continue;
+                }
+                const name = item.name || item.path.split('/').pop();
+                const url = data.signedUrl;
+                const isImage = /\.(png|jpe?g)$/i.test(name);
+                rendered.push(`<div style="padding:12px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><strong>${escapeHtml(item.label || 'Credential document')}</strong><div style="font-size:.84rem;color:#64748b;">${escapeHtml(name)}</div></div><a class="btn btn-primary" href="${url}" target="_blank" rel="noopener">${isImage ? 'View Image' : 'Open / Download PDF'}</a></div>`);
+            }
+            fileList.innerHTML = rendered.join('');
+        }
 
-                <div style="border: 2px dashed #99f6e4; background: #f0fdfa; border-radius: 12px; padding: 24px; text-align: center;">
-                    <i class="fa-solid fa-file-pdf" style="font-size: 2.2rem; color: #0b6e69; margin-bottom: 8px;"></i>
-                    <p style="font-weight: 700; margin-bottom: 4px;">Certificate Document Attached</p>
-                    <small style="color: var(--text-muted); display: block; margin-bottom: 12px;">Storage ref: ${escapeHtml(doc.documentStoragePath || 'local://cert_verified.pdf')}</small>
-                    <button class="btn btn-primary" onclick="showToast('Simulating certificate proof viewer...')">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Council Proof Scan
-                    </button>
+        // Demo-only receipt viewer for seeded feedback records. These are illustrative
+        // sample receipts, not genuine medical or payment documents.
+        async function openReviewProofModal(reviewId) {
+            const reviews = safeRead('mr_reviews', []);
+            const review = reviews.find(r => String(r.id) === String(reviewId));
+            if (!review) {
+                showToast('Review proof was not found.');
+                return;
+            }
+            const docs = safeRead('mr_docs', []);
+            const doc = docs.find(d => String(d.id) === String(review.doctorId));
+            const doctorName = doc ? (doc.fullName || doc.full_name || 'Demo Doctor') : 'Demo Doctor';
+            const fileName = review.proofFileName || review.proof_file_name || 'Demo_Consultation_Receipt.html';
+            const storagePath = review.proofStoragePath || review.proof_storage_path || '';
+            const isDemo = String(review.id).startsWith('FB-') || !storagePath;
+            document.getElementById('inspect-doc-subtitle').innerText = `Consultation proof for ${review.patientName || review.patient_name || 'Demo Patient'}`;
+            if (!isDemo && supabaseClient) {
+                document.getElementById('inspect-modal-body').innerHTML = '<p>Opening securely stored proof…</p>';
+                document.getElementById('inspect-modal').style.display = 'flex';
+                const { data, error } = await supabaseClient.storage.from('doctor-documents').createSignedUrl(storagePath, 300);
+                if (error || !data?.signedUrl) {
+                    console.error('Proof viewer error:', error);
+                    document.getElementById('inspect-modal-body').innerHTML = '<p style="color:#b91c1c">Could not open this file. Check Storage policies and that the file exists.</p>';
+                    return;
+                }
+                const url = data.signedUrl;
+                const isImage = /\.(png|jpe?g)$/i.test(fileName);
+                document.getElementById('inspect-modal-body').innerHTML = `<div style="margin-bottom:12px"><strong>${escapeHtml(fileName)}</strong></div>${isImage ? `<img src="${url}" alt="Uploaded consultation proof" style="display:block;max-width:100%;max-height:60vh;margin:auto;border:1px solid #cbd5e1;border-radius:8px">` : `<p>PDF proof is stored securely. Use the button below to open or download it.</p>`}<p style="margin-top:12px"><a class="btn btn-primary" href="${url}" target="_blank" rel="noopener">Open / Download Proof</a></p>`;
+                return;
+            }
+            document.getElementById('inspect-modal-body').innerHTML = `
+                <div style="border:1px solid #cbd5e1;border-radius:12px;overflow:hidden;background:#fff;color:#1e293b;">
+                    <div style="background:#0b6e69;color:white;padding:16px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center;">
+                        <div><div style="font-size:1.15rem;font-weight:800;letter-spacing:.04em;">CONSULTATION RECEIPT</div><div style="font-size:.78rem;opacity:.9;">Doctor Diary • Sample record</div></div>
+                        <i class="fa-solid fa-file-invoice" style="font-size:1.8rem;"></i>
+                    </div>
+                    <div style="padding:18px;position:relative;">
+                        <div style="border:2px dashed #d97706;color:#92400e;background:#fffbeb;text-align:center;padding:8px;border-radius:8px;font-weight:800;letter-spacing:.08em;margin-bottom:16px;">${isDemo ? 'DEMO SAMPLE — NOT A REAL RECEIPT' : 'UPLOADED PROOF RECORD'}</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.88rem;">
+                            <div><div style="color:#64748b;font-size:.74rem;">RECEIPT / REVIEW ID</div><strong>${escapeHtml(review.id)}</strong></div>
+                            <div><div style="color:#64748b;font-size:.74rem;">CONSULTATION DATE</div><strong>${escapeHtml(review.submittedDate || review.submitted_date || 'Demo date')}</strong></div>
+                            <div><div style="color:#64748b;font-size:.74rem;">PATIENT NAME</div><strong>${escapeHtml(review.patientName || review.patient_name || 'Demo Patient')}</strong></div>
+                            <div><div style="color:#64748b;font-size:.74rem;">DOCTOR</div><strong>${escapeHtml(doctorName)}</strong></div>
+                            <div><div style="color:#64748b;font-size:.74rem;">CONSULTATION TYPE</div><strong>Outpatient consultation</strong></div>
+                            <div><div style="color:#64748b;font-size:.74rem;">SAMPLE AMOUNT</div><strong>₹500.00</strong></div>
+                        </div>
+                        <div style="border-top:1px dashed #cbd5e1;margin:16px 0 12px;"></div>
+                        <div style="font-size:.84rem;line-height:1.6;"><strong>Attached file:</strong> ${escapeHtml(fileName)}<br><strong>Purpose:</strong> Sample proof shown for project presentation only.</div>
+                        <div style="margin-top:16px;text-align:right;font-size:.72rem;color:#64748b;">This illustrative document does not verify a real medical visit or payment.</div>
+                    </div>
                 </div>
             `;
             document.getElementById('inspect-modal').style.display = 'flex';
