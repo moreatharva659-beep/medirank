@@ -1,13 +1,937 @@
-<script>
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Doctor Diary | Accredited Medical Practitioner Registry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SUPABASE CLIENT SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --primary: #0f172a;
+            --brand: #0b6e69;
+            --brand-hover: #08524e;
+            --brand-light: #e6f4f3;
+            --accent-blue: #2563eb;
+            --success: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --bg-light: #f5f8fb;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border: #ccd6dd;
+            --sidebar-width: 270px;
+            --shadow: 0 5px 22px rgba(0, 0, 0, 0.07);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
+
+        a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+            outline: 2px solid var(--brand);
+            outline-offset: 2px;
+        }
+
+        #auth-landing-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; height: 100dvh;
+            background: linear-gradient(135deg, #0f172a 0%, #0b6e69 100%);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .auth-card {
+            background: white; width: 100%; max-width: 780px;
+            border-radius: 20px; padding: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            margin: auto;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .auth-header { text-align: center; margin-bottom: 20px; }
+        .auth-header .logo-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 1.4rem; font-weight: 800; color: var(--brand); margin-bottom: 4px; }
+        .auth-header p { font-size: 0.88rem; color: var(--text-muted); }
+
+        .auth-inline-error {
+            background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;
+            padding: 10px 14px; border-radius: 8px; font-size: 0.82rem;
+            margin-bottom: 15px; display: none; align-items: center; gap: 8px;
+        }
+
+        .role-selector-pills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; background: #f1f5f9; padding: 6px; border-radius: 12px; }
+        .role-pill { padding: 9px; border-radius: 8px; border: none; background: transparent; cursor: pointer; font-weight: 600; font-size: 0.82rem; color: var(--text-muted); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .role-pill.active { background: white; color: var(--brand); box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, minmax(0, 1fr)); 
+            gap: 14px; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .form-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            margin-bottom: 14px; 
+            position: relative; 
+            min-width: 0; 
+            width: 100%;
+        }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label { font-size: 0.82rem; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; 
+            max-width: 100%;
+            min-width: 0;
+            padding: 10px 12px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            font-size: 0.9rem; 
+            outline: none; 
+            background: #fff; 
+            color: #1e293b; 
+            box-sizing: border-box;
+        }
+        .form-group select {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            padding-right: 24px;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--brand); }
+        
+        .password-toggle { position: absolute; right: 12px; top: 34px; cursor: pointer; color: var(--text-muted); padding: 6px; font-size: 1rem; }
+        .btn-submit { width: 100%; padding: 12px; border-radius: 10px; background: var(--brand); color: white; border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 6px; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        .btn-submit:hover { background: var(--brand-hover); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .auth-switch { text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-muted); }
+        .auth-switch a { color: var(--brand); text-decoration: none; font-weight: 700; cursor: pointer; }
+
+        #app-wrapper { display: flex; min-height: 100vh; min-height: 100dvh; }
+        aside { width: var(--sidebar-width); background: var(--primary); color: white; position: fixed; height: 100vh; height: 100dvh; padding: 22px 18px; z-index: 100; display: flex; flex-direction: column; }
+        .logo { font-size: 1.35rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #fff; }
+        .logo i { color: #5eead4; }
+        .nav-links-scroll { flex: 1; overflow-y: auto; padding-right: 4px; }
+        .nav-links-scroll::-webkit-scrollbar { width: 4px; }
+        .nav-links-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+        .nav-item { padding: 10px 14px; cursor: pointer; border-radius: 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; transition: 0.2s; color: #cbd5e1; font-weight: 500; font-size: 0.88rem; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.14); color: white; }
+        .nav-item i { width: 18px; font-size: 1rem; text-align: center; }
+        .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 12px 0; }
+
+        .user-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px; margin-top: auto; margin-bottom: 10px; }
+        .user-badge .name { font-size: 0.85rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-badge .role { font-size: 0.7rem; color: #5eead4; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        .user-badge .account-id { font-size: 0.72rem; color: #94a3b8; font-family: monospace; margin-top: 3px; }
+
+        .btn-auth-logout { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.82rem; transition: 0.2s; width: 100%; }
+        .btn-auth-logout:hover { background: rgba(239, 68, 68, 0.25); color: #fff; }
+
+        main { margin-left: var(--sidebar-width); flex: 1; padding: 30px 40px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
+        .view-section { display: none; max-width: 1200px; margin: 0 auto; }
+        .view-section.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hero { background: linear-gradient(135deg, #0b6e69 0%, #14b8a6 100%); padding: 35px 30px; border-radius: 20px; color: white; margin-bottom: 30px; }
+        .search-container { background: white; padding: 8px; border-radius: 12px; display: flex; max-width: 800px; margin: 20px auto 0; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); }
+        .search-container input { flex: 1; border: none; padding: 12px 18px; outline: none; font-size: 0.95rem; color: #1e293b; }
+        .search-container button { background: var(--brand); color: white; border: none; padding: 0 24px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+
+        .quick-symptom-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 15px; }
+        .symptom-chip { padding: 6px 14px; background: rgba(255,255,255,0.18); border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: 500; color: #fff; transition: 0.2s; border: none; }
+        .symptom-chip:hover { background: #fff; color: var(--brand); }
+
+        .disclaimer-banner { background: #f0fdfa; border: 1px solid #99f6e4; color: #115e59; padding: 12px 18px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+        /* Responsive Grids */
+        .specs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 16px; margin: 20px 0; }
+        .spec-card { background: white; border-radius: 16px; padding: 18px; border: 2px solid transparent; cursor: pointer; transition: 0.25s; text-align: center; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between; }
+        .spec-card:hover { border-color: var(--brand); transform: translateY(-4px); box-shadow: 0 14px 30px rgba(11, 110, 105, 0.15); }
+        .spec-image { height: 120px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+        .spec-image svg { width: 130px; height: 110px; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.12)); }
+        .spec-condition-tag { font-size: 0.78rem; font-weight: 600; color: var(--brand); background: var(--brand-light); padding: 6px 10px; border-radius: 8px; margin-top: 8px; line-height: 1.4; }
+        
+        .doctor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+        .doctor-card { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); position: relative; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+        .doctor-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+        .score-badge { position: absolute; top: 18px; right: 18px; background: #e6fffa; color: var(--brand); padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #b2f5ea; }
+
+        .doctor-header-profile { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+        .doctor-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #b2f5ea; background: #e6fffa; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--brand); font-size: 1.1rem; flex-shrink: 0; }
+        
+        .verify-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 50px; }
+        .tag-verified { background: #dcfce7; color: #166534; }
+        .tag-pending { background: #fef9c3; color: #854d0e; }
+        .tag-rejected { background: #fee2e2; color: #991b1b; }
+        .tag-correction { background: #fef3c7; color: #92400e; }
+        .tag-opennow { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .tag-closednow { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        .area-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0 25px 0; }
+        .chip { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 20px; cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.2s; }
+        .chip:hover, .chip.active { background: var(--brand); color: white; border-color: var(--brand); }
+
+        .form-section { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 22px; margin-bottom: 20px; }
+        .btn { padding: 9px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; border: none; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+        .btn-primary { background: var(--brand); color: white; }
+        .btn-primary:hover { background: var(--brand-hover); }
+        .btn-outline { background: transparent; border: 1px solid var(--brand); color: var(--brand); }
+        .btn-outline:hover { background: #f0fdfa; }
+        .btn-danger-outline { border: 1px solid var(--danger); color: var(--danger); background: transparent; }
+        .btn-danger-outline:hover { background: #fee2e2; }
+        .btn-toggle-active { background: #e6fffa; border: 2px solid var(--brand); color: var(--brand); font-weight: 700; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; height: 100dvh; background: rgba(15, 23, 42, 0.65); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+        .modal-content { background: white; width: 92%; max-width: 750px; padding: 28px; border-radius: 20px; max-height: 90vh; max-height: 90dvh; overflow-y: auto; position: relative; }
+        
+        .toast { position: fixed; top: 20px; right: 20px; background: #0f172a; color: white; padding: 12px 20px; border-radius: 8px; z-index: 999999; display: none; font-size: 0.85rem; box-shadow: var(--shadow); }
+        .empty-placeholder { text-align: center; padding: 40px 20px; color: var(--text-muted); background: white; border-radius: 14px; border: 1px dashed var(--border); }
+
+        .pagination-container { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 25px; }
+        .page-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+        .page-btn.active { background: var(--brand); color: white; border-color: var(--brand); }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .admin-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .admin-stat-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; border-left: 4px solid var(--brand); }
+        .admin-stat-card.pending { border-left-color: var(--accent); }
+        .admin-stat-card.verified { border-left-color: var(--success); }
+        .admin-stat-card.corrections { border-left-color: var(--danger); }
+        .admin-stat-num { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); }
+        .admin-stat-title { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+
+        .mobile-menu { display: none; }
+
+        .clinic-pill-box { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .visiting-clinic-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+        .visiting-clinic-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-dark); font-size: 0.88rem; }
+        .visiting-clinic-detail { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+
+        .private-id-card {
+            background: #f8fafc;
+            border: 1px dashed var(--brand);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .private-id-card .id-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .private-id-card .id-value { font-family: monospace; font-size: 1.15rem; font-weight: 800; color: var(--brand); }
+        .private-id-card .id-pill { background: #e6f4f3; color: var(--brand); border-radius: 20px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; }
+
+        @media (max-width: 1024px) { 
+            aside { width: 75px; padding: 20px 10px; } 
+            aside span, aside .user-badge, aside .btn-auth-logout span { display: none; } 
+            main { margin-left: 75px; padding: 20px; } 
+        }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: auto; }
+            .auth-card { padding: 20px 16px; }
+        }
+
+        @media (max-width: 700px) {
+            main { margin-left: 0; padding: 15px; }
+            aside { transform: translateX(-100%); width: 270px; transition: transform .2s ease-in-out; }
+            aside.mobile-open { transform: translateX(0); }
+            aside.mobile-open span, aside.mobile-open .user-badge, aside.mobile-open .btn-auth-logout span { display: inline; }
+            .mobile-menu { display: inline-flex; position: fixed; left: 12px; top: 12px; z-index: 3000; border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 9px; cursor: pointer; }
+            header { padding-left: 48px; }
+            .search-container { flex-direction: column; gap: 6px; }
+            .search-container button { min-height: 44px; }
+            .modal-content { width: 95%; padding: 20px 14px; max-height: 88dvh; }
+            .private-id-card { flex-direction: column; align-items: flex-start; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Supabase schema: run doctordiary_supabase.sql in Supabase SQL Editor.
+         Demo practitioner seed data and localStorage fallback are intentionally retained. -->
+    <button class="mobile-menu" onclick="toggleMobileMenu()" aria-label="Open navigation"><i class="fa-solid fa-bars"></i></button>
+
+    <!-- AI TRIAGE FLOATING BUTTON -->
+    <button id="btn-ai-triage" class="btn btn-primary" onclick="openAITriageModal()" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000; border-radius: 50px; padding: 12px 22px; box-shadow: 0 10px 25px rgba(11,110,105,0.4); font-size: 0.95rem;">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Diary Health Assistant</span>
+    </button>
+
+    <!-- AI TRIAGE MODAL -->
+    <div id="ai-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 580px;">
+            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeAITriageModal()">&times;</button>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <div style="background: #e6fffa; color: var(--brand); width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    <i class="fa-solid fa-book-medical"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0;">Doctor Diary AI Triage</h3>
+                    <small style="color: var(--text-muted);">Describe symptoms in clear language</small>
+                </div>
+            </div>
+            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 14px;">
+                Tell us what you are feeling (e.g. <em>"chest pressure after exercise"</em>, <em>"severe joint swelling"</em>, or <em>"infant fever"</em>).
+            </p>
+            <div style="position: relative; margin-bottom: 14px;">
+                <textarea id="ai-symptom-input" rows="3" placeholder="Describe symptoms..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; font-family: inherit;"></textarea>
+                <button onclick="startVoiceInput()" style="position: absolute; right: 10px; bottom: 12px; background: none; border: none; color: var(--brand); cursor: pointer; font-size: 1.1rem;" title="Speak Symptoms">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="runAITriage()"><i class="fa-solid fa-brain"></i> <span>Analyze &amp; Match Specialists</span></button>
+            <div id="ai-result-box" style="display: none; margin-top: 16px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--border); padding: 16px;">
+                <div id="ai-result-content"></div>
+            </div>
+            <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 10px; margin-top: 16px; font-size: 0.72rem; color: #991b1b; display: flex; gap: 8px; align-items: center;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span><strong>Emergency Warning:</strong> Doctor Diary provides directory and algorithmic matching, not medical diagnoses. In emergencies, call 108/112 immediately.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTHENTICATION SCREEN -->
+    <div id="auth-landing-screen">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-badge"><i class="fa-solid fa-book-medical"></i> Doctor Diary</div>
+                <h2 id="auth-title">Sign In</h2>
+                <p id="auth-subtitle">Select your account role to continue</p>
+            </div>
+
+            <div id="auth-error-msg" class="auth-inline-error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span id="auth-error-text">Authentication message</span>
+            </div>
+
+            <div class="role-selector-pills" id="role-selector-container">
+                <button type="button" class="role-pill active" id="pill-patient" onclick="setAuthRole('PATIENT')"><i class="fa-solid fa-user"></i> Patient</button>
+                <button type="button" class="role-pill" id="pill-doctor" onclick="setAuthRole('DOCTOR')"><i class="fa-solid fa-user-doctor"></i> Doctor</button>
+                <button type="button" class="role-pill" id="pill-admin" onclick="setAuthRole('ADMIN')"><i class="fa-solid fa-shield-halved"></i> Admin</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="handleUniversalLogin(event)">
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" required placeholder="e.g. user@gmail.com" value="" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-pass">Password</label>
+                    <input type="password" id="login-pass" required placeholder="Enter password" value="" autocomplete="current-password">
+                    <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('login-pass', this)"></i>
+                </div>
+                <div style="text-align:right; margin-bottom:14px;">
+                    <a onclick="openForgotPasswordModal()" style="color:var(--brand); font-size:0.82rem; font-weight:600; cursor:pointer; text-decoration:underline;">Forgot Password? Reset via Email</a>
+                </div>
+                <button type="submit" class="btn-submit" id="btn-login-submit">Sign In to Dashboard</button>
+            </form>
+
+            <!-- Patient Register Form -->
+            <form id="form-reg-patient" style="display:none;" onsubmit="handlePatientRegister(event)">
+                <div class="form-group">
+                    <label for="reg-pat-name">Full Name*</label>
+                    <input type="text" id="reg-pat-name" required placeholder="e.g. Rahul Patil" pattern="^[a-zA-Z\s\.]+$" title="Letters, spaces, and periods only" autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label for="reg-pat-email">Email Address*</label>
+                    <input type="email" id="reg-pat-email" required placeholder="e.g. rahul.patil@gmail.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="reg-pat-pass">Password* (8+ chars)</label>
+                    <input type="password" id="reg-pat-pass" required placeholder="Create strong password" autocomplete="new-password">
+                    <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('reg-pat-pass', this)"></i>
+                </div>
+                <div class="form-group">
+                    <label for="reg-pat-pass-confirm">Confirm Password*</label>
+                    <input type="password" id="reg-pat-pass-confirm" required placeholder="Re-enter password" autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-submit" id="btn-patient-submit">Register as Patient</button>
+            </form>
+
+            <!-- Doctor Register Form -->
+            <form id="form-reg-doctor" style="display:none;" onsubmit="handleDoctorRegister(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="reg-doc-name">Doctor Full Name*</label>
+                        <input type="text" id="reg-doc-name" required placeholder="Dr. Full Name" pattern="^[a-zA-Z\s\.]+$" title="Letters, spaces, and periods only" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-email">Official Email*</label>
+                        <input type="email" id="reg-doc-email" required placeholder="doctor@gmail.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-phone">Phone Number* (10 Digits)</label>
+                        <input type="tel" id="reg-doc-phone" required placeholder="9876543210" pattern="[6-9][0-9]{9}" maxlength="10" autocomplete="tel">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-pass">Password* (8+ chars)</label>
+                        <input type="password" id="reg-doc-pass" required placeholder="Create password" autocomplete="new-password">
+                        <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('reg-doc-pass', this)"></i>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-confirm-pass">Confirm Password*</label>
+                        <input type="password" id="reg-doc-confirm-pass" required placeholder="Re-enter password" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-gender">Gender</label>
+                        <select id="reg-doc-gender"><option>Prefer not to say</option><option>Male</option><option>Female</option><option>Other</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-age">Age (18–100)</label>
+                        <input type="number" id="reg-doc-age" min="18" max="100" placeholder="e.g. 38">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-specialty">Specialization*</label>
+                        <select id="reg-doc-specialty" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-sub">Sub-specialization</label>
+                        <input type="text" id="reg-doc-sub" placeholder="e.g. Interventional Cardiology">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-degree">Highest Degree / Qualification*</label>
+                        <input type="text" id="reg-doc-degree" required placeholder="MBBS, MD, MS, DM...">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-univ">Medical College / University</label>
+                        <input type="text" id="reg-doc-univ" placeholder="e.g. Grant Medical College, Mumbai">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-year">Graduation Year</label>
+                        <input type="number" id="reg-doc-year" min="1950" max="2026" placeholder="e.g. 2012">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-cert">Additional Certifications</label>
+                        <input type="text" id="reg-doc-cert" placeholder="e.g. Fellow in Cardiology">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-regno">Registration Number*</label>
+                        <input type="text" id="reg-doc-regno" required placeholder="e.g. MMC-10491">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-council">Registration Council</label>
+                        <input type="text" id="reg-doc-council" placeholder="e.g. Maharashtra Medical Council">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-exp">Experience (Years)*</label>
+                        <input type="number" id="reg-doc-exp" min="0" max="70" required placeholder="e.g. 14">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-position">Current Position</label>
+                        <input type="text" id="reg-doc-position" placeholder="e.g. Head of Cardiology">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-fee">Consultation Fee (₹)*</label>
+                        <input type="number" id="reg-doc-fee" min="0" max="50000" required placeholder="e.g. 800">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-online">Online Consultation</label>
+                        <select id="reg-doc-online"><option>No</option><option>Yes</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-state">State*</label>
+                        <select id="reg-doc-state" onchange="loadDoctorRegCities()" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-city">City*</label>
+                        <select id="reg-doc-city" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-clinic">Primary Clinic / Hospital Name*</label>
+                        <input type="text" id="reg-doc-clinic" required placeholder="Apollo Hospitals">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-area">Area / Locality</label>
+                        <input type="text" id="reg-doc-area" placeholder="e.g. Panchavati">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-pin">PIN Code</label>
+                        <input type="text" id="reg-doc-pin" pattern="[1-9][0-9]{5}" maxlength="6" placeholder="e.g. 422003">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-languages">Languages Known</label>
+                        <input type="text" id="reg-doc-languages" placeholder="English, Hindi, Marathi">
+                    </div>
+                    <div class="form-group full">
+                        <label for="reg-doc-address">Complete Primary Clinic Address*</label>
+                        <textarea id="reg-doc-address" rows="2" required placeholder="Plot, Street, Area, Landmark"></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label for="reg-doc-opd">Consultation Availability Timings*</label>
+                        <textarea id="reg-doc-opd" rows="2" required placeholder="Monday–Saturday: 09:00 AM–02:00 PM"></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label for="reg-doc-services">Treatments &amp; Clinical Services</label>
+                        <textarea id="reg-doc-services" rows="2" placeholder="e.g. Cardiac checkups, 2D Echo"></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label for="reg-doc-about">Professional Bio</label>
+                        <textarea id="reg-doc-about" rows="2" placeholder="Brief professional background..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-photo">Profile Photo (PNG/JPG)</label>
+                        <input type="file" id="reg-doc-photo" accept="image/png, image/jpeg">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-doc-file">Council Certificate* (PDF/JPG)</label>
+                        <input type="file" id="reg-doc-file" required accept=".pdf,.png,.jpg,.jpeg">
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="btn-doctor-submit">Submit Profile to Doctor Diary Registry</button>
+            </form>
+
+            <div class="auth-switch" id="auth-toggle-link">
+                Need an account? <a onclick="toggleAuthMode('REGISTER')">Create an Account</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUPABASE EMAIL PASSWORD RESET MODAL -->
+    <div id="forgot-password-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 460px;">
+            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeForgotPasswordModal()">&times;</button>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                <div style="background:#e6fffa; color:var(--brand); width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                </div>
+                <div>
+                    <h3 style="margin:0;" id="fp-modal-title">Reset Password</h3>
+                    <small style="color:var(--text-muted);" id="fp-modal-subtitle">Doctor Diary Recovery</small>
+                </div>
+            </div>
+            
+            <div id="fp-step-1">
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+                    Enter your registered email address. We will dispatch a secure recovery link.
+                </p>
+                <div class="form-group">
+                    <label for="fp-email">Registered Email Address*</label>
+                    <input type="email" id="fp-email" required placeholder="e.g. user@gmail.com">
+                </div>
+                <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="btn-send-reset-link" onclick="sendSupabasePasswordReset()">
+                    <i class="fa-solid fa-paper-plane"></i> Send Password Reset Link
+                </button>
+            </div>
+
+            <div id="fp-step-2" style="display:none;">
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+                    Your recovery token is confirmed. Enter your new password below.
+                </p>
+                <div class="form-group">
+                    <label for="fp-new-pass">New Password* (8+ chars)</label>
+                    <input type="password" id="fp-new-pass" required placeholder="New password">
+                </div>
+                <div class="form-group">
+                    <label for="fp-confirm-pass">Confirm New Password*</label>
+                    <input type="password" id="fp-confirm-pass" required placeholder="Confirm new password">
+                </div>
+                <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="btn-save-new-pass" onclick="saveNewPasswordFromRecovery()">
+                    <i class="fa-solid fa-lock"></i> Update &amp; Set New Password
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN INTERFACE -->
+    <div id="app-wrapper">
+        <aside>
+            <div class="logo"><i class="fa-solid fa-book-medical"></i><span>Doctor Diary</span></div>
+            <div class="nav-links-scroll">
+                <div class="nav-item active" id="nav-home" onclick="showView('home')"><i class="fa-solid fa-compass"></i><span>Discover</span></div>
+                <div class="nav-item" id="nav-specs" onclick="showView('specialties')"><i class="fa-solid fa-shapes"></i><span>Specialties</span></div>
+                <div class="nav-item" id="nav-find" onclick="showView('find-doctors')"><i class="fa-solid fa-magnifying-glass"></i><span>All Doctors</span></div>
+                <div class="nav-item" id="nav-nearme" onclick="showView('near-me')"><i class="fa-solid fa-location-dot"></i><span>Localities</span></div>
+                
+                <div class="nav-divider" id="nav-portal-divider"></div>
+
+                <div class="nav-item" id="nav-patient-profile" style="display:none;" onclick="showView('patient-profile')"><i class="fa-solid fa-address-card"></i><span>My Profile</span></div>
+                
+                <div class="nav-item" id="nav-doc-portal" style="display:none;" onclick="showView('doc-portal')"><i class="fa-solid fa-id-card-clip"></i><span>Practice Portal</span></div>
+                <div class="nav-item" id="nav-doc-docs" style="display:none;" onclick="showView('doc-documents')"><i class="fa-solid fa-file-arrow-up"></i><span>Credentials Vault</span></div>
+                
+                <div class="nav-item" id="nav-admin-verify" style="display:none;" onclick="showView('admin-verification')"><i class="fa-solid fa-file-shield"></i><span>Doctor Verification</span></div>
+                <div class="nav-item" id="nav-admin-reviews" style="display:none;" onclick="showView('admin-reviews')"><i class="fa-solid fa-comments"></i><span>Review Moderation</span></div>
+                <div class="nav-item" id="nav-admin-audit" style="display:none;" onclick="showView('admin-audit')"><i class="fa-solid fa-clipboard-list"></i><span>Audit History</span></div>
+                
+                <div class="nav-item" id="nav-about" onclick="showView('about-legal')"><i class="fa-solid fa-circle-info"></i><span>About &amp; Disclaimer</span></div>
+            </div>
+
+            <div class="user-badge" id="user-badge">
+                <div class="name" id="user-display-name">Loading...</div>
+                <div class="role" id="user-display-role">...</div>
+                <div class="account-id" id="user-display-id"></div>
+            </div>
+
+            <button class="btn-auth-logout" onclick="handleLogout()">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span>
+            </button>
+        </aside>
+
+        <main>
+            <header>
+                <h2 id="view-title">Clinical Discovery</h2>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <button class="btn btn-outline" onclick="requestUserLocation()" id="btn-user-location" style="border-radius: 20px;">
+                        <i class="fa-solid fa-location-crosshairs"></i> <span id="user-loc-text">Detect Location</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="disclaimer-banner">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span><strong>Notice:</strong> Doctor Diary is an informational medical professional directory. It does not provide direct diagnoses or replace emergency healthcare consultations.</span>
+            </div>
+
+            <!-- VIEW: HOME -->
+            <div id="view-home" class="view-section active">
+                <div class="hero">
+                    <h1>Doctor Diary &bull; Specialist Registry</h1>
+                    <p>Verified qualifications, consultation fees, and certified council records across India.</p>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:800px; margin:16px auto 0;">
+                        <div>
+                            <label style="font-size:0.8rem; font-weight:700;">State</label>
+                            <select id="home-state-filter" onchange="loadHomeCities()" style="padding:10px; border-radius:8px; border:none; width:100%; color:#1e293b;"></select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.8rem; font-weight:700;">City</label>
+                            <select id="home-city-filter" onchange="filterDoctors()" style="padding:10px; border-radius:8px; border:none; width:100%; color:#1e293b;"></select>
+                        </div>
+                    </div>
+
+                    <div class="search-container">
+                        <input type="text" id="main-search" placeholder="Search by symptom, specialty, doctor, or clinic">
+                        <button onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i> <span>Search</span></button>
+                    </div>
+
+                    <div class="quick-symptom-bar">
+                        <span style="font-size: 0.8rem; opacity: 0.85; align-self: center;">Popular:</span>
+                        <button class="symptom-chip" onclick="searchBySymptom('heart')">🫀 Chest Pain</button>
+                        <button class="symptom-chip" onclick="searchBySymptom('skin')">🧴 Skin &amp; Acne</button>
+                        <button class="symptom-chip" onclick="searchBySymptom('bone')">🦴 Knee &amp; Joint</button>
+                        <button class="symptom-chip" onclick="searchBySymptom('brain')">🧠 Headache &amp; Nerve</button>
+                        <button class="symptom-chip" onclick="searchBySymptom('child')">👶 Child Care</button>
+                        <button class="symptom-chip" onclick="searchBySymptom('teeth')">🦷 Dental</button>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3>Featured Verified Practitioners</h3>
+                    <button class="btn btn-outline" onclick="showView('find-doctors')">View All Directory</button>
+                </div>
+                <div class="doctor-grid" id="home-featured"></div>
+            </div>
+
+            <!-- VIEW: SPECIALTIES -->
+            <div id="view-specialties" class="view-section">
+                <h3>Select Specialty by Medical Condition</h3>
+                <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:15px;">Search verified medical disciplines tailored to your symptoms.</p>
+                <div class="specs-grid" id="specs-visual-grid"></div>
+            </div>
+
+            <!-- VIEW: FIND DOCTORS -->
+            <div id="view-find-doctors" class="view-section">
+                <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+                    <input type="text" id="f-name" placeholder="Search by symptom, doctor, or clinic" oninput="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1; min-width:200px; outline:none;">
+                    <select id="f-spec" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;"><option value="">All Specialties</option></select>
+                    <select id="f-city" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;"><option value="">All Cities</option></select>
+                    
+                    <button class="btn btn-outline" id="filter-open-now-btn" onclick="toggleOpenNowFilter()" style="white-space: nowrap;">
+                        <i class="fa-regular fa-clock"></i> <span>Open Now</span>
+                    </button>
+
+                    <select id="f-sort" onchange="filterDoctors()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;">
+                        <option value="relevance">Sort: Relevance</option>
+                        <option value="distance">Sort: Nearest Distance</option>
+                        <option value="name">Name A–Z</option>
+                        <option value="fee-low">Fee: Low to High</option>
+                        <option value="fee-high">Fee: High to Low</option>
+                    </select>
+                </div>
+                <div class="doctor-grid" id="doctor-list"></div>
+                <div class="pagination-container" id="doctors-pagination"></div>
+            </div>
+
+            <!-- VIEW: LOCALITIES -->
+            <div id="view-near-me" class="view-section">
+                <h3>Nashik &amp; Regional Localities</h3>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">Filter clinics and hospitals across verified regional zones.</p>
+                <div class="area-chips" id="area-chip-container"></div>
+                <div class="doctor-grid" id="nearme-results"></div>
+            </div>
+
+            <!-- VIEW: PATIENT PRIVATE PROFILE -->
+            <div id="view-patient-profile" class="view-section">
+                <div class="form-section">
+                    <div class="private-id-card">
+                        <div>
+                            <div class="id-title">Patient Confidential Registration ID</div>
+                            <div class="id-value" id="pat-profile-id-display">Generating...</div>
+                        </div>
+                        <span class="id-pill"><i class="fa-solid fa-lock"></i> Visible only to your account</span>
+                    </div>
+
+                    <h3>My Patient Profile</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Your registered identity on Doctor Diary.</p>
+
+                    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:18px;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                            <div>
+                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">FULL NAME</label>
+                                <div id="pat-profile-name" style="font-weight:700; font-size:1.05rem;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">REGISTERED EMAIL</label>
+                                <div id="pat-profile-email" style="font-weight:600;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">MEMBERSHIP STATUS</label>
+                                <div><span class="verify-tag tag-verified"><i class="fa-solid fa-circle-check"></i> Active Citizen Account</span></div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted);">INTERNAL SYSTEM UID</label>
+                                <div id="pat-profile-raw-uid" style="font-family:monospace; color:var(--text-muted);">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: DOCTOR PORTAL -->
+            <div id="view-doc-portal" class="view-section">
+                <div id="doc-portal-content"></div>
+            </div>
+
+            <!-- VIEW: DOCTOR DOCUMENTS VAULT -->
+            <div id="view-doc-documents" class="view-section">
+                <div class="form-section">
+                    <h3>Doctor Diary Credentials Vault</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Secure cloud storage for council registration certificates and state licenses.</p>
+                    <div style="margin-bottom:20px;">
+                        <h4 style="font-size:0.9rem; margin-bottom:10px; color:var(--brand);"><i class="fa-solid fa-folder-tree"></i> Audited Documentation</h4>
+                        <div id="doc-existing-credentials-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>1. Medical Council Registration Certificate</label><input type="file" id="doc_reg_cert"></div>
+                        <div class="form-group"><label>2. Primary Degree Certificate (MBBS)</label><input type="file" id="doc_degree_cert"></div>
+                        <div class="form-group"><label>3. Post-Graduation Degree (MD/MS/DM)</label><input type="file" id="doc_pg_cert"></div>
+                        <div class="form-group"><label>4. Fellowship / Sub-specialty Documents</label><input type="file" id="doc_fellow_cert"></div>
+                        <div class="form-group full"><label>5. Clinic Establishment / OPD License</label><input type="file" id="doc_clinic_lic"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showToast('Credential documents stored securely.')"><i class="fa-solid fa-shield-halved"></i> Save Documents</button>
+                </div>
+            </div>
+
+            <!-- VIEW: ADMIN VERIFICATION QUEUE -->
+            <div id="view-admin-verification" class="view-section">
+                <div class="private-id-card">
+                    <div>
+                        <div class="id-title">Doctor Diary Admin Terminal Registry ID</div>
+                        <div class="id-value" id="admin-profile-id-display">Generating...</div>
+                    </div>
+                    <span class="id-pill"><i class="fa-solid fa-shield-halved"></i> Council Superadmin</span>
+                </div>
+
+                <div class="admin-stat-grid" id="admin-kpi-row"></div>
+                <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+                    <input type="text" id="admin-search" placeholder="Search by doctor or registration number..." oninput="filterAdminQueue()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); flex:1; min-width:240px; outline:none;">
+                    <select id="admin-filter-status" onchange="filterAdminQueue()" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); outline:none;">
+                        <option value="ALL">All Statuses</option>
+                        <option value="Pending Review">Pending Review</option>
+                        <option value="Verified">Verified</option>
+                        <option value="Correction Required">Correction Required</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+                <div id="admin-verify-list"></div>
+            </div>
+
+            <!-- VIEW: ADMIN REVIEWS MODERATION DESK -->
+            <div id="view-admin-reviews" class="view-section">
+                <div class="form-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div>
+                            <h3>Patient Experience Moderation Desk</h3>
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Verify patient consultation narratives and attached OPD receipts before publishing.</p>
+                        </div>
+                    </div>
+                    <div id="admin-reviews-list"></div>
+                </div>
+            </div>
+
+            <!-- VIEW: ADMIN AUDIT LOGS -->
+            <div id="view-admin-audit" class="view-section">
+                <div class="form-section">
+                    <h3>Administrative Audit History</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Immutable record of credential approvals, revocations, and status notes.</p>
+                    <div id="admin-audit-table-container"></div>
+                </div>
+            </div>
+
+            <!-- VIEW: ABOUT & LEGAL -->
+            <div id="view-about-legal" class="view-section">
+                <div class="form-section">
+                    <h3>About Doctor Diary</h3>
+                    <p style="margin:10px 0; font-size:0.9rem; line-height:1.6;">Doctor Diary is a specialist medical directory providing transparent access to verified medical council registrations, verified experience summaries, and facility locations.</p>
+                    <div style="background:#f1f5f9; padding:15px; border-radius:8px; margin:15px 0;">
+                        <strong>Mandatory Compliance Notice:</strong>
+                        <p style="font-size:0.85rem; color:#475569; margin-top:4px;">Doctor Diary does not provide emergency intervention or telemedicine prescriptions. Verify appointment slots directly with the practitioner's clinic prior to visiting.</p>
+                    </div>
+                    <h4>Report Discrepancy</h4>
+                    <p style="font-size:0.88rem;">To flag an outdated listing, contact: <code>compliance@doctordiary.in</code></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div id="main-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="document.getElementById('main-modal').style.display='none'">&times;</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- PATIENT EXPERIENCE FEEDBACK MODAL -->
+    <div id="feedback-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 580px;">
+            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeFeedbackModal()">&times;</button>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <div style="background:#e6fffa; color:var(--brand); width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
+                    <i class="fa-solid fa-comment-medical"></i>
+                </div>
+                <div>
+                    <h3 style="margin:0;">Record Consultation Experience</h3>
+                    <small id="feedback-modal-subtitle" style="color:var(--text-muted);"></small>
+                </div>
+            </div>
+
+            <form id="form-patient-feedback" onsubmit="handleFeedbackSubmit(event)">
+                <input type="hidden" id="fb-doctor-id">
+                
+                <div class="form-group">
+                    <label for="fb-rating">Rating (1 to 5 Stars)*</label>
+                    <select id="fb-rating">
+                        <option value="5">★★★★★ (5 - Excellent)</option>
+                        <option value="4">★★★★☆ (4 - Good)</option>
+                        <option value="3">★★★☆☆ (3 - Average)</option>
+                        <option value="2">★★☆☆☆ (2 - Below Expectations)</option>
+                        <option value="1">★☆☆☆☆ (1 - Poor)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="fb-narrative">Describe your experience in your own words*</label>
+                    <textarea id="fb-narrative" rows="4" required placeholder="Describe your consultation: Did the doctor explain your health condition clearly? How was the waiting time and clinic staff behavior?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="fb-proof-file">Upload Consultation Proof* (Prescription, Receipt, or OPD Bill)</label>
+                    <input type="file" id="fb-proof-file" required accept=".pdf, .png, .jpg, .jpeg" onchange="previewFeedbackProof(event)">
+                    <small style="color:var(--text-muted); font-size:0.75rem;">Proof ensures only genuine patients post feedback. Documents are audited exclusively by council administrators.</small>
+                </div>
+
+                <div id="fb-proof-preview" style="display:none; background:#f8fafc; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:12px; font-size:0.8rem; color:#334155;">
+                    <i class="fa-solid fa-paperclip"></i> <span id="fb-proof-filename"></span>
+                </div>
+
+                <div style="background:#fffbeb; border:1px solid #fef3c7; color:#92400e; padding:10px 12px; border-radius:8px; font-size:0.75rem; margin-bottom:15px; line-height:1.4;">
+                    <i class="fa-solid fa-shield-halved"></i> <strong>Audit Notice:</strong> Experiences are manually audited against consultation slips before publishing to prevent spam and protect medical reputations.
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeFeedbackModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-fb"><i class="fa-solid fa-paper-plane"></i> Submit for Admin Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PROOF INSPECTION MODAL -->
+    <div id="inspect-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 580px;">
+            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeInspectModal()">&times;</button>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <div style="background: #e6fffa; color: var(--brand); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fa-solid fa-file-shield"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0;">Proof Audit</h3>
+                    <small id="inspect-doc-subtitle" style="color: var(--text-muted);"></small>
+                </div>
+            </div>
+            <div id="inspect-modal-body" style="font-size: 0.88rem; line-height: 1.6;"></div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="closeInspectModal()">Close Viewer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN STATUS MODAL -->
+    <div id="status-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 500px;">
+            <button style="position:absolute; top:18px; right:18px; cursor:pointer; font-size:1.5rem; background:none; border:none;" onclick="closeStatusModal()">&times;</button>
+            <h3 style="margin-bottom: 8px;">Modify Practitioner Status</h3>
+            <p id="status-modal-subtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;"></p>
+            <div class="form-group">
+                <label>Select Status</label>
+                <select id="modal-status-choice">
+                    <option value="Verified">Verified</option>
+                    <option value="Pending Review">Pending Review</option>
+                    <option value="Correction Required">Correction Required</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Audit Comment / Reason</label>
+                <textarea id="modal-status-note" rows="3" placeholder="Provide note for audit ledger..."></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                <button class="btn btn-outline" onclick="closeStatusModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitStatusModalUpdate()">Update &amp; Log</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirm-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width:440px;">
+            <h3 id="confirm-title" style="margin-bottom:10px;">Confirm Action</h3>
+            <p id="confirm-desc" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:20px;"></p>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn btn-outline" onclick="closeConfirmDialog()">Cancel</button>
+                <button class="btn btn-primary" id="confirm-action-btn">Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast" role="alert"></div>
+
+    <script>
         /* ========================================================
            SUPABASE CREDENTIALS & INITIALIZATION
         ======================================================== */
+        // Configure these with Supabase Project Settings → API → Project URL and publishable/anon key.
+        // Never place a service_role key in browser HTML. If credentials are left as placeholders,
+        // the website intentionally runs in its existing local/demo mode.
+        // Existing built-in doctor seeds and localStorage demo records are retained and merged.
         const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
         const SUPABASE_ANON_KEY = "YOUR_ANON_PUBLIC_KEY";
 
-        const supabaseClient = (window.supabase && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT"))
-            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-            : null;
+        const supabaseClient = (
+            window.supabase &&
+            SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT") &&
+            SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes("YOUR_ANON_PUBLIC_KEY")
+        ) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         const CURRENT_DATA_VERSION = "doctordiary_v23_strict_auth";
 
@@ -800,7 +1724,7 @@
                 slots: [{ day: "Monday", start: "09:00", end: "14:00" }],
                 verificationStatus: "Pending Review",
                 verification_status: "Pending Review",
-                rating: "5.0",
+                rating: "New",
                 reviewsCount: 0,
                 reviews_count: 0,
                 documentStoragePath: "local://proof_" + regno + ".pdf"
@@ -808,19 +1732,6 @@
 
             if (supabaseClient) {
                 try {
-                    // Insert users first to guarantee foreign key validity
-                    const { error: userError } = await supabaseClient.from('users').insert([{
-                        id: uid,
-                        profile_id: generatedProfileId,
-                        full_name: name,
-                        email: email,
-                        password: pass,
-                        role: "DOCTOR",
-                        doctor_id: uid
-                    }]);
-
-                    if (userError) return showAuthError(userError.message);
-
                     const { error: docError } = await supabaseClient.from('doctors').insert([{
                         id: uid,
                         profile_id: generatedProfileId,
@@ -853,12 +1764,20 @@
                         services: services,
                         about: about,
                         languages: languages,
-                        rating: "5.0",
-                        reviews_count: 0,
                         verification_status: "Pending Review"
                     }]);
 
                     if (docError) return showAuthError(docError.message);
+
+                    await supabaseClient.from('users').insert([{
+                        id: uid,
+                        profile_id: generatedProfileId,
+                        full_name: name,
+                        email: email,
+                        password: pass,
+                        role: "DOCTOR",
+                        doctor_id: uid
+                    }]);
 
                     await supabaseClient.from('audit_logs').insert([{
                         id: generateAuditId(),
@@ -1122,7 +2041,7 @@
 
             const specHelp = SPECIALTY_META[doc.specialty]?.simpleHelp || '';
             const clinicCount = (doc.clinics && doc.clinics.length) || 1;
-            const approvedFeedbackCount = doc.reviewsCount || doc.reviews_count || safeRead('mr_reviews', []).filter(r => (r.doctorId === doc.id || r.doctor_id === doc.id) && r.status === 'APPROVED').length;
+            const approvedFeedbackCount = doc.reviewsCount || doc.reviews_count || safeRead('mr_reviews', []).filter(r => r.doctorId === doc.id && r.status === 'APPROVED').length;
             const ratingScore = doc.rating || 'New';
 
             return `
@@ -1348,11 +2267,21 @@
                             documentStoragePath: d.document_storage_path,
                             verificationStatus: d.verification_status,
                             verification_status: d.verification_status,
-                            rating: d.rating || '5.0',
+                            rating: d.rating || 'New',
                             reviewsCount: d.reviews_count || 0,
                             reviews_count: d.reviews_count || 0,
                             isTemporarilyAway: d.is_temporarily_away
                         }));
+                        // Preserve every built-in demo practitioner while adding Supabase records.
+                        // Supabase rows replace demo rows only when they share the same id.
+                        const seedById = new Map(ALL_SEED_DOCTORS.map(d => [String(d.id), d]));
+                        cachedDoctors.forEach(d => seedById.set(String(d.id), d));
+                        cachedDoctors = Array.from(seedById.values());
+                        // Keep user-entered local demo records that are not present in the remote table.
+                        const localDoctors = safeRead('mr_docs', []);
+                        localDoctors.forEach(d => {
+                            if (!seedById.has(String(d.id))) cachedDoctors.push(d);
+                        });
                         safeWrite('mr_docs', cachedDoctors);
                     } else {
                         cachedDoctors = safeRead('mr_docs', ALL_SEED_DOCTORS);
@@ -1371,28 +2300,28 @@
                         .select('*')
                         .order('created_at', { ascending: false });
 
-                    if (!revErr && revData && revData.length > 0) {
+                    if (!revErr && revData) {
                         const formattedRev = revData.map(r => ({
                             id: r.id || generateFeedbackId(),
                             doctorId: r.doctor_id,
-                            doctor_id: r.doctor_id,
                             patientId: r.patient_id,
-                            patient_id: r.patient_id,
                             patientName: r.patient_name,
-                            patient_name: r.patient_name,
                             rating: r.rating || 5,
                             comment: r.comment,
                             experienceText: r.experience_text || r.comment,
-                            experience_text: r.experience_text || r.comment,
                             proofFileName: r.proof_file_name,
-                            proof_file_name: r.proof_file_name,
                             submittedDate: r.submitted_date,
-                            submitted_date: r.submitted_date,
                             status: r.status,
-                            adminNote: r.admin_note,
-                            admin_note: r.admin_note
+                            adminNote: r.admin_note
                         }));
-                        safeWrite('mr_reviews', formattedRev);
+                        // Merge remote reviews with local/demo reviews instead of overwriting
+                        // them, so existing dummy data remains available after Supabase setup.
+                        const mergedReviews = new Map();
+                        safeRead('mr_reviews', []).forEach(r => mergedReviews.set(String(r.id), r));
+                        formattedRev.forEach(r => mergedReviews.set(String(r.id), {
+                            ...(mergedReviews.get(String(r.id)) || {}), ...r
+                        }));
+                        safeWrite('mr_reviews', Array.from(mergedReviews.values()));
                     }
                 } catch (e) {}
             }
@@ -1450,19 +2379,19 @@
                 `;
             }).join('');
 
-            const approvedFeedbacks = safeRead('mr_reviews', []).filter(r => (r.doctorId === doc.id || r.doctor_id === doc.id) && r.status === 'APPROVED');
+            const approvedFeedbacks = safeRead('mr_reviews', []).filter(r => r.doctorId === doc.id && r.status === 'APPROVED');
             
             const feedbacksHtml = approvedFeedbacks.length > 0 ? approvedFeedbacks.map(fb => `
                 <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                         <div>
-                            <strong>${escapeHtml(fb.patientName || fb.patient_name)}</strong>
+                            <strong>${escapeHtml(fb.patientName)}</strong>
                             <code style="font-size:0.72rem; margin-left:6px; color:var(--text-muted);">Ref: ${escapeHtml(fb.id)}</code>
                         </div>
                         <span class="verify-tag tag-verified" style="font-size:0.72rem;"><i class="fa-solid fa-shield-check"></i> ★ ${escapeHtml(fb.rating || 5)} Verified</span>
                     </div>
-                    <p style="font-size:0.85rem; color:#334155; line-height:1.5; margin:0 0 6px;">"${escapeHtml(fb.experienceText || fb.experience_text || fb.comment)}"</p>
-                    <small style="color:var(--text-muted); font-size:0.72rem;">Consultation Date: ${escapeHtml(fb.submittedDate || fb.submitted_date)} • Receipt Proof: <code>${escapeHtml(fb.proofFileName || fb.proof_file_name || 'OPD_Bill.pdf')}</code></small>
+                    <p style="font-size:0.85rem; color:#334155; line-height:1.5; margin:0 0 6px;">"${escapeHtml(fb.experienceText || fb.comment)}"</p>
+                    <small style="color:var(--text-muted); font-size:0.72rem;">Consultation Date: ${escapeHtml(fb.submittedDate)} • Receipt Proof: <code>${escapeHtml(fb.proofFileName || 'OPD_Bill.pdf')}</code></small>
                 </div>
             `).join('') : `<div class="empty-placeholder" style="padding:20px; font-size:0.85rem;">No verified patient consultation stories posted yet.</div>`;
 
@@ -1587,19 +2516,13 @@
             const newFeedback = {
                 id: generatedFeedbackId,
                 doctorId: doctorId,
-                doctor_id: doctorId,
                 patientId: currentUser.id || currentUser.userId,
-                patient_id: currentUser.id || currentUser.userId,
                 patientName: currentUser.fullName || currentUser.full_name || "Patient",
-                patient_name: currentUser.fullName || currentUser.full_name || "Patient",
                 rating: ratingVal,
                 comment: text.substring(0, 100),
                 experienceText: text,
-                experience_text: text,
                 proofFileName: fileName,
-                proof_file_name: fileName,
                 submittedDate: todayStr,
-                submitted_date: todayStr,
                 status: "PENDING_APPROVAL",
                 adminNote: ""
             };
@@ -1622,8 +2545,7 @@
             }
 
             cont.innerHTML = reviews.map(r => {
-                const targetDocId = r.doctorId || r.doctor_id;
-                const doc = docs.find(d => d.id === targetDocId);
+                const doc = docs.find(d => d.id === r.doctorId);
                 const isPending = r.status === 'PENDING_APPROVAL';
                 const isApproved = r.status === 'APPROVED';
 
@@ -1632,12 +2554,12 @@
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
                             <div>
                                 <h4 style="margin:0; font-size:1rem; color:var(--text-dark);">
-                                    Patient: <strong>${escapeHtml(r.patientName || r.patient_name)}</strong> 
+                                    Patient: <strong>${escapeHtml(r.patientName)}</strong> 
                                     <span style="font-weight:400; color:var(--text-muted);">for</span> 
                                     ${escapeHtml(doc ? (doc.fullName || doc.full_name) : 'Doctor')}
                                     (${escapeHtml(r.rating || 5)} Stars)
                                 </h4>
-                                <small style="color:var(--text-muted);">Submitted: ${escapeHtml(r.submittedDate || r.submitted_date)} • ID: <code>${escapeHtml(r.id)}</code></small>
+                                <small style="color:var(--text-muted);">Submitted: ${escapeHtml(r.submittedDate)} • ID: <code>${escapeHtml(r.id)}</code></small>
                             </div>
                             <span class="verify-tag ${isApproved ? 'tag-verified' : (isPending ? 'tag-pending' : 'tag-rejected')}">
                                 ${escapeHtml(r.status)}
@@ -1646,17 +2568,17 @@
 
                         <div style="background:#f8fafc; border-left:4px solid var(--brand); padding:10px 14px; border-radius:6px; margin-bottom:12px;">
                             <strong style="font-size:0.8rem; color:var(--brand); display:block; margin-bottom:4px;">Patient's Written Experience:</strong>
-                            <p style="font-size:0.88rem; color:#334155; margin:0; line-height:1.5;">"${escapeHtml(r.experienceText || r.experience_text || r.comment)}"</p>
+                            <p style="font-size:0.88rem; color:#334155; margin:0; line-height:1.5;">"${escapeHtml(r.experienceText || r.comment)}"</p>
                         </div>
 
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px dashed var(--border); padding-top:10px;">
                             <div style="font-size:0.82rem; color:var(--text-dark);">
                                 <i class="fa-solid fa-file-invoice" style="color:var(--brand);"></i> 
-                                Attached Consultation Proof: <strong>${escapeHtml(r.proofFileName || r.proof_file_name || 'Receipt.pdf')}</strong>
+                                Attached Consultation Proof: <strong>${escapeHtml(r.proofFileName || 'Receipt.pdf')}</strong>
                             </div>
 
                             <div style="display:flex; gap:8px;">
-                                <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="showToast('Viewing receipt proof: ' + '${escapeHtml(r.proofFileName || r.proof_file_name)}')">
+                                <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="showToast('Viewing receipt proof: ' + '${escapeHtml(r.proofFileName)}')">
                                     <i class="fa-solid fa-eye"></i> View Proof
                                 </button>
                                 ${isPending ? `
@@ -1695,7 +2617,6 @@
             if (rev) {
                 rev.status = "APPROVED";
                 rev.adminNote = "Proof verified and cleared by council desk.";
-                rev.admin_note = "Proof verified and cleared by council desk.";
                 safeWrite('mr_reviews', reviews);
             }
 
@@ -1717,7 +2638,6 @@
             if (rev) {
                 rev.status = "REJECTED";
                 rev.adminNote = "Rejected during administrative compliance audit.";
-                rev.admin_note = "Rejected during administrative compliance audit.";
                 safeWrite('mr_reviews', reviews);
             }
 
@@ -2380,3 +3300,5 @@
             document.getElementById('confirm-modal').style.display = 'none';
         }
     </script>
+</body>
+</html>
