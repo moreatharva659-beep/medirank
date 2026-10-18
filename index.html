@@ -43,6 +43,17 @@
             display: flex; align-items: center; justify-content: center;
             z-index: 9999; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
+        /* While signed out, hide and disable every app surface behind the auth screen. */
+        body.auth-locked > :not(#auth-landing-screen) {
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        body.auth-locked { overflow: hidden; }
+        #auth-landing-screen { isolation: isolate; }
+        @media (max-width: 600px) {
+            #auth-landing-screen { align-items: flex-start; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); }
+            .auth-card { margin: auto 0; max-height: none; }
+        }
         .auth-card {
             background: white; width: 100%; max-width: 780px;
             border-radius: 20px; padding: 28px;
@@ -1365,6 +1376,7 @@
         function showAuthScreen() {
             currentUser = null;
             currentUserRole = null;
+            document.body.classList.add('auth-locked');
             document.getElementById('auth-landing-screen').style.display = 'flex';
             document.getElementById('login-email').value = '';
             document.getElementById('login-pass').value = '';
@@ -1527,6 +1539,7 @@
         }
 
         function unlockApp() {
+            document.body.classList.remove('auth-locked');
             document.getElementById('auth-landing-screen').style.display = 'none';
             document.getElementById('user-display-name').innerText = currentUser.fullName || currentUser.full_name || currentUser.email;
             document.getElementById('user-display-role').innerText = currentUserRole;
